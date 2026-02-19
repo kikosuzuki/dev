@@ -29,7 +29,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $monthlyBookings = Booking::selectRaw('strftime("%Y-%m", booking_date) as month, COUNT(*) as count, SUM(amount) as revenue')
+        $monthlyBookings = Booking::selectRaw('DATE_FORMAT(booking_date, "%Y-%m") as month, COUNT(*) as count, SUM(amount) as revenue')
             ->whereIn('status', ['approved', 'completed'])
             ->groupBy('month')
             ->orderByDesc('month')
