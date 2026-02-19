@@ -71,7 +71,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">今月の予約数</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ number_format($stats['monthly_bookings']) }}</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ number_format($stats['this_month_bookings']) }}</p>
                 </div>
             </div>
         </div>
@@ -85,7 +85,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-500">今月の売上</p>
-                    <p class="text-2xl font-semibold text-gray-900">&yen;{{ number_format($stats['monthly_revenue']) }}</p>
+                    <p class="text-2xl font-semibold text-gray-900">&yen;{{ number_format($stats['this_month_revenue']) }}</p>
                 </div>
             </div>
         </div>
