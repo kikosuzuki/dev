@@ -257,6 +257,7 @@
                         <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">個別相談（ゲスト予約）設定</h3>
 
                         <div class="space-y-6">
+                            <p style="color:red;font-weight:bold;">DEBUG: この行が見えていますか？</p>
                             {{-- Guest Schedule Disclosure Days --}}
                             <div>
                                 <label for="guest_schedule_disclosure_days" class="block text-sm font-medium text-gray-700 mb-1">
