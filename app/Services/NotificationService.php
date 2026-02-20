@@ -71,30 +71,41 @@ class NotificationService
     {
         $user = $booking->user;
         $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
 
+        $minutesBefore = (int) SystemSetting::get('reminder_minutes_before', 10);
         $typeLabel = match ($type) {
             'reminder_day_before' => '明日',
             'reminder_day_of' => '本日',
-            'reminder_10min' => '10分後',
+            'reminder_before_start' => "{$minutesBefore}分後",
             default => '',
         };
+
+        // Determine meeting URL: booking > consultant profile
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
+
+        // Determine custom message: consultant profile > system default > built-in
+        $customMessage = $consultantProfile?->reminder_message
+            ?: SystemSetting::get('default_reminder_message')
+            ?: 'お忘れなくご参加ください。';
 
         $subject = "【リマインド】{$typeLabel}のコンサルティング予約";
         $content = "{$user->name}様\n\n"
             . "{$typeLabel}、コンサルティングの予約があります。\n\n"
             . "■ コンサルタント: {$consultant->name}\n"
             . "■ 日時: {$date} {$time}\n"
-            . ($booking->meeting_url ? "■ ミーティングURL: {$booking->meeting_url}\n" : '')
-            . "\nお忘れなくご参加ください。";
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
+            . "\n{$customMessage}";
 
         $this->send($user, $booking, $type, $subject, $content);
 
         // Also remind consultant
         $consultantContent = "{$consultant->name}様\n\n"
             . "{$typeLabel}、{$user->name}様とのコンサルティングがあります。\n\n"
-            . "■ 日時: {$date} {$time}\n";
+            . "■ 日時: {$date} {$time}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
     }

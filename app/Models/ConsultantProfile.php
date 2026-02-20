@@ -16,6 +16,8 @@ class ConsultantProfile extends Model
         'qualifications',
         'languages',
         'auto_approve',
+        'meeting_url',
+        'reminder_message',
         'is_featured',
         'average_rating',
         'total_reviews',

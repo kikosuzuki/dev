@@ -94,6 +94,85 @@
                         </div>
                     </div>
 
+                    {{-- Reminder Settings Section --}}
+                    <div class="mb-8">
+                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">リマインダー設定</h3>
+
+                        <div class="space-y-6">
+                            {{-- Reminder Enabled --}}
+                            <div x-data="{ reminderEnabled: {{ (optional($settings['reminder_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }} }">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">リマインダー機能</label>
+                                <div class="flex items-center">
+                                    <button type="button"
+                                            @click="reminderEnabled = !reminderEnabled"
+                                            :class="reminderEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                            role="switch">
+                                        <span :class="reminderEnabled ? 'translate-x-5' : 'translate-x-0'"
+                                              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                    <input type="hidden" name="reminder_enabled" :value="reminderEnabled ? '1' : '0'">
+                                    <span class="ml-3 text-sm" :class="reminderEnabled ? 'text-green-600 font-medium' : 'text-gray-500'" x-text="reminderEnabled ? '有効' : '無効'"></span>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">無効にするとすべてのリマインド通知が停止されます。</p>
+                            </div>
+
+                            {{-- Day-Before Reminder Hour --}}
+                            <div>
+                                <label for="reminder_day_before_hour" class="block text-sm font-medium text-gray-700 mb-1">
+                                    前日リマインド送信時刻
+                                </label>
+                                <select name="reminder_day_before_hour" id="reminder_day_before_hour"
+                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    @for($h = 8; $h <= 21; $h++)
+                                        <option value="{{ $h }}" {{ (int)(optional($settings['reminder_day_before_hour'] ?? null)->value ?? 18) === $h ? 'selected' : '' }}>{{ sprintf('%02d:00', $h) }}</option>
+                                    @endfor
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">予約前日のリマインドを送信する時刻です。</p>
+                            </div>
+
+                            {{-- Day-Of Reminder Hour --}}
+                            <div>
+                                <label for="reminder_day_of_hour" class="block text-sm font-medium text-gray-700 mb-1">
+                                    当日リマインド送信時刻
+                                </label>
+                                <select name="reminder_day_of_hour" id="reminder_day_of_hour"
+                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    @for($h = 6; $h <= 12; $h++)
+                                        <option value="{{ $h }}" {{ (int)(optional($settings['reminder_day_of_hour'] ?? null)->value ?? 8) === $h ? 'selected' : '' }}>{{ sprintf('%02d:00', $h) }}</option>
+                                    @endfor
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">予約当日朝のリマインドを送信する時刻です。</p>
+                            </div>
+
+                            {{-- Minutes Before Reminder --}}
+                            <div>
+                                <label for="reminder_minutes_before" class="block text-sm font-medium text-gray-700 mb-1">
+                                    開始前リマインド（分前）
+                                </label>
+                                <select name="reminder_minutes_before" id="reminder_minutes_before"
+                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <option value="5" {{ (int)(optional($settings['reminder_minutes_before'] ?? null)->value ?? 10) === 5 ? 'selected' : '' }}>5分前</option>
+                                    <option value="10" {{ (int)(optional($settings['reminder_minutes_before'] ?? null)->value ?? 10) === 10 ? 'selected' : '' }}>10分前</option>
+                                    <option value="15" {{ (int)(optional($settings['reminder_minutes_before'] ?? null)->value ?? 10) === 15 ? 'selected' : '' }}>15分前</option>
+                                    <option value="30" {{ (int)(optional($settings['reminder_minutes_before'] ?? null)->value ?? 10) === 30 ? 'selected' : '' }}>30分前</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">予約開始の何分前にリマインドを送信するかを設定します。</p>
+                            </div>
+
+                            {{-- Default Reminder Message --}}
+                            <div>
+                                <label for="default_reminder_message" class="block text-sm font-medium text-gray-700 mb-1">
+                                    デフォルトリマインドメッセージ
+                                </label>
+                                <textarea name="default_reminder_message" id="default_reminder_message" rows="3"
+                                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                          placeholder="お忘れなくご参加ください。">{{ old('default_reminder_message', optional($settings['default_reminder_message'] ?? null)->value ?? '') }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">コンサルタントが個別メッセージを設定していない場合に使用されます。空欄時はシステムデフォルトが使用されます。</p>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- LINE Settings Section --}}
                     <div class="mb-8">
                         <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">LINE連携設定</h3>

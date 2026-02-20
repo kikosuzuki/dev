@@ -109,6 +109,27 @@
                 </div>
             </div>
 
+            {{-- Meeting & Reminder Settings --}}
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">ミーティング・リマインド設定</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="meeting_url" class="block text-sm font-medium text-gray-700 mb-1">ミーティングURL（Zoom等）</label>
+                        <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $profile->meeting_url ?? '') }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="https://zoom.us/j/1234567890">
+                        <p class="mt-1 text-xs text-gray-500">リマインド通知に含まれるミーティングリンクです。Zoom、Google Meet等のURLを入力してください。</p>
+                    </div>
+                    <div>
+                        <label for="reminder_message" class="block text-sm font-medium text-gray-700 mb-1">カスタムリマインドメッセージ</label>
+                        <textarea id="reminder_message" name="reminder_message" rows="4"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="リマインド通知に追加したいメッセージを入力してください（例: 事前にZoomアプリの更新をお願いします）">{{ old('reminder_message', $profile->reminder_message ?? '') }}</textarea>
+                        <p class="mt-1 text-xs text-gray-500">空欄の場合はシステムのデフォルトメッセージが使用されます。</p>
+                    </div>
+                </div>
+            </div>
+
             {{-- Settings --}}
             <div class="p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">設定</h2>
