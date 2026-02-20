@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', '個別相談予約')</title>
+    <title>@yield('title', 'YCS個別相談')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak] { display: none !important; }</style>
@@ -17,7 +17,7 @@
                 <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span class="text-lg font-bold text-gray-800">個別相談予約</span>
+                <span class="text-lg font-bold text-gray-800">YCS個別相談</span>
             </a>
         </div>
     </header>
@@ -49,7 +49,7 @@
     {{-- Footer --}}
     <footer class="border-t border-gray-200 bg-white mt-auto">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-gray-500">
-            &copy; {{ date('Y') }} 個別相談予約システム
+            &copy; {{ date('Y') }} YCS個別相談
         </div>
     </footer>
 </body>

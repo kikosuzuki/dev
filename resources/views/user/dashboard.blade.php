@@ -5,7 +5,7 @@
     {{-- ウェルカムメッセージ --}}
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900">ようこそ、{{ auth()->user()->name }}さん</h1>
-        <p class="mt-1 text-gray-600">コンサルタント予約システムへようこそ。スケジュールを確認して予約を始めましょう。</p>
+        <p class="mt-1 text-gray-600">YCSコンサルタント予約システムへようこそ。スケジュールを確認して予約を始めましょう。</p>
     </div>
 
     {{-- ナビゲーションリンク --}}
