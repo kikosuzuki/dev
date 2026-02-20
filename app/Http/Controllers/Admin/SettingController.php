@@ -36,6 +36,8 @@ class SettingController extends Controller
             'line_channel_secret' => ['nullable', 'string'],
             'chatwork_api_token' => ['nullable', 'string'],
             'google_calendar_enabled' => ['boolean'],
+            'guest_booking_confirmation_message' => ['nullable', 'string', 'max:2000'],
+            'guest_reminder_message' => ['nullable', 'string', 'max:2000'],
         ]);
 
         foreach ($validated as $key => $value) {

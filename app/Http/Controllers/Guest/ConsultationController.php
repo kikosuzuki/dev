@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Http\Controllers\Guest;
+
+use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\Booking;
+use App\Models\ConsultantSchedule;
+use App\Models\SystemSetting;
+use App\Services\NotificationService;
+use Illuminate\Http\Request;
+
+class ConsultationController extends Controller
+{
+    public function index(Request $request)
+    {
+        $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
+        $maxDate = now()->addDays($disclosureDays)->toDateString();
+
+        $query = ConsultantSchedule::where('is_available', true)
+            ->where('date', '>=', now()->toDateString())
+            ->where('date', '<=', $maxDate)
+            ->whereDoesntHave('bookings', function ($q) {
+                $q->whereIn('status', ['pending', 'approved']);
+            });
+
+        if ($request->filled('date_from')) {
+            $query->where('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->where('date', '<=', $request->date_to);
+        }
+
+        $schedules = $query->orderBy('date')
+            ->orderBy('start_time')
+            ->paginate(30);
+
+        return view('guest.consultation.index', compact('schedules'));
+    }
+
+    public function create(ConsultantSchedule $schedule)
+    {
+        if (!$schedule->is_available || $schedule->isBooked()) {
+            return back()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        return view('guest.consultation.create', compact('schedule'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'schedule_id' => ['required', 'exists:consultant_schedules,id'],
+            'guest_name' => ['required', 'string', 'max:255'],
+            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_phone' => ['required', 'string', 'max:20'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $schedule = ConsultantSchedule::findOrFail($validated['schedule_id']);
+
+        if (!$schedule->is_available || $schedule->isBooked()) {
+            return back()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        $booking = Booking::create([
+            'user_id' => null,
+            'consultant_id' => $schedule->user_id,
+            'schedule_id' => $schedule->id,
+            'booking_date' => $schedule->date,
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+            'status' => 'pending',
+            'notes' => $validated['notes'] ?? null,
+            'amount' => 0,
+            'is_guest' => true,
+            'guest_name' => $validated['guest_name'],
+            'guest_email' => $validated['guest_email'],
+            'guest_phone' => $validated['guest_phone'],
+        ]);
+
+        AuditLog::log('guest_booking_created', $booking);
+
+        $notificationService = app(NotificationService::class);
+        $notificationService->sendGuestBookingConfirmation($booking);
+
+        return redirect()->route('consultation.complete', $booking)->with('success', '個別相談の予約を受け付けました。');
+    }
+
+    public function complete(Booking $booking)
+    {
+        if (!$booking->isGuest()) {
+            abort(404);
+        }
+
+        return view('guest.consultation.complete', compact('booking'));
+    }
+}

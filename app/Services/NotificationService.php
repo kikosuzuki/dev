@@ -67,8 +67,88 @@ class NotificationService
         $this->send($user, $booking, 'booking_rejected', $subject, $content);
     }
 
+    public function sendGuestBookingConfirmation(Booking $booking): void
+    {
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+
+        $customMessage = SystemSetting::get('guest_booking_confirmation_message', '');
+
+        $subject = '【予約受付】個別相談のご予約を承りました';
+        $content = "{$booking->guest_name}様\n\n"
+            . "個別相談のご予約を受け付けました。\n"
+            . "担当者が確認後、改めてご連絡いたします。\n\n"
+            . "■ 日時: {$date} {$time}\n"
+            . "■ ステータス: 確認待ち\n";
+
+        if ($customMessage) {
+            $content .= "\n{$customMessage}\n";
+        }
+
+        $content .= "\nよろしくお願いいたします。";
+
+        $this->sendGuestEmail($booking, $subject, $content);
+
+        // Also notify consultant
+        $consultant = $booking->consultant;
+        $consultantContent = "{$consultant->name}様\n\n"
+            . "個別相談の新しい予約が入りました。\n\n"
+            . "■ お客様名: {$booking->guest_name}\n"
+            . "■ メール: {$booking->guest_email}\n"
+            . "■ 電話番号: {$booking->guest_phone}\n"
+            . "■ 日時: {$date} {$time}\n"
+            . ($booking->notes ? "■ 相談内容: {$booking->notes}\n" : '');
+
+        $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
+    }
+
+    public function sendGuestReminder(Booking $booking, string $type): void
+    {
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+
+        $minutesBefore = (int) SystemSetting::get('reminder_minutes_before', 10);
+        $typeLabel = match ($type) {
+            'reminder_day_before' => '明日',
+            'reminder_day_of' => '本日',
+            'reminder_before_start' => "{$minutesBefore}分後",
+            default => '',
+        };
+
+        $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
+
+        $customMessage = SystemSetting::get('guest_reminder_message')
+            ?: 'お忘れなくご参加ください。';
+
+        $subject = "【リマインド】{$typeLabel}の個別相談のご予約";
+        $content = "{$booking->guest_name}様\n\n"
+            . "{$typeLabel}、個別相談のご予約があります。\n\n"
+            . "■ 日時: {$date} {$time}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
+            . "\n{$customMessage}";
+
+        $this->sendGuestEmail($booking, $subject, $content);
+
+        // Also remind consultant
+        $consultantContent = "{$consultant->name}様\n\n"
+            . "{$typeLabel}、{$booking->guest_name}様（個別相談）との予約があります。\n\n"
+            . "■ 日時: {$date} {$time}\n"
+            . "■ 電話番号: {$booking->guest_phone}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
+
+        $this->send($consultant, $booking, $type, $subject, $consultantContent);
+    }
+
     public function sendReminder(Booking $booking, string $type): void
     {
+        // Dispatch to guest reminder if this is a guest booking
+        if ($booking->isGuest()) {
+            $this->sendGuestReminder($booking, $type);
+            return;
+        }
+
         $user = $booking->user;
         $consultant = $booking->consultant;
         $consultantProfile = $consultant->consultantProfile;
@@ -151,6 +231,37 @@ class NotificationService
                 'booking_id' => $booking->id,
                 'channel' => 'email',
                 'type' => $type,
+                'subject' => $subject,
+                'content' => $content,
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function sendGuestEmail(Booking $booking, string $subject, string $content): void
+    {
+        try {
+            Mail::raw($content, function ($message) use ($booking, $subject) {
+                $message->to($booking->guest_email)
+                    ->subject($subject);
+            });
+
+            NotificationLog::create([
+                'user_id' => null,
+                'booking_id' => $booking->id,
+                'channel' => 'email',
+                'type' => 'booking_confirmed',
+                'subject' => $subject,
+                'content' => $content,
+                'status' => 'sent',
+            ]);
+        } catch (\Exception $e) {
+            NotificationLog::create([
+                'user_id' => null,
+                'booking_id' => $booking->id,
+                'channel' => 'email',
+                'type' => 'booking_confirmed',
                 'subject' => $subject,
                 'content' => $content,
                 'status' => 'failed',

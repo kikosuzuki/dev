@@ -76,8 +76,18 @@
                         @foreach($bookings as $booking)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $booking->user->name }}</div>
-                                    <div class="text-sm text-gray-500">{{ $booking->user->email }}</div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="text-sm font-medium text-gray-900">{{ $booking->bookerName() }}</div>
+                                        @if($booking->isGuest())
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                        @endif
+                                    </div>
+                                    @if($booking->isGuest())
+                                        <div class="text-sm text-gray-500">{{ $booking->guest_email }}</div>
+                                        <div class="text-sm text-gray-500">{{ $booking->guest_phone }}</div>
+                                    @else
+                                        <div class="text-sm text-gray-500">{{ $booking->user->email }}</div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ $booking->booking_date->format('Y/m/d') }}

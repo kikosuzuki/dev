@@ -21,10 +21,19 @@ use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\ChatworkController as AdminChatworkController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Guest\ConsultationController;
 
 // Public routes
 Route::get('/', function () {
     return redirect()->route('login');
+});
+
+// Guest consultation routes (no auth required)
+Route::prefix('consultation')->name('consultation.')->group(function () {
+    Route::get('/', [ConsultationController::class, 'index'])->name('index');
+    Route::get('/book/{schedule}', [ConsultationController::class, 'create'])->name('create');
+    Route::post('/book', [ConsultationController::class, 'store'])->name('store');
+    Route::get('/complete/{booking}', [ConsultationController::class, 'complete'])->name('complete');
 });
 
 // Auth routes

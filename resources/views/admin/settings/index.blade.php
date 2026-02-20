@@ -252,6 +252,35 @@
                         </div>
                     </div>
 
+                    {{-- Guest Consultation Settings Section --}}
+                    <div class="mb-8">
+                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">個別相談（ゲスト予約）設定</h3>
+
+                        <div class="space-y-6">
+                            {{-- Guest Booking Confirmation Message --}}
+                            <div>
+                                <label for="guest_booking_confirmation_message" class="block text-sm font-medium text-gray-700 mb-1">
+                                    個別相談 予約確認メッセージ
+                                </label>
+                                <textarea name="guest_booking_confirmation_message" id="guest_booking_confirmation_message" rows="3"
+                                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                          placeholder="予約確認メールに追加するメッセージを入力してください。">{{ old('guest_booking_confirmation_message', optional($settings['guest_booking_confirmation_message'] ?? null)->value ?? '') }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">個別相談客への予約受付メールに追記されるメッセージです。空欄時はデフォルトの文面のみ送信されます。</p>
+                            </div>
+
+                            {{-- Guest Reminder Message --}}
+                            <div>
+                                <label for="guest_reminder_message" class="block text-sm font-medium text-gray-700 mb-1">
+                                    個別相談 リマインドメッセージ
+                                </label>
+                                <textarea name="guest_reminder_message" id="guest_reminder_message" rows="3"
+                                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                          placeholder="お忘れなくご参加ください。">{{ old('guest_reminder_message', optional($settings['guest_reminder_message'] ?? null)->value ?? '') }}</textarea>
+                                <p class="mt-1 text-xs text-gray-500">個別相談客へのリマインドメールに表示されるメッセージです。空欄時は「お忘れなくご参加ください。」が使用されます。</p>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Submit Button --}}
                     <div class="flex items-center justify-end pt-4 border-t border-gray-200">
                         <button type="submit" class="inline-flex items-center px-6 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">

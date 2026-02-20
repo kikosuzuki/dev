@@ -34,6 +34,14 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">予約種別</label>
+                    <select name="booking_type" class="rounded-md border-gray-300 shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" style="padding: 0.5rem 2rem 0.5rem 0.75rem;">
+                        <option value="all" {{ $booking_type == 'all' ? 'selected' : '' }}>全て</option>
+                        <option value="member" {{ $booking_type == 'member' ? 'selected' : '' }}>会員</option>
+                        <option value="guest" {{ $booking_type == 'guest' ? 'selected' : '' }}>個別相談客</option>
+                    </select>
+                </div>
+                <div>
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         絞り込み
@@ -59,7 +67,8 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ユーザー</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種別</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">コンサルタント</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約日</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
@@ -70,7 +79,22 @@
                     @forelse($bookings as $booking)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ $booking->id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->user->name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($booking->isGuest())
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">会員</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <div>{{ $booking->bookerName() }}</div>
+                                @if($booking->isGuest())
+                                    <div class="text-xs text-gray-500">{{ $booking->guest_email }}</div>
+                                    <div class="text-xs text-gray-500">{{ $booking->guest_phone }}</div>
+                                @else
+                                    <div class="text-xs text-gray-500">{{ $booking->user->email ?? '' }}</div>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->consultant->name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
@@ -84,7 +108,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
+                            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
                         </tr>
                     @endforelse
                 </tbody>

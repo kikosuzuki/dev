@@ -19,6 +19,10 @@ class Booking extends Model
         'google_event_id',
         'meeting_url',
         'amount',
+        'is_guest',
+        'guest_name',
+        'guest_email',
+        'guest_phone',
         'reminder_day_before_sent',
         'reminder_day_of_sent',
         'reminder_10min_sent',
@@ -28,6 +32,7 @@ class Booking extends Model
     {
         return [
             'booking_date' => 'date',
+            'is_guest' => 'boolean',
             'reminder_day_before_sent' => 'boolean',
             'reminder_day_of_sent' => 'boolean',
             'reminder_10min_sent' => 'boolean',
@@ -67,5 +72,20 @@ class Booking extends Model
     public function isApproved(): bool
     {
         return $this->status === 'approved';
+    }
+
+    public function isGuest(): bool
+    {
+        return (bool) $this->is_guest;
+    }
+
+    public function bookerName(): string
+    {
+        return $this->is_guest ? $this->guest_name : ($this->user->name ?? '不明');
+    }
+
+    public function bookerEmail(): string
+    {
+        return $this->is_guest ? $this->guest_email : ($this->user->email ?? '');
     }
 }

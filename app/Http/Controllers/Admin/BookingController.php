@@ -14,6 +14,7 @@ class BookingController extends Controller
         $period = $request->get('period', '1month');
         $consultant_id = $request->get('consultant_id');
         $status = $request->get('status');
+        $booking_type = $request->get('booking_type', 'all');
 
         $now = now();
         $endDate = match ($period) {
@@ -45,6 +46,13 @@ class BookingController extends Controller
             $query->where('status', $status);
         }
 
+        // Filter by booking type (member / guest)
+        if ($booking_type === 'member') {
+            $query->where('is_guest', false);
+        } elseif ($booking_type === 'guest') {
+            $query->where('is_guest', true);
+        }
+
         $bookings = $query->orderBy('booking_date')
             ->orderBy('start_time')
             ->paginate(20)
@@ -66,6 +74,6 @@ class BookingController extends Controller
             'all' => '全期間',
         ];
 
-        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status'));
+        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type'));
     }
 }
