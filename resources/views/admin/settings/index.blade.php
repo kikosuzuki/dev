@@ -257,6 +257,21 @@
                         <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">個別相談（ゲスト予約）設定</h3>
 
                         <div class="space-y-6">
+                            {{-- Guest Schedule Disclosure Days --}}
+                            <div>
+                                <label for="guest_schedule_disclosure_days" class="block text-sm font-medium text-gray-700 mb-1">
+                                    予約枠の公開期間（日数）
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" name="guest_schedule_disclosure_days" id="guest_schedule_disclosure_days"
+                                           value="{{ old('guest_schedule_disclosure_days', optional($settings['guest_schedule_disclosure_days'] ?? null)->value ?? '30') }}"
+                                           min="1" max="365"
+                                           class="w-28 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    <span class="text-sm text-gray-500">日先まで表示</span>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">個別相談ページで何日先の予約枠まで表示するかを設定します。会員向けの設定とは独立しています。</p>
+                            </div>
+
                             {{-- Guest Booking Confirmation Message --}}
                             <div>
                                 <label for="guest_booking_confirmation_message" class="block text-sm font-medium text-gray-700 mb-1">

@@ -14,7 +14,7 @@ class ConsultationController extends Controller
 {
     public function index(Request $request)
     {
-        $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
+        $disclosureDays = (int) SystemSetting::get('guest_schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
 
         $query = ConsultantSchedule::where('is_available', true)
@@ -32,11 +32,25 @@ class ConsultationController extends Controller
             $query->where('date', '<=', $request->date_to);
         }
 
-        $schedules = $query->orderBy('date')
+        $view = $request->get('view', 'list');
+
+        // List view: paginated
+        $schedules = (clone $query)->orderBy('date')
             ->orderBy('start_time')
             ->paginate(30);
 
-        return view('guest.consultation.index', compact('schedules'));
+        // Calendar view: grouped by date
+        $year = (int) $request->get('year', now()->year);
+        $month = (int) $request->get('month', now()->month);
+        $calendarSchedules = (clone $query)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get()
+            ->groupBy(fn ($s) => $s->date->format('Y-m-d'));
+
+        return view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month'));
     }
 
     public function create(ConsultantSchedule $schedule)

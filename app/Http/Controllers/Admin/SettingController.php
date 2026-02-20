@@ -36,6 +36,7 @@ class SettingController extends Controller
             'line_channel_secret' => ['nullable', 'string'],
             'chatwork_api_token' => ['nullable', 'string'],
             'google_calendar_enabled' => ['boolean'],
+            'guest_schedule_disclosure_days' => ['required', 'integer', 'min:1', 'max:365'],
             'guest_booking_confirmation_message' => ['nullable', 'string', 'max:2000'],
             'guest_reminder_message' => ['nullable', 'string', 'max:2000'],
         ]);
