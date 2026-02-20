@@ -21,7 +21,8 @@ class ScheduleBrowseController extends Controller
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
-            });
+            })
+            ->withinDailyLimit();
 
         if ($request->filled('consultant')) {
             $query->where('user_id', $request->consultant);

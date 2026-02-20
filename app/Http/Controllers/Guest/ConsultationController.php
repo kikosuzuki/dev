@@ -22,7 +22,8 @@ class ConsultationController extends Controller
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
-            });
+            })
+            ->withinDailyLimit();
 
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->date_from);

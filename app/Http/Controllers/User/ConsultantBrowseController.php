@@ -87,6 +87,7 @@ class ConsultantBrowseController extends Controller
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })
+            ->withinDailyLimit()
             ->orderBy('date')
             ->orderBy('start_time')
             ->limit(20)
