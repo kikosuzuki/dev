@@ -260,11 +260,14 @@
                             {{-- Guest Schedule Disclosure Days --}}
                             <div>
                                 <label for="guest_schedule_disclosure_days" class="block text-sm font-medium text-gray-700 mb-1">
-                                    予約枠の公開期間（日数）
+                                    ゲスト予約枠の公開期間（日数）
                                 </label>
+                                @php
+                                    $guestDisclosureValue = isset($settings['guest_schedule_disclosure_days']) ? $settings['guest_schedule_disclosure_days']->value : '30';
+                                @endphp
                                 <div class="flex items-center space-x-2">
                                     <input type="number" name="guest_schedule_disclosure_days" id="guest_schedule_disclosure_days"
-                                           value="{{ old('guest_schedule_disclosure_days', optional($settings['guest_schedule_disclosure_days'] ?? null)->value ?? '30') }}"
+                                           value="{{ old('guest_schedule_disclosure_days', $guestDisclosureValue) }}"
                                            min="1" max="365"
                                            class="w-28 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                                     <span class="text-sm text-gray-500">日先まで表示</span>
