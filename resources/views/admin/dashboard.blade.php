@@ -109,8 +109,11 @@
 
     {{-- Recent Bookings --}}
     <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">最近の予約</h2>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                全{{ $recentBookings->total() }}件
+            </span>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -157,6 +160,11 @@
                 </tbody>
             </table>
         </div>
+        @if($recentBookings->hasPages())
+            <div class="px-6 py-4 border-t border-gray-200">
+                {{ $recentBookings->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -26,8 +26,7 @@ class DashboardController extends Controller
 
         $recentBookings = Booking::with(['user', 'consultant'])
             ->orderByDesc('created_at')
-            ->limit(10)
-            ->get();
+            ->paginate(10);
 
         $monthlyBookings = Booking::selectRaw('DATE_FORMAT(booking_date, "%Y-%m") as month, COUNT(*) as count, SUM(amount) as revenue')
             ->whereIn('status', ['approved', 'completed'])
