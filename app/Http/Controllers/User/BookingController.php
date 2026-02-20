@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\ConsultantSchedule;
+use App\Models\SystemSetting;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -51,6 +52,16 @@ class BookingController extends Controller
 
         if (!$schedule->is_available || $schedule->isBooked()) {
             return back()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
+        $dailyCount = Booking::where('consultant_id', $schedule->user_id)
+            ->where('booking_date', $schedule->date)
+            ->whereIn('status', ['pending', 'approved'])
+            ->count();
+
+        if ($dailyCount >= $maxPerDay) {
+            return back()->with('error', 'このコンサルタントの本日の予約枠は上限に達しています。');
         }
 
         $consultant = $schedule->consultant;

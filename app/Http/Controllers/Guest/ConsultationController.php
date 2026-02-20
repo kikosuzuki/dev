@@ -78,6 +78,16 @@ class ConsultationController extends Controller
             return back()->with('error', 'この時間枠は既に予約済みです。');
         }
 
+        $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
+        $dailyCount = Booking::where('consultant_id', $schedule->user_id)
+            ->where('booking_date', $schedule->date)
+            ->whereIn('status', ['pending', 'approved'])
+            ->count();
+
+        if ($dailyCount >= $maxPerDay) {
+            return back()->with('error', 'このコンサルタントの予約枠は上限に達しています。別の日時をお選びください。');
+        }
+
         $booking = Booking::create([
             'user_id' => null,
             'consultant_id' => $schedule->user_id,
