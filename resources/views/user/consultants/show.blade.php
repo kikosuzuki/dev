@@ -118,11 +118,7 @@
                     </div>
 
                     {{-- Details Grid --}}
-                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="text-sm text-gray-500">料金</p>
-                            <p class="text-xl font-bold text-gray-900">&yen;{{ number_format($consultant->consultantProfile->hourly_rate) }}<span class="text-sm font-normal text-gray-500">/時間</span></p>
-                        </div>
+                    <div class="mt-6">
                         <div class="bg-gray-50 rounded-lg p-4">
                             <p class="text-sm text-gray-500">経験年数</p>
                             <p class="text-xl font-bold text-gray-900">{{ $consultant->consultantProfile->experience_years }}<span class="text-sm font-normal text-gray-500">年</span></p>

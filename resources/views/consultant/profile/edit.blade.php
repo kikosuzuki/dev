@@ -84,12 +84,6 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label for="hourly_rate" class="block text-sm font-medium text-gray-700 mb-1">時間単価（円）</label>
-                            <input type="number" id="hourly_rate" name="hourly_rate" value="{{ old('hourly_rate', $profile->hourly_rate ?? '') }}" min="0" step="100"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="5000">
-                        </div>
-                        <div>
                             <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-1">経験年数</label>
                             <input type="number" id="experience_years" name="experience_years" value="{{ old('experience_years', $profile->experience_years ?? '') }}" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"

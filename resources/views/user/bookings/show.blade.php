@@ -76,10 +76,6 @@
                 <dd class="mt-1 text-base font-semibold text-gray-900">{{ \Illuminate\Support\Str::substr($booking->start_time, 0, 5) }} - {{ \Illuminate\Support\Str::substr($booking->end_time, 0, 5) }}</dd>
             </div>
             <div class="bg-gray-50 rounded-lg p-4">
-                <dt class="text-sm font-medium text-gray-500">金額</dt>
-                <dd class="mt-1 text-base font-semibold text-indigo-600">&yen;{{ number_format($booking->amount) }}</dd>
-            </div>
-            <div class="bg-gray-50 rounded-lg p-4">
                 <dt class="text-sm font-medium text-gray-500">予約ID</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">#{{ $booking->id }}</dd>
             </div>

@@ -46,8 +46,6 @@
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                 >
                     <option value="rating" {{ $sort === 'rating' ? 'selected' : '' }}>評価順</option>
-                    <option value="price_low" {{ $sort === 'price_low' ? 'selected' : '' }}>料金（安い順）</option>
-                    <option value="price_high" {{ $sort === 'price_high' ? 'selected' : '' }}>料金（高い順）</option>
                     <option value="reviews" {{ $sort === 'reviews' ? 'selected' : '' }}>レビュー数順</option>
                 </select>
             </div>
@@ -126,13 +124,6 @@
 
                             {{-- Details --}}
                             <div class="space-y-2 mb-4">
-                                <div class="flex items-center text-sm text-gray-600">
-                                    <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <span class="font-semibold text-gray-900">&yen;{{ number_format($consultant->consultantProfile->hourly_rate) }}</span>
-                                    <span class="ml-1 text-gray-500">/時間</span>
-                                </div>
                                 <div class="flex items-center text-sm text-gray-600">
                                     <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>

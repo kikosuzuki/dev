@@ -59,10 +59,6 @@
                 <dd class="mt-1 text-base font-semibold text-gray-900">{{ \Illuminate\Support\Str::substr($schedule->start_time, 0, 5) }} - {{ \Illuminate\Support\Str::substr($schedule->end_time, 0, 5) }}</dd>
             </div>
             @if ($schedule->consultant->consultantProfile)
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <dt class="text-sm font-medium text-gray-500">料金（1時間あたり）</dt>
-                    <dd class="mt-1 text-base font-semibold text-indigo-600">&yen;{{ number_format($schedule->consultant->consultantProfile->hourly_rate) }}</dd>
-                </div>
                 @if ($schedule->consultant->consultantProfile->average_rating > 0)
                     <div class="bg-gray-50 rounded-lg p-4">
                         <dt class="text-sm font-medium text-gray-500">評価</dt>
