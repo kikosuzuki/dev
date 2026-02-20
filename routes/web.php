@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\User\BookingController;
 use App\Http\Controllers\User\ConsultantBrowseController;
+use App\Http\Controllers\User\ScheduleBrowseController;
 use App\Http\Controllers\User\FavoriteController;
 use App\Http\Controllers\User\ReviewController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Consultant\ProfileController as ConsultantProfileContro
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\ConsultantStatsController;
+use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\SettingController;
 
 // Public routes
@@ -35,6 +37,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 // User routes
 Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
+
+    // Available schedules
+    Route::get('/schedules', [ScheduleBrowseController::class, 'index'])->name('schedules.index');
 
     // Consultant browsing
     Route::get('/consultants', [ConsultantBrowseController::class, 'index'])->name('consultants.index');
@@ -93,6 +98,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users/{user}/edit', [UserManageController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/toggle-active', [UserManageController::class, 'toggleActive'])->name('users.toggle-active');
+
+    // Available schedules
+    Route::get('/schedules', [AdminScheduleController::class, 'index'])->name('schedules.index');
 
     // Consultant stats
     Route::get('/stats', [ConsultantStatsController::class, 'index'])->name('stats.index');
