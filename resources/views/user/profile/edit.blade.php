@@ -104,6 +104,43 @@
                     @enderror
                 </div>
 
+                {{-- Chatwork Settings --}}
+                <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork ID</label>
+                            <input
+                                type="text"
+                                id="chatwork_id"
+                                name="chatwork_id"
+                                value="{{ old('chatwork_id', $user->chatwork_id) }}"
+                                placeholder="例: 1234567"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_id') border-red-300 @enderror"
+                            >
+                            <p class="mt-1 text-xs text-gray-500">ChatworkのアカウントIDを入力してください。</p>
+                            @error('chatwork_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
+                            <label for="chatwork_room_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork Room ID</label>
+                            <input
+                                type="text"
+                                id="chatwork_room_id"
+                                name="chatwork_room_id"
+                                value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
+                                placeholder="例: 123456789"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_room_id') border-red-300 @enderror"
+                            >
+                            <p class="mt-1 text-xs text-gray-500">通知を受け取るルームのIDを入力してください。</p>
+                            @error('chatwork_room_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Notification Channel --}}
                 <div>
                     <label for="notification_channel" class="block text-sm font-medium text-gray-700 mb-1">通知方法</label>

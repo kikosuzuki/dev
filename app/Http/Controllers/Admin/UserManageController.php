@@ -82,6 +82,8 @@ class UserManageController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', Rule::in(['user', 'consultant', 'admin'])],
             'phone' => ['nullable', 'string', 'max:20'],
+            'chatwork_id' => ['nullable', 'string', 'max:100'],
+            'chatwork_room_id' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
         ]);
 
@@ -91,6 +93,8 @@ class UserManageController extends Controller
             'email' => $validated['email'],
             'role' => $validated['role'],
             'phone' => $validated['phone'] ?? null,
+            'chatwork_id' => $validated['chatwork_id'] ?? null,
+            'chatwork_room_id' => $validated['chatwork_room_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
 

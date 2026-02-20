@@ -19,7 +19,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {{-- Settings Form --}}
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-lg shadow" x-data="{ googleCalendarEnabled: {{ ($settings['google_calendar_enabled'] ?? '0') === '1' ? 'true' : 'false' }} }">
+            <div class="bg-white rounded-lg shadow" x-data="{ googleCalendarEnabled: {{ (optional($settings['google_calendar_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }} }">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <h2 class="text-lg font-semibold text-gray-900">設定項目</h2>
                 </div>
@@ -38,7 +38,7 @@
                                     キャンセルポリシー（時間）
                                 </label>
                                 <input type="number" name="cancel_policy_hours" id="cancel_policy_hours"
-                                       value="{{ old('cancel_policy_hours', $settings['cancel_policy_hours'] ?? 24) }}"
+                                       value="{{ old('cancel_policy_hours', optional($settings['cancel_policy_hours'] ?? null)->value ?? 24) }}"
                                        min="0"
                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('cancel_policy_hours') border-red-500 @enderror">
                                 <p class="mt-1 text-xs text-gray-500">予約の何時間前までキャンセル可能か設定します。</p>
@@ -53,7 +53,7 @@
                                     予約スロット時間（分）
                                 </label>
                                 <input type="number" name="booking_slot_duration" id="booking_slot_duration"
-                                       value="{{ old('booking_slot_duration', $settings['booking_slot_duration'] ?? 60) }}"
+                                       value="{{ old('booking_slot_duration', optional($settings['booking_slot_duration'] ?? null)->value ?? 60) }}"
                                        min="15" step="15"
                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('booking_slot_duration') border-red-500 @enderror">
                                 <p class="mt-1 text-xs text-gray-500">1回の予約の時間枠を分単位で設定します。</p>
@@ -68,11 +68,26 @@
                                     1日あたりの最大予約数
                                 </label>
                                 <input type="number" name="max_bookings_per_day" id="max_bookings_per_day"
-                                       value="{{ old('max_bookings_per_day', $settings['max_bookings_per_day'] ?? 10) }}"
+                                       value="{{ old('max_bookings_per_day', optional($settings['max_bookings_per_day'] ?? null)->value ?? 10) }}"
                                        min="1"
                                        class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('max_bookings_per_day') border-red-500 @enderror">
                                 <p class="mt-1 text-xs text-gray-500">コンサルタント1人あたりの1日の最大予約数を設定します。</p>
                                 @error('max_bookings_per_day')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Schedule Disclosure Days --}}
+                            <div>
+                                <label for="schedule_disclosure_days" class="block text-sm font-medium text-gray-700 mb-1">
+                                    予約開示期間（日数）
+                                </label>
+                                <input type="number" name="schedule_disclosure_days" id="schedule_disclosure_days"
+                                       value="{{ old('schedule_disclosure_days', optional($settings['schedule_disclosure_days'] ?? null)->value ?? 30) }}"
+                                       min="1"
+                                       class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('schedule_disclosure_days') border-red-500 @enderror">
+                                <p class="mt-1 text-xs text-gray-500">今日から何日先までの予約枠をユーザーに表示するか設定します。</p>
+                                @error('schedule_disclosure_days')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -90,7 +105,7 @@
                                     LINEチャネルトークン
                                 </label>
                                 <input type="text" name="line_channel_token" id="line_channel_token"
-                                       value="{{ old('line_channel_token', $settings['line_channel_token'] ?? '') }}"
+                                       value="{{ old('line_channel_token', optional($settings['line_channel_token'] ?? null)->value ?? '') }}"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('line_channel_token') border-red-500 @enderror"
                                        placeholder="チャネルアクセストークンを入力">
                                 @error('line_channel_token')
@@ -104,10 +119,31 @@
                                     LINEチャネルシークレット
                                 </label>
                                 <input type="password" name="line_channel_secret" id="line_channel_secret"
-                                       value="{{ old('line_channel_secret', $settings['line_channel_secret'] ?? '') }}"
+                                       value="{{ old('line_channel_secret', optional($settings['line_channel_secret'] ?? null)->value ?? '') }}"
                                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('line_channel_secret') border-red-500 @enderror"
                                        placeholder="チャネルシークレットを入力">
                                 @error('line_channel_secret')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Chatwork Settings Section --}}
+                    <div class="mb-8">
+                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Chatwork連携設定</h3>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label for="chatwork_api_token" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Chatwork APIトークン
+                                </label>
+                                <input type="password" name="chatwork_api_token" id="chatwork_api_token"
+                                       value="{{ old('chatwork_api_token', optional($settings['chatwork_api_token'] ?? null)->value ?? '') }}"
+                                       class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_api_token') border-red-500 @enderror"
+                                       placeholder="Chatwork APIトークンを入力">
+                                <p class="mt-1 text-xs text-gray-500">Chatwork管理画面から取得したAPIトークンを入力してください。リマインド通知やメッセージ送信に使用されます。</p>
+                                @error('chatwork_api_token')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>

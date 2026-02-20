@@ -26,8 +26,10 @@ class SettingController extends Controller
             'cancel_policy_hours' => ['required', 'integer', 'min:0'],
             'booking_slot_duration' => ['required', 'integer', 'min:15'],
             'max_bookings_per_day' => ['required', 'integer', 'min:1'],
+            'schedule_disclosure_days' => ['required', 'integer', 'min:1'],
             'line_channel_token' => ['nullable', 'string'],
             'line_channel_secret' => ['nullable', 'string'],
+            'chatwork_api_token' => ['nullable', 'string'],
             'google_calendar_enabled' => ['boolean'],
         ]);
 

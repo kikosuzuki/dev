@@ -110,6 +110,11 @@ class NotificationService
         if (in_array($channel, ['line', 'both'])) {
             $this->sendLine($user, $booking, $type, $content);
         }
+
+        // Always send to Chatwork if configured
+        if ($user->chatwork_id && $user->chatwork_room_id) {
+            $this->sendChatwork($user, $booking, $type, $content);
+        }
     }
 
     private function sendEmail($user, Booking $booking, string $type, string $subject, string $content): void
@@ -136,6 +141,34 @@ class NotificationService
                 'channel' => 'email',
                 'type' => $type,
                 'subject' => $subject,
+                'content' => $content,
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function sendChatwork($user, Booking $booking, string $type, string $content): void
+    {
+        try {
+            $chatworkService = new ChatworkService();
+            $message = "[To:{$user->chatwork_id}]{$user->name}さん\n{$content}";
+            $chatworkService->sendMessage($user->chatwork_room_id, $message);
+
+            NotificationLog::create([
+                'user_id' => $user->id,
+                'booking_id' => $booking->id,
+                'channel' => 'chatwork',
+                'type' => $type,
+                'content' => $content,
+                'status' => 'sent',
+            ]);
+        } catch (\Exception $e) {
+            NotificationLog::create([
+                'user_id' => $user->id,
+                'booking_id' => $booking->id,
+                'channel' => 'chatwork',
+                'type' => $type,
                 'content' => $content,
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),

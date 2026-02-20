@@ -100,19 +100,61 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->created_at->format('Y/m/d') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition">
-                                    編集
-                                </a>
-                                <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit"
-                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded transition {{ $user->is_active ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-green-500 text-white hover:bg-green-600' }}"
-                                            onclick="return confirm('{{ $user->is_active ? 'このユーザーを無効にしますか？' : 'このユーザーを有効にしますか？' }}')">
-                                        {{ $user->is_active ? '無効にする' : '有効にする' }}
-                                    </button>
-                                </form>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" x-data="{ chatOpen: false }">
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition">
+                                        編集
+                                    </a>
+                                    @if($user->chatwork_room_id)
+                                        <button @click="chatOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition">
+                                            CW
+                                        </button>
+                                    @endif
+                                    <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit"
+                                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded transition {{ $user->is_active ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-green-500 text-white hover:bg-green-600' }}"
+                                                onclick="return confirm('{{ $user->is_active ? 'このユーザーを無効にしますか？' : 'このユーザーを有効にしますか？' }}')">
+                                            {{ $user->is_active ? '無効にする' : '有効にする' }}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                {{-- Chatwork Message Modal --}}
+                                @if($user->chatwork_room_id)
+                                <div x-show="chatOpen" x-cloak @keydown.escape.window="chatOpen = false" class="fixed inset-0 z-50 overflow-y-auto" x-transition>
+                                    <div class="flex items-center justify-center min-h-screen px-4">
+                                        <div class="fixed inset-0 bg-black/50" @click="chatOpen = false"></div>
+                                        <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
+                                            <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ $user->name }}さんにChatworkメッセージ送信</h3>
+                                            <form method="POST" action="{{ route('admin.users.chatwork.send', $user) }}">
+                                                @csrf
+                                                <div class="mb-4">
+                                                    <label class="block text-sm font-medium text-gray-700 mb-2">テンプレート</label>
+                                                    <select onchange="if(this.value) document.getElementById('cw_msg_{{ $user->id }}').value = this.value" class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500">
+                                                        <option value="">テンプレートを選択...</option>
+                                                        <option value="ご予約の確認をお願いいたします。ご不明な点がございましたらお気軽にご連絡ください。">予約確認のお願い</option>
+                                                        <option value="予約日時が近づいてまいりました。ご準備のほどよろしくお願いいたします。">予約リマインド</option>
+                                                        <option value="先日のコンサルティングはいかがでしたでしょうか。フィードバックをお待ちしております。">フォローアップ</option>
+                                                        <option value="お知らせがございます。詳細につきましては下記をご確認ください。">お知らせ</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <label for="cw_msg_{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">メッセージ</label>
+                                                    <textarea id="cw_msg_{{ $user->id }}" name="message" rows="5" required
+                                                              class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+                                                              placeholder="メッセージを入力してください..."></textarea>
+                                                </div>
+                                                <div class="flex justify-end space-x-3">
+                                                    <button type="button" @click="chatOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">キャンセル</button>
+                                                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700">送信</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </td>
                         </tr>
                     @empty

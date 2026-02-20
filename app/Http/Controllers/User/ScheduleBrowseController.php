@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantSchedule;
+use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -11,9 +12,13 @@ class ScheduleBrowseController extends Controller
 {
     public function index(Request $request)
     {
+        $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
+        $maxDate = now()->addDays($disclosureDays)->toDateString();
+
         $query = ConsultantSchedule::with(['consultant.consultantProfile'])
             ->where('is_available', true)
             ->where('date', '>=', now()->toDateString())
+            ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             });

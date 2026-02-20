@@ -56,6 +56,33 @@
                 @enderror
             </div>
 
+            {{-- Chatwork Settings --}}
+            <div class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork ID</label>
+                        <input type="text" name="chatwork_id" id="chatwork_id"
+                               value="{{ old('chatwork_id', $user->chatwork_id) }}"
+                               placeholder="例: 1234567"
+                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_id') border-red-500 @enderror">
+                        @error('chatwork_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="chatwork_room_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork Room ID</label>
+                        <input type="text" name="chatwork_room_id" id="chatwork_room_id"
+                               value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
+                               placeholder="例: 123456789"
+                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_room_id') border-red-500 @enderror">
+                        @error('chatwork_room_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
             {{-- Is Active Toggle --}}
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>

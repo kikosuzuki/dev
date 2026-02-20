@@ -18,6 +18,8 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'line_user_id',
+        'chatwork_id',
+        'chatwork_room_id',
         'notification_channel',
         'is_active',
     ];

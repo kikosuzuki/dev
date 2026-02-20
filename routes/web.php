@@ -16,8 +16,10 @@ use App\Http\Controllers\Consultant\ProfileController as ConsultantProfileContro
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\ConsultantStatsController;
+use App\Http\Controllers\Admin\UserStatsController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
+use App\Http\Controllers\Admin\ChatworkController as AdminChatworkController;
 use App\Http\Controllers\Admin\SettingController;
 
 // Public routes
@@ -99,6 +101,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users/{user}/edit', [UserManageController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
     Route::post('/users/{user}/toggle-active', [UserManageController::class, 'toggleActive'])->name('users.toggle-active');
+    Route::post('/users/{user}/chatwork', [AdminChatworkController::class, 'send'])->name('users.chatwork.send');
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
@@ -109,6 +112,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Consultant stats
     Route::get('/stats', [ConsultantStatsController::class, 'index'])->name('stats.index');
     Route::get('/stats/{consultant}', [ConsultantStatsController::class, 'show'])->name('stats.show');
+
+    // User stats
+    Route::get('/user-stats', [UserStatsController::class, 'index'])->name('user-stats.index');
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
