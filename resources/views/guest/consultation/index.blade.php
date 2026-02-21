@@ -83,10 +83,7 @@
                                 {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $schedule->consultant->name ?? '-' }}
-                                @if($schedule->consultant->consultantProfile?->specialty)
-                                    <span class="block text-xs text-gray-500">{{ $schedule->consultant->consultantProfile->specialty }}</span>
-                                @endif
+                                {{ $consultantLabels[$schedule->user_id] ?? '-' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -182,9 +179,9 @@
                             @foreach($slots as $slot)
                                 <a href="{{ route('consultation.create', $slot) }}"
                                     class="block text-xs p-1.5 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
-                                    title="{{ $slot->consultant->name ?? '' }}">
+                                    title="{{ $consultantLabels[$slot->user_id] ?? '' }}">
                                     {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
-                                    <span class="block text-emerald-500 truncate">{{ $slot->consultant->name ?? '' }}</span>
+                                    <span class="block text-emerald-500 truncate">{{ $consultantLabels[$slot->user_id] ?? '' }}</span>
                                 </a>
                             @endforeach
                         </div>

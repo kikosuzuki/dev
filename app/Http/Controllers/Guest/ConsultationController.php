@@ -17,8 +17,7 @@ class ConsultationController extends Controller
         $disclosureDays = (int) SystemSetting::get('guest_schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
 
-        $query = ConsultantSchedule::with(['consultant.consultantProfile'])
-            ->where('is_available', true)
+        $query = ConsultantSchedule::where('is_available', true)
             ->where('date', '>=', now()->toDateString())
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
@@ -52,7 +51,14 @@ class ConsultationController extends Controller
             ->get()
             ->groupBy(fn ($s) => $s->date->format('Y-m-d'));
 
-        return view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month'));
+        // コンサルタントIDを匿名ラベル（A, B, C...）にマッピング
+        $allConsultantIds = (clone $query)->distinct()->pluck('user_id')->sort()->values();
+        $consultantLabels = [];
+        foreach ($allConsultantIds as $i => $id) {
+            $consultantLabels[$id] = 'コンサルタント' . chr(65 + $i); // A, B, C...
+        }
+
+        return view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels'));
     }
 
     public function create(ConsultantSchedule $schedule)
