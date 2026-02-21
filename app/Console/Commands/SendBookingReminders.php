@@ -38,9 +38,13 @@ class SendBookingReminders extends Command
                 ->get();
 
             foreach ($bookings as $booking) {
-                $notificationService->sendReminder($booking, 'reminder_day_before');
-                $booking->update(['reminder_day_before_sent' => true]);
-                $this->info("Day-before reminder sent for booking #{$booking->id}");
+                try {
+                    $notificationService->sendReminder($booking, 'reminder_day_before');
+                    $booking->update(['reminder_day_before_sent' => true]);
+                    $this->info("Day-before reminder sent for booking #{$booking->id}");
+                } catch (\Exception $e) {
+                    $this->error("Day-before reminder failed for booking #{$booking->id}: {$e->getMessage()}");
+                }
             }
         }
 
@@ -53,9 +57,13 @@ class SendBookingReminders extends Command
                 ->get();
 
             foreach ($bookings as $booking) {
-                $notificationService->sendReminder($booking, 'reminder_day_of');
-                $booking->update(['reminder_day_of_sent' => true]);
-                $this->info("Day-of reminder sent for booking #{$booking->id}");
+                try {
+                    $notificationService->sendReminder($booking, 'reminder_day_of');
+                    $booking->update(['reminder_day_of_sent' => true]);
+                    $this->info("Day-of reminder sent for booking #{$booking->id}");
+                } catch (\Exception $e) {
+                    $this->error("Day-of reminder failed for booking #{$booking->id}: {$e->getMessage()}");
+                }
             }
         }
 
@@ -72,9 +80,13 @@ class SendBookingReminders extends Command
             ->get();
 
         foreach ($bookings as $booking) {
-            $notificationService->sendReminder($booking, 'reminder_before_start');
-            $booking->update(['reminder_10min_sent' => true]);
-            $this->info("{$minutesBefore}-min reminder sent for booking #{$booking->id}");
+            try {
+                $notificationService->sendReminder($booking, 'reminder_before_start');
+                $booking->update(['reminder_10min_sent' => true]);
+                $this->info("{$minutesBefore}-min reminder sent for booking #{$booking->id}");
+            } catch (\Exception $e) {
+                $this->error("{$minutesBefore}-min reminder failed for booking #{$booking->id}: {$e->getMessage()}");
+            }
         }
 
         return Command::SUCCESS;

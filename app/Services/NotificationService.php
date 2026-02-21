@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\NotificationLog;
 use App\Models\SystemSetting;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class NotificationService
@@ -260,26 +261,9 @@ class NotificationService
                     ->subject($subject);
             });
 
-            NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'email',
-                'type' => $type,
-                'subject' => $subject,
-                'content' => $content,
-                'status' => 'sent',
-            ]);
+            $this->logNotification($user->id, $booking->id, 'email', $type, $subject, $content, 'sent');
         } catch (\Exception $e) {
-            NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'email',
-                'type' => $type,
-                'subject' => $subject,
-                'content' => $content,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-            ]);
+            $this->logNotification($user->id, $booking->id, 'email', $type, $subject, $content, 'failed', $e->getMessage());
         }
     }
 
@@ -291,26 +275,9 @@ class NotificationService
                     ->subject($subject);
             });
 
-            NotificationLog::create([
-                'user_id' => null,
-                'booking_id' => $booking->id,
-                'channel' => 'email',
-                'type' => 'booking_confirmed',
-                'subject' => $subject,
-                'content' => $content,
-                'status' => 'sent',
-            ]);
+            $this->logNotification(null, $booking->id, 'email', 'booking_confirmed', $subject, $content, 'sent');
         } catch (\Exception $e) {
-            NotificationLog::create([
-                'user_id' => null,
-                'booking_id' => $booking->id,
-                'channel' => 'email',
-                'type' => 'booking_confirmed',
-                'subject' => $subject,
-                'content' => $content,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-            ]);
+            $this->logNotification(null, $booking->id, 'email', 'booking_confirmed', $subject, $content, 'failed', $e->getMessage());
         }
     }
 
@@ -323,24 +290,9 @@ class NotificationService
                 : "{$user->name}さん\n{$content}";
             $chatworkService->sendMessage($user->chatwork_room_id, $message);
 
-            NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'chatwork',
-                'type' => $type,
-                'content' => $content,
-                'status' => 'sent',
-            ]);
+            $this->logNotification($user->id, $booking->id, 'chatwork', $type, null, $content, 'sent');
         } catch (\Exception $e) {
-            NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'chatwork',
-                'type' => $type,
-                'content' => $content,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
-            ]);
+            $this->logNotification($user->id, $booking->id, 'chatwork', $type, null, $content, 'failed', $e->getMessage());
         }
     }
 
@@ -354,23 +306,32 @@ class NotificationService
             $lineService = app(LineNotificationService::class);
             $lineService->pushMessage($user->line_user_id, $content);
 
+            $this->logNotification($user->id, $booking->id, 'line', $type, null, $content, 'sent');
+        } catch (\Exception $e) {
+            $this->logNotification($user->id, $booking->id, 'line', $type, null, $content, 'failed', $e->getMessage());
+        }
+    }
+
+    private function logNotification(?int $userId, int $bookingId, string $channel, string $type, ?string $subject, ?string $content, string $status, ?string $errorMessage = null): void
+    {
+        try {
             NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'line',
+                'user_id' => $userId,
+                'booking_id' => $bookingId,
+                'channel' => $channel,
                 'type' => $type,
+                'subject' => $subject,
                 'content' => $content,
-                'status' => 'sent',
+                'status' => $status,
+                'error_message' => $errorMessage,
             ]);
         } catch (\Exception $e) {
-            NotificationLog::create([
-                'user_id' => $user->id,
-                'booking_id' => $booking->id,
-                'channel' => 'line',
+            Log::error('Failed to write notification log', [
+                'booking_id' => $bookingId,
+                'channel' => $channel,
                 'type' => $type,
-                'content' => $content,
-                'status' => 'failed',
-                'error_message' => $e->getMessage(),
+                'status' => $status,
+                'error' => $e->getMessage(),
             ]);
         }
     }
