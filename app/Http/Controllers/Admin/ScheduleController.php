@@ -15,7 +15,8 @@ class ScheduleController extends Controller
             ->where('date', '>=', now()->toDateString())
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
-            });
+            })
+            ->withinDailyLimit();
 
         if ($request->filled('consultant')) {
             $query->where('user_id', $request->consultant);
