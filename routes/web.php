@@ -114,6 +114,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve'])->name('bookings.approve');
+    Route::post('/bookings/{booking}/reject', [AdminBookingController::class, 'reject'])->name('bookings.reject');
 
     // Available schedules
     Route::get('/schedules', [AdminScheduleController::class, 'index'])->name('schedules.index');
