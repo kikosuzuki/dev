@@ -17,7 +17,8 @@ class ConsultationController extends Controller
         $disclosureDays = (int) SystemSetting::get('guest_schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
 
-        $query = ConsultantSchedule::where('is_available', true)
+        $query = ConsultantSchedule::with(['consultant.consultantProfile'])
+            ->where('is_available', true)
             ->where('date', '>=', now()->toDateString())
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {

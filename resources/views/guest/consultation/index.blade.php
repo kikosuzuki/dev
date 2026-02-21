@@ -65,6 +65,7 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">担当</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状態</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
@@ -81,6 +82,12 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ $schedule->consultant->name ?? '-' }}
+                                @if($schedule->consultant->consultantProfile?->specialty)
+                                    <span class="block text-xs text-gray-500">{{ $schedule->consultant->consultantProfile->specialty }}</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     予約可能
@@ -95,7 +102,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                            <td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">
                                 現在予約可能な時間枠がありません。
                             </td>
                         </tr>
@@ -174,8 +181,10 @@
                         <div class="space-y-1">
                             @foreach($slots as $slot)
                                 <a href="{{ route('consultation.create', $slot) }}"
-                                    class="block text-xs p-1.5 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition">
+                                    class="block text-xs p-1.5 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
+                                    title="{{ $slot->consultant->name ?? '' }}">
                                     {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
+                                    <span class="block text-emerald-500 truncate">{{ $slot->consultant->name ?? '' }}</span>
                                 </a>
                             @endforeach
                         </div>
