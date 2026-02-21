@@ -25,7 +25,7 @@ class ChatworkService
         try {
             $response = Http::withHeaders([
                 'X-ChatWorkToken' => $this->apiToken,
-            ])->post("https://api.chatwork.com/v2/rooms/{$roomId}/messages", [
+            ])->asForm()->post("https://api.chatwork.com/v2/rooms/{$roomId}/messages", [
                 'body' => $message,
                 'self_unread' => 1,
             ]);
