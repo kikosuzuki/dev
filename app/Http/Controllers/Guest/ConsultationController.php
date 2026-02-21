@@ -58,7 +58,11 @@ class ConsultationController extends Controller
             $consultantLabels[$id] = 'コンサルタント' . chr(65 + $i); // A, B, C...
         }
 
-        return view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels'));
+        return response()
+            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels'))
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     public function create(ConsultantSchedule $schedule)
