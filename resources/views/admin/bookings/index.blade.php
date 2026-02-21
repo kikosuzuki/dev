@@ -106,7 +106,28 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">承認済</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" x-data="{ emailOpen: false }">
+                            @php
+                                $dateLabel = $booking->booking_date->format('Y年m月d日') . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i');
+                                $guestName = $booking->guest_name ?? '';
+                            @endphp
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                                x-data="{
+                                    emailOpen: false,
+                                    subject: '',
+                                    message: '',
+                                    templates: [
+                                        { label: '予約確認', s: '【予約確認】個別相談のご予約について', m: {{ Js::from($guestName . "様\n\nご予約の確認をお願いいたします。\n\n■ 日時: " . $dateLabel . "\n\nご不明な点がございましたらお気軽にご連絡ください。") }} },
+                                        { label: 'リマインド', s: '【リマインド】個別相談のご予約について', m: {{ Js::from($guestName . "様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: " . $dateLabel . "\n\nご準備のほどよろしくお願いいたします。") }} },
+                                        { label: 'フォローアップ', s: '【フォローアップ】個別相談について', m: {{ Js::from($guestName . "様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。") }} },
+                                        { label: 'お知らせ', s: '【お知らせ】', m: {{ Js::from($guestName . "様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n") }} },
+                                    ],
+                                    applyTemplate(idx) {
+                                        if (idx !== '') {
+                                            this.subject = this.templates[idx].s;
+                                            this.message = this.templates[idx].m;
+                                        }
+                                    }
+                                }">
                                 @if($booking->isGuest() && $booking->guest_email)
                                     <button @click="emailOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -124,23 +145,22 @@
                                                     @csrf
                                                     <div class="mb-4">
                                                         <label class="block text-sm font-medium text-gray-700 mb-2">テンプレート</label>
-                                                        <select onchange="if(this.value){ var t=JSON.parse(this.value); document.getElementById('email_subject_{{ $booking->id }}').value=t.s; document.getElementById('email_msg_{{ $booking->id }}').value=t.m; }" class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500">
+                                                        <select @change="applyTemplate($event.target.value)" class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500">
                                                             <option value="">テンプレートを選択...</option>
-                                                            <option value="{{ e(json_encode(['s' => '【予約確認】個別相談のご予約について', 'm' => $booking->guest_name . "様\n\nご予約の確認をお願いいたします。\n\n■ 日時: " . $booking->booking_date->format('Y年m月d日') . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i') . "\n\nご不明な点がございましたらお気軽にご連絡ください。"])) }}">予約確認</option>
-                                                            <option value="{{ e(json_encode(['s' => '【リマインド】個別相談のご予約について', 'm' => $booking->guest_name . "様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: " . $booking->booking_date->format('Y年m月d日') . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i') . "\n\nご準備のほどよろしくお願いいたします。"])) }}">リマインド</option>
-                                                            <option value="{{ e(json_encode(['s' => '【フォローアップ】個別相談について', 'm' => $booking->guest_name . "様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。"])) }}">フォローアップ</option>
-                                                            <option value="{{ e(json_encode(['s' => '【お知らせ】', 'm' => $booking->guest_name . "様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n"])) }}">お知らせ</option>
+                                                            <template x-for="(tpl, idx) in templates" :key="idx">
+                                                                <option :value="idx" x-text="tpl.label"></option>
+                                                            </template>
                                                         </select>
                                                     </div>
                                                     <div class="mb-4">
-                                                        <label for="email_subject_{{ $booking->id }}" class="block text-sm font-medium text-gray-700 mb-2">件名</label>
-                                                        <input type="text" id="email_subject_{{ $booking->id }}" name="subject" required maxlength="200"
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">件名</label>
+                                                        <input type="text" name="subject" x-model="subject" required maxlength="200"
                                                                class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
                                                                placeholder="メールの件名を入力してください">
                                                     </div>
                                                     <div class="mb-4">
-                                                        <label for="email_msg_{{ $booking->id }}" class="block text-sm font-medium text-gray-700 mb-2">本文</label>
-                                                        <textarea id="email_msg_{{ $booking->id }}" name="message" rows="8" required
+                                                        <label class="block text-sm font-medium text-gray-700 mb-2">本文</label>
+                                                        <textarea name="message" x-model="message" rows="8" required
                                                                   class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
                                                                   placeholder="メッセージを入力してください..."></textarea>
                                                     </div>
