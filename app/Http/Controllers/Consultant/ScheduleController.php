@@ -77,12 +77,15 @@ class ScheduleController extends Controller
         $validated = $request->validate([
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'days' => ['required', 'array', 'min:1'],
-            'days.*' => ['integer', 'between:0,6'],
+            'days_of_week' => ['required', 'array', 'min:1'],
+            'days_of_week.*' => ['string', 'in:sun,mon,tue,wed,thu,fri,sat'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'slot_duration' => ['required', 'integer', 'min:15', 'max:240'],
         ]);
+
+        $dayMap = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
+        $selectedDays = array_map(fn ($d) => $dayMap[$d], $validated['days_of_week']);
 
         $consultant = auth()->user();
         $start = \Carbon\Carbon::parse($validated['start_date']);
@@ -90,7 +93,7 @@ class ScheduleController extends Controller
         $count = 0;
 
         while ($start->lte($end)) {
-            if (in_array($start->dayOfWeek, $validated['days'])) {
+            if (in_array($start->dayOfWeek, $selectedDays)) {
                 $slotStart = \Carbon\Carbon::parse($validated['start_time']);
                 $slotEnd = \Carbon\Carbon::parse($validated['end_time']);
                 $duration = (int)$validated['slot_duration'];
