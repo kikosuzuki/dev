@@ -107,19 +107,14 @@ class DatabaseSeeder extends Seeder
                 'is_featured' => true,
             ]);
 
-            // Create schedules for next 2 weeks
-            for ($day = 0; $day < 14; $day++) {
+            // Create schedules for next 5 weekdays
+            for ($day = 1; $day <= 7; $day++) {
                 $date = Carbon::now()->addDays($day);
                 if ($date->isWeekend()) continue;
 
                 $slots = [
-                    ['09:00', '10:00'],
                     ['10:00', '11:00'],
-                    ['11:00', '12:00'],
-                    ['13:00', '14:00'],
                     ['14:00', '15:00'],
-                    ['15:00', '16:00'],
-                    ['16:00', '17:00'],
                 ];
 
                 foreach ($slots as $slot) {
