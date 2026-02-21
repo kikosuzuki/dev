@@ -82,7 +82,7 @@ class ConsultantBrowseController extends Controller
         $consultant->load(['consultantProfile', 'receivedReviews.user']);
 
         $upcomingSchedules = $consultant->schedules()
-            ->where('date', '>=', now()->toDateString())
+            ->upcoming()
             ->where('is_available', true)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);

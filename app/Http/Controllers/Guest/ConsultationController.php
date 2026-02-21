@@ -18,7 +18,7 @@ class ConsultationController extends Controller
         $maxDate = now()->addDays($disclosureDays)->toDateString();
 
         $query = ConsultantSchedule::where('is_available', true)
-            ->where('date', '>=', now()->toDateString())
+            ->upcoming()
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);

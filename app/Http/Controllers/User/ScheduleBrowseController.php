@@ -17,7 +17,7 @@ class ScheduleBrowseController extends Controller
 
         $query = ConsultantSchedule::with(['consultant.consultantProfile'])
             ->where('is_available', true)
-            ->where('date', '>=', now()->toDateString())
+            ->upcoming()
             ->where('date', '<=', $maxDate)
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);

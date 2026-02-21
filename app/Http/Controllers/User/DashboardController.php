@@ -29,7 +29,7 @@ class DashboardController extends Controller
         // Cap total displayed schedules at 50
         $maxDisplay = 50;
         $baseQuery = ConsultantSchedule::where('is_available', true)
-            ->where('date', '>=', now()->toDateString())
+            ->upcoming()
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             });

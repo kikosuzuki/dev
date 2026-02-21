@@ -40,6 +40,23 @@ class ConsultantSchedule extends Model
     }
 
     /**
+     * 現在時刻より未来のスケジュールのみに絞り込む（当日の過去時間帯を除外）
+     */
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        $today = now()->toDateString();
+        $currentTime = now()->format('H:i:s');
+
+        return $query->where(function ($q) use ($today, $currentTime) {
+            $q->where('date', '>', $today)
+                ->orWhere(function ($q) use ($today, $currentTime) {
+                    $q->where('date', '=', $today)
+                        ->where('start_time', '>', $currentTime);
+                });
+        });
+    }
+
+    /**
      * 1日あたりの予約上限に達していないスケジュールのみに絞り込む
      */
     public function scopeWithinDailyLimit(Builder $query): Builder
