@@ -119,7 +119,8 @@ class NotificationService
         $consultantProfile = $consultant->consultantProfile;
         $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
 
-        $customMessage = SystemSetting::get('guest_reminder_message')
+        $customMessage = $consultantProfile?->reminder_message
+            ?: SystemSetting::get('guest_reminder_message')
             ?: 'お忘れなくご参加ください。';
 
         $subject = "【リマインド】{$typeLabel}の個別相談のご予約";
@@ -202,8 +203,8 @@ class NotificationService
             $this->sendLine($user, $booking, $type, $content);
         }
 
-        // Always send to Chatwork if configured
-        if ($user->chatwork_id && $user->chatwork_room_id) {
+        // Always send to Chatwork if room ID is configured
+        if ($user->chatwork_room_id) {
             $this->sendChatwork($user, $booking, $type, $content);
         }
     }
@@ -274,7 +275,9 @@ class NotificationService
     {
         try {
             $chatworkService = new ChatworkService();
-            $message = "[To:{$user->chatwork_id}]{$user->name}さん\n{$content}";
+            $message = $user->chatwork_id
+                ? "[To:{$user->chatwork_id}]{$user->name}さん\n{$content}"
+                : "{$user->name}さん\n{$content}";
             $chatworkService->sendMessage($user->chatwork_room_id, $message);
 
             NotificationLog::create([
