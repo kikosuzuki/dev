@@ -20,7 +20,6 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'specialty' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:2000'],
-            'hourly_rate' => ['required', 'integer', 'min:0'],
             'experience_years' => ['required', 'integer', 'min:0'],
             'qualifications' => ['nullable', 'string'],
             'languages' => ['nullable', 'string'],
@@ -35,7 +34,6 @@ class ProfileController extends Controller
         $profileData = [
             'specialty' => $validated['specialty'],
             'bio' => $validated['bio'],
-            'hourly_rate' => $validated['hourly_rate'],
             'experience_years' => $validated['experience_years'],
             'qualifications' => $validated['qualifications'] ? array_map('trim', explode(',', $validated['qualifications'])) : [],
             'languages' => $validated['languages'] ? array_map('trim', explode(',', $validated['languages'])) : [],
