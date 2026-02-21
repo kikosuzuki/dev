@@ -34,7 +34,7 @@
                         @foreach($todayBookings as $booking)
                             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                 <div>
-                                    <div class="font-medium text-gray-900">{{ $booking->user->name }}</div>
+                                    <div class="font-medium text-gray-900">{{ $booking->bookerName() }}</div>
                                     <div class="text-sm text-gray-500">
                                         {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
                                     </div>
@@ -74,7 +74,7 @@
                             <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                 <div class="flex items-center justify-between mb-2">
                                     <div>
-                                        <div class="font-medium text-gray-900">{{ $booking->user->name }}</div>
+                                        <div class="font-medium text-gray-900">{{ $booking->bookerName() }}</div>
                                         <div class="text-sm text-gray-500">
                                             {{ $booking->booking_date->format('Y/m/d') }}
                                             {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
@@ -138,7 +138,7 @@
                                         {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $booking->user->name }}
+                                        {{ $booking->bookerName() }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
