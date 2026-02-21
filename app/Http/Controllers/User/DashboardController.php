@@ -26,13 +26,20 @@ class DashboardController extends Controller
         $month = $request->get('month', now()->month);
         $year = $request->get('year', now()->year);
 
-        $availableSchedules = ConsultantSchedule::where('is_available', true)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+        // Cap total displayed schedules at 50
+        $maxDisplay = 50;
+        $baseQuery = ConsultantSchedule::where('is_available', true)
             ->where('date', '>=', now()->toDateString())
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
-            })
+            });
+        $limitedIds = (clone $baseQuery)->orderBy('date')
+            ->orderBy('start_time')
+            ->limit($maxDisplay)
+            ->pluck('id');
+        $availableSchedules = ConsultantSchedule::whereIn('id', $limitedIds)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
             ->with(['consultant.consultantProfile'])
             ->orderBy('date')
             ->orderBy('start_time')
