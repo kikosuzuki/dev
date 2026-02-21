@@ -109,18 +109,20 @@
                             @php
                                 $dateLabel = $booking->booking_date->format('Y年m月d日') . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i');
                                 $guestName = $booking->guest_name ?? '';
+                                $bookingTemplates = collect($emailTemplates)->map(function ($tpl) use ($guestName, $dateLabel) {
+                                    return [
+                                        'label' => $tpl['label'],
+                                        's' => str_replace(['{name}', '{date}'], [$guestName, $dateLabel], $tpl['subject']),
+                                        'm' => str_replace(['{name}', '{date}'], [$guestName, $dateLabel], $tpl['body']),
+                                    ];
+                                });
                             @endphp
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
                                 x-data="{
                                     emailOpen: false,
                                     subject: '',
                                     message: '',
-                                    templates: [
-                                        { label: '予約確認', s: '【予約確認】個別相談のご予約について', m: {{ Js::from($guestName . "様\n\nご予約の確認をお願いいたします。\n\n■ 日時: " . $dateLabel . "\n\nご不明な点がございましたらお気軽にご連絡ください。") }} },
-                                        { label: 'リマインド', s: '【リマインド】個別相談のご予約について', m: {{ Js::from($guestName . "様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: " . $dateLabel . "\n\nご準備のほどよろしくお願いいたします。") }} },
-                                        { label: 'フォローアップ', s: '【フォローアップ】個別相談について', m: {{ Js::from($guestName . "様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。") }} },
-                                        { label: 'お知らせ', s: '【お知らせ】', m: {{ Js::from($guestName . "様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n") }} },
-                                    ],
+                                    templates: {{ Js::from($bookingTemplates->values()) }},
                                     applyTemplate(idx) {
                                         if (idx !== '') {
                                             this.subject = this.templates[idx].s;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Booking;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
@@ -77,7 +78,30 @@ class BookingController extends Controller
             'all' => '全期間',
         ];
 
-        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type'));
+        $emailTemplates = [
+            [
+                'label' => '予約確認',
+                'subject' => SystemSetting::get('guest_email_tpl_confirm_subject', '【予約確認】個別相談のご予約について'),
+                'body' => SystemSetting::get('guest_email_tpl_confirm_body', "{name}様\n\nご予約の確認をお願いいたします。\n\n■ 日時: {date}\n\nご不明な点がございましたらお気軽にご連絡ください。"),
+            ],
+            [
+                'label' => 'リマインド',
+                'subject' => SystemSetting::get('guest_email_tpl_remind_subject', '【リマインド】個別相談のご予約について'),
+                'body' => SystemSetting::get('guest_email_tpl_remind_body', "{name}様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: {date}\n\nご準備のほどよろしくお願いいたします。"),
+            ],
+            [
+                'label' => 'フォローアップ',
+                'subject' => SystemSetting::get('guest_email_tpl_followup_subject', '【フォローアップ】個別相談について'),
+                'body' => SystemSetting::get('guest_email_tpl_followup_body', "{name}様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。"),
+            ],
+            [
+                'label' => 'お知らせ',
+                'subject' => SystemSetting::get('guest_email_tpl_notice_subject', '【お知らせ】'),
+                'body' => SystemSetting::get('guest_email_tpl_notice_body', "{name}様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n"),
+            ],
+        ];
+
+        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'emailTemplates'));
     }
 
     public function approve(Booking $booking)

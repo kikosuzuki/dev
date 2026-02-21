@@ -252,6 +252,90 @@
                         </div>
                     </div>
 
+                    {{-- Guest Email Template Settings --}}
+                    <div class="mb-8">
+                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">ゲスト向けメールテンプレート</h3>
+                        <p class="text-xs text-gray-500 mb-4">予約一覧からゲストにメールを送信する際のテンプレートを設定します。本文では <code class="bg-gray-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-gray-100 px-1 rounded">{date}</code>（予約日時）が自動置換されます。</p>
+
+                        <div class="space-y-6">
+                            {{-- Confirm Template --}}
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">予約確認テンプレート</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label for="guest_email_tpl_confirm_subject" class="block text-xs font-medium text-gray-600 mb-1">件名</label>
+                                        <input type="text" name="guest_email_tpl_confirm_subject" id="guest_email_tpl_confirm_subject"
+                                               value="{{ old('guest_email_tpl_confirm_subject', optional($settings['guest_email_tpl_confirm_subject'] ?? null)->value ?? '【予約確認】個別相談のご予約について') }}"
+                                               maxlength="200"
+                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="guest_email_tpl_confirm_body" class="block text-xs font-medium text-gray-600 mb-1">本文</label>
+                                        <textarea name="guest_email_tpl_confirm_body" id="guest_email_tpl_confirm_body" rows="4"
+                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ old('guest_email_tpl_confirm_body', optional($settings['guest_email_tpl_confirm_body'] ?? null)->value ?? "{name}様\n\nご予約の確認をお願いいたします。\n\n■ 日時: {date}\n\nご不明な点がございましたらお気軽にご連絡ください。") }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Remind Template --}}
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">リマインドテンプレート</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label for="guest_email_tpl_remind_subject" class="block text-xs font-medium text-gray-600 mb-1">件名</label>
+                                        <input type="text" name="guest_email_tpl_remind_subject" id="guest_email_tpl_remind_subject"
+                                               value="{{ old('guest_email_tpl_remind_subject', optional($settings['guest_email_tpl_remind_subject'] ?? null)->value ?? '【リマインド】個別相談のご予約について') }}"
+                                               maxlength="200"
+                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="guest_email_tpl_remind_body" class="block text-xs font-medium text-gray-600 mb-1">本文</label>
+                                        <textarea name="guest_email_tpl_remind_body" id="guest_email_tpl_remind_body" rows="4"
+                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ old('guest_email_tpl_remind_body', optional($settings['guest_email_tpl_remind_body'] ?? null)->value ?? "{name}様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: {date}\n\nご準備のほどよろしくお願いいたします。") }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Follow-up Template --}}
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">フォローアップテンプレート</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label for="guest_email_tpl_followup_subject" class="block text-xs font-medium text-gray-600 mb-1">件名</label>
+                                        <input type="text" name="guest_email_tpl_followup_subject" id="guest_email_tpl_followup_subject"
+                                               value="{{ old('guest_email_tpl_followup_subject', optional($settings['guest_email_tpl_followup_subject'] ?? null)->value ?? '【フォローアップ】個別相談について') }}"
+                                               maxlength="200"
+                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="guest_email_tpl_followup_body" class="block text-xs font-medium text-gray-600 mb-1">本文</label>
+                                        <textarea name="guest_email_tpl_followup_body" id="guest_email_tpl_followup_body" rows="4"
+                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ old('guest_email_tpl_followup_body', optional($settings['guest_email_tpl_followup_body'] ?? null)->value ?? "{name}様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。") }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Notice Template --}}
+                            <div class="p-4 bg-gray-50 rounded-lg">
+                                <h4 class="text-sm font-medium text-gray-700 mb-3">お知らせテンプレート</h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label for="guest_email_tpl_notice_subject" class="block text-xs font-medium text-gray-600 mb-1">件名</label>
+                                        <input type="text" name="guest_email_tpl_notice_subject" id="guest_email_tpl_notice_subject"
+                                               value="{{ old('guest_email_tpl_notice_subject', optional($settings['guest_email_tpl_notice_subject'] ?? null)->value ?? '【お知らせ】') }}"
+                                               maxlength="200"
+                                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                    </div>
+                                    <div>
+                                        <label for="guest_email_tpl_notice_body" class="block text-xs font-medium text-gray-600 mb-1">本文</label>
+                                        <textarea name="guest_email_tpl_notice_body" id="guest_email_tpl_notice_body" rows="4"
+                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">{{ old('guest_email_tpl_notice_body', optional($settings['guest_email_tpl_notice_body'] ?? null)->value ?? "{name}様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n") }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Guest Consultation Settings Section --}}
                     <div class="mb-8">
                         <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">個別相談（ゲスト予約）設定</h3>

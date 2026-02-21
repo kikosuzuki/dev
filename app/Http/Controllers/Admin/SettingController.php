@@ -39,6 +39,14 @@ class SettingController extends Controller
             'guest_schedule_disclosure_days' => ['required', 'integer', 'min:1', 'max:365'],
             'guest_booking_confirmation_message' => ['nullable', 'string', 'max:2000'],
             'guest_reminder_message' => ['nullable', 'string', 'max:2000'],
+            'guest_email_tpl_confirm_subject' => ['nullable', 'string', 'max:200'],
+            'guest_email_tpl_confirm_body' => ['nullable', 'string', 'max:2000'],
+            'guest_email_tpl_remind_subject' => ['nullable', 'string', 'max:200'],
+            'guest_email_tpl_remind_body' => ['nullable', 'string', 'max:2000'],
+            'guest_email_tpl_followup_subject' => ['nullable', 'string', 'max:200'],
+            'guest_email_tpl_followup_body' => ['nullable', 'string', 'max:2000'],
+            'guest_email_tpl_notice_subject' => ['nullable', 'string', 'max:200'],
+            'guest_email_tpl_notice_body' => ['nullable', 'string', 'max:2000'],
         ]);
 
         foreach ($validated as $key => $value) {
