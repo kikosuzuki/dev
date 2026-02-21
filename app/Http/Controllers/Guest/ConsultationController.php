@@ -35,8 +35,14 @@ class ConsultationController extends Controller
 
         $view = $request->get('view', 'list');
 
-        // List view: paginated
-        $schedules = (clone $query)->orderBy('date')
+        // List view: paginated (cap total at 50 to keep the page manageable)
+        $maxDisplay = 50;
+        $limitedIds = (clone $query)->orderBy('date')
+            ->orderBy('start_time')
+            ->limit($maxDisplay)
+            ->pluck('id');
+        $schedules = ConsultantSchedule::whereIn('id', $limitedIds)
+            ->orderBy('date')
             ->orderBy('start_time')
             ->paginate(30);
 
