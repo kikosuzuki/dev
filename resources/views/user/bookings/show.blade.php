@@ -79,6 +79,10 @@
                 <dt class="text-sm font-medium text-gray-500">予約ID</dt>
                 <dd class="mt-1 text-base font-semibold text-gray-900">#{{ $booking->id }}</dd>
             </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-medium text-gray-500">予約登録日時</dt>
+                <dd class="mt-1 text-base font-semibold text-gray-900">{{ $booking->created_at->format('Y年m月d日 H:i') }}</dd>
+            </div>
         </dl>
 
         {{-- 備考 --}}

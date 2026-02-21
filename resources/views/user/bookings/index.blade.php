@@ -88,7 +88,7 @@
                                 @if ($booking->consultant->consultantProfile)
                                     <p class="text-sm text-gray-500 mb-1">{{ $booking->consultant->consultantProfile->specialty }}</p>
                                 @endif
-                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                <div class="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
                                     <span class="flex items-center">
                                         <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
@@ -101,6 +101,8 @@
                                         </svg>
                                         {{ \Illuminate\Support\Str::substr($booking->start_time, 0, 5) }} - {{ \Illuminate\Support\Str::substr($booking->end_time, 0, 5) }}
                                     </span>
+                                    <span class="text-gray-400">|</span>
+                                    <span class="text-gray-400 text-xs">予約日時: {{ $booking->created_at->format('Y/m/d H:i') }}</span>
                                 </div>
                             </div>
                             <div class="flex-shrink-0">
