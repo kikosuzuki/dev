@@ -11,6 +11,11 @@ class NotificationService
 {
     public function sendBookingConfirmation(Booking $booking): void
     {
+        if ($booking->isGuest()) {
+            $this->sendGuestBookingApproved($booking);
+            return;
+        }
+
         $user = $booking->user;
         $consultant = $booking->consultant;
         $date = $booking->booking_date->format('Y年m月d日');
@@ -27,24 +32,51 @@ class NotificationService
         $this->send($user, $booking, 'booking_confirmed', $subject, $content);
     }
 
-    public function sendBookingCancelled(Booking $booking): void
+    private function sendGuestBookingApproved(Booking $booking): void
     {
-        $user = $booking->user;
         $consultant = $booking->consultant;
         $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+
+        $subject = '【予約確定】個別相談のご予約が確定しました';
+        $content = "{$booking->guest_name}様\n\n"
+            . "個別相談のご予約が確定しました。\n\n"
+            . "■ 日時: {$date} {$time}\n"
+            . "■ ステータス: 承認済み\n\n"
+            . "よろしくお願いいたします。";
+
+        $this->sendGuestEmail($booking, $subject, $content);
+    }
+
+    public function sendBookingCancelled(Booking $booking): void
+    {
+        $consultant = $booking->consultant;
+        $date = $booking->booking_date->format('Y年m月d日');
+        $bookerName = $booking->bookerName();
 
         $subject = '【キャンセル】コンサルティング予約のキャンセル';
-        $content = "{$user->name}様\n\n"
-            . "以下の予約がキャンセルされました。\n\n"
-            . "■ コンサルタント: {$consultant->name}\n"
-            . "■ 日時: {$date}\n"
-            . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
 
-        $this->send($user, $booking, 'booking_cancelled', $subject, $content);
+        if ($booking->isGuest()) {
+            $content = "{$bookerName}様\n\n"
+                . "以下の予約がキャンセルされました。\n\n"
+                . "■ 日時: {$date}\n"
+                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
+
+            $this->sendGuestEmail($booking, $subject, $content);
+        } else {
+            $user = $booking->user;
+            $content = "{$user->name}様\n\n"
+                . "以下の予約がキャンセルされました。\n\n"
+                . "■ コンサルタント: {$consultant->name}\n"
+                . "■ 日時: {$date}\n"
+                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
+
+            $this->send($user, $booking, 'booking_cancelled', $subject, $content);
+        }
 
         // Also notify consultant
         $consultantContent = "{$consultant->name}様\n\n"
-            . "{$user->name}様の以下の予約がキャンセルされました。\n\n"
+            . "{$bookerName}様の以下の予約がキャンセルされました。\n\n"
             . "■ 日時: {$date}\n";
 
         $this->send($consultant, $booking, 'booking_cancelled', $subject, $consultantContent);
@@ -52,19 +84,30 @@ class NotificationService
 
     public function sendBookingRejected(Booking $booking): void
     {
-        $user = $booking->user;
         $consultant = $booking->consultant;
         $date = $booking->booking_date->format('Y年m月d日');
 
         $subject = '【予約不承認】コンサルティング予約について';
-        $content = "{$user->name}様\n\n"
-            . "申し訳ございませんが、以下の予約が承認されませんでした。\n\n"
-            . "■ コンサルタント: {$consultant->name}\n"
-            . "■ 日時: {$date}\n"
-            . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '')
-            . "\n別の日時をお試しください。";
 
-        $this->send($user, $booking, 'booking_rejected', $subject, $content);
+        if ($booking->isGuest()) {
+            $content = "{$booking->guest_name}様\n\n"
+                . "申し訳ございませんが、以下の予約が承認されませんでした。\n\n"
+                . "■ 日時: {$date}\n"
+                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '')
+                . "\n別の日時をお試しください。";
+
+            $this->sendGuestEmail($booking, $subject, $content);
+        } else {
+            $user = $booking->user;
+            $content = "{$user->name}様\n\n"
+                . "申し訳ございませんが、以下の予約が承認されませんでした。\n\n"
+                . "■ コンサルタント: {$consultant->name}\n"
+                . "■ 日時: {$date}\n"
+                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '')
+                . "\n別の日時をお試しください。";
+
+            $this->send($user, $booking, 'booking_rejected', $subject, $content);
+        }
     }
 
     public function sendGuestBookingConfirmation(Booking $booking): void
