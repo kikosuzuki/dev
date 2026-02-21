@@ -77,6 +77,21 @@
                                 @enderror
                             </div>
 
+                            {{-- Schedule Per Page --}}
+                            <div>
+                                <label for="schedule_per_page" class="block text-sm font-medium text-gray-700 mb-1">
+                                    予約枠の1ページあたり表示件数
+                                </label>
+                                <input type="number" name="schedule_per_page" id="schedule_per_page"
+                                       value="{{ old('schedule_per_page', optional($settings['schedule_per_page'] ?? null)->value ?? 30) }}"
+                                       min="10" max="200" step="10"
+                                       class="block w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('schedule_per_page') border-red-500 @enderror">
+                                <p class="mt-1 text-xs text-gray-500">予約枠一覧の1ページに表示する最大件数を設定します（10〜200件）。</p>
+                                @error('schedule_per_page')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             {{-- Schedule Disclosure Days --}}
                             <div>
                                 <label for="schedule_disclosure_days" class="block text-sm font-medium text-gray-700 mb-1">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantSchedule;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 
 class ScheduleController extends Controller
@@ -30,9 +31,10 @@ class ScheduleController extends Controller
             $query->where('date', '<=', $request->date_to);
         }
 
+        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = $query->orderBy('date')
             ->orderBy('start_time')
-            ->paginate(30);
+            ->paginate($perPage);
 
         $consultants = \App\Models\User::where('role', 'consultant')
             ->orderBy('name')

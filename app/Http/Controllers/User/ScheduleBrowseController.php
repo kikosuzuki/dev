@@ -36,9 +36,10 @@ class ScheduleBrowseController extends Controller
             $query->where('date', '<=', $request->date_to);
         }
 
+        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = $query->orderBy('date')
             ->orderBy('start_time')
-            ->paginate(30);
+            ->paginate($perPage);
 
         $consultants = User::where('role', 'consultant')
             ->where('is_active', true)

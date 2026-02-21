@@ -26,6 +26,7 @@ class SettingController extends Controller
             'cancel_policy_hours' => ['required', 'integer', 'min:0'],
             'booking_slot_duration' => ['required', 'integer', 'min:15'],
             'max_bookings_per_day' => ['required', 'integer', 'min:1'],
+            'schedule_per_page' => ['required', 'integer', 'min:10', 'max:200'],
             'schedule_disclosure_days' => ['required', 'integer', 'min:1'],
             'reminder_enabled' => ['boolean'],
             'reminder_day_before_hour' => ['required', 'integer', 'min:0', 'max:23'],

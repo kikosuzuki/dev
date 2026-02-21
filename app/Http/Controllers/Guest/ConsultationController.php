@@ -36,9 +36,10 @@ class ConsultationController extends Controller
         $view = $request->get('view', 'list');
 
         // List view: paginated
+        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = (clone $query)->orderBy('date')
             ->orderBy('start_time')
-            ->paginate(30);
+            ->paginate($perPage);
 
         // Calendar view: grouped by date
         $year = (int) $request->get('year', now()->year);
