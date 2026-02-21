@@ -94,6 +94,7 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     Route::post('/bookings/{booking}/approve', [BookingManageController::class, 'approve'])->name('bookings.approve');
     Route::post('/bookings/{booking}/reject', [BookingManageController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{booking}/complete', [BookingManageController::class, 'complete'])->name('bookings.complete');
+    Route::post('/bookings/{booking}/cancel', [BookingManageController::class, 'cancel'])->name('bookings.cancel');
 
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');

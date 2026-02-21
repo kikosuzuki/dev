@@ -183,6 +183,55 @@
                                                 </button>
                                             </form>
                                         @endif
+
+                                        {{-- Cancel button (approved only) --}}
+                                        @if($booking->isApproved())
+                                            <div x-data="{ showCancelModal: false }">
+                                                <button type="button" @click="showCancelModal = true"
+                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                                    キャンセル
+                                                </button>
+
+                                                {{-- Cancel Modal --}}
+                                                <div x-show="showCancelModal" x-cloak
+                                                    class="fixed inset-0 z-50 overflow-y-auto"
+                                                    x-transition:enter="ease-out duration-300"
+                                                    x-transition:enter-start="opacity-0"
+                                                    x-transition:enter-end="opacity-100"
+                                                    x-transition:leave="ease-in duration-200"
+                                                    x-transition:leave-start="opacity-100"
+                                                    x-transition:leave-end="opacity-0">
+                                                    <div class="flex items-center justify-center min-h-screen px-4">
+                                                        <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="showCancelModal = false"></div>
+                                                        <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
+                                                            <h3 class="text-lg font-medium text-gray-900 mb-2">予約をキャンセル</h3>
+                                                            <p class="text-sm text-gray-500 mb-4">予約者に理由を含めたキャンセル通知が送信されます。</p>
+                                                            <form action="{{ route('consultant.bookings.cancel', $booking) }}" method="POST">
+                                                                @csrf
+                                                                <div class="mb-4">
+                                                                    <label for="cancel_reason_cancel_{{ $booking->id }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                                                        キャンセル理由 <span class="text-red-500">*</span>
+                                                                    </label>
+                                                                    <textarea id="cancel_reason_cancel_{{ $booking->id }}" name="cancel_reason" rows="3" required
+                                                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                                                                        placeholder="キャンセル理由を入力してください（必須）"></textarea>
+                                                                </div>
+                                                                <div class="flex justify-end space-x-3">
+                                                                    <button type="button" @click="showCancelModal = false"
+                                                                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                                                        閉じる
+                                                                    </button>
+                                                                    <button type="submit"
+                                                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                                                        キャンセルする
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
