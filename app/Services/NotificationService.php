@@ -27,8 +27,9 @@ class NotificationService
             . "コンサルティングの予約が確定しました。\n\n"
             . "■ コンサルタント: {$consultant->name}\n"
             . "■ 日時: {$date} {$time}\n"
-            . "■ ステータス: {$booking->status}\n\n"
-            . "よろしくお願いいたします。";
+            . "■ ステータス: {$booking->status}\n"
+            . ($booking->notes ? "■ 備考: {$booking->notes}\n" : '')
+            . "\nよろしくお願いいたします。";
 
         $this->send($user, $booking, 'booking_confirmed', $subject, $content);
 
