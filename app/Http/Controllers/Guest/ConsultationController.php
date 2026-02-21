@@ -46,10 +46,10 @@ class ConsultationController extends Controller
             ->orderBy('start_time')
             ->paginate(30);
 
-        // Calendar view: grouped by date
+        // Calendar view: grouped by date (use same limited IDs for consistency)
         $year = (int) $request->get('year', now()->year);
         $month = (int) $request->get('month', now()->month);
-        $calendarSchedules = (clone $query)
+        $calendarSchedules = ConsultantSchedule::whereIn('id', $limitedIds)
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderBy('date')

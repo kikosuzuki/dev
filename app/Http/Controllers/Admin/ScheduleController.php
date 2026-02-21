@@ -30,7 +30,15 @@ class ScheduleController extends Controller
             $query->where('date', '<=', $request->date_to);
         }
 
-        $schedules = $query->orderBy('date')
+        // Cap total displayed schedules at 50
+        $maxDisplay = 50;
+        $limitedIds = (clone $query)->orderBy('date')
+            ->orderBy('start_time')
+            ->limit($maxDisplay)
+            ->pluck('id');
+        $schedules = ConsultantSchedule::with(['consultant.consultantProfile'])
+            ->whereIn('id', $limitedIds)
+            ->orderBy('date')
             ->orderBy('start_time')
             ->paginate(30);
 
