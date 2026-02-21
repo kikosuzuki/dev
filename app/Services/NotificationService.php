@@ -31,6 +31,17 @@ class NotificationService
             . "よろしくお願いいたします。";
 
         $this->send($user, $booking, 'booking_confirmed', $subject, $content);
+
+        // Also notify consultant
+        $consultantContent = "{$consultant->name}様\n\n"
+            . "コンサルティングの新しい予約が入りました。\n\n"
+            . "■ 予約者: {$user->name}\n"
+            . "■ メール: {$user->email}\n"
+            . "■ 日時: {$date} {$time}\n"
+            . "■ ステータス: {$booking->status}\n"
+            . ($booking->notes ? "■ 備考: {$booking->notes}\n" : '');
+
+        $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
     }
 
     private function sendGuestBookingApproved(Booking $booking): void

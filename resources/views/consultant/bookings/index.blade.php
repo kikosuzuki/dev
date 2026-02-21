@@ -88,6 +88,11 @@
                                     @else
                                         <div class="text-sm text-gray-500">{{ $booking->user->email }}</div>
                                     @endif
+                                    @if($booking->notes)
+                                        <div class="text-sm text-gray-500 mt-1">
+                                            <span class="font-medium text-gray-600">備考:</span> {{ Str::limit($booking->notes, 50) }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ $booking->booking_date->format('Y/m/d') }}
