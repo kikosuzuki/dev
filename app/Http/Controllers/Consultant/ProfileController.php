@@ -53,7 +53,12 @@ class ProfileController extends Controller
         );
 
         // Also update user info
-        $user->update($request->only(['name', 'phone', 'notification_channel']));
+        $user->update([
+            'name' => $request->input('name'),
+            'phone' => $request->input('phone'),
+            'notify_email' => $request->boolean('notify_email'),
+            'notify_line' => $request->boolean('notify_line'),
+        ]);
 
         return back()->with('success', 'プロフィールを更新しました。');
     }

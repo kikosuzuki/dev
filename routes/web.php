@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\ChatworkController as AdminChatworkController;
 use App\Http\Controllers\Admin\GuestEmailController as AdminGuestEmailController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Guest\ConsultationController;
+use App\Http\Controllers\Api\ChatworkMemberController;
 
 // Public routes
 Route::get('/', function () {
@@ -46,6 +47,9 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Chatwork API (authenticated users)
+Route::middleware('auth')->get('/api/chatwork/members/{roomId}', [ChatworkMemberController::class, 'index'])->name('api.chatwork.members');
 
 // User routes
 Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {

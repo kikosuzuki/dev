@@ -57,30 +57,83 @@
             </div>
 
             {{-- Chatwork Settings --}}
-            <div class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+            <div class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200" x-data="adminChatworkMembers()">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
                 <div class="space-y-4">
                     <div>
-                        <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork ID</label>
-                        <input type="text" name="chatwork_id" id="chatwork_id"
-                               value="{{ old('chatwork_id', $user->chatwork_id) }}"
-                               placeholder="例: 1234567"
-                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_id') border-red-500 @enderror">
-                        @error('chatwork_id')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
                         <label for="chatwork_room_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork Room ID</label>
-                        <input type="text" name="chatwork_room_id" id="chatwork_room_id"
-                               value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
-                               placeholder="例: 123456789"
-                               class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_room_id') border-red-500 @enderror">
+                        <div class="flex space-x-2">
+                            <input type="text" name="chatwork_room_id" id="chatwork_room_id"
+                                   x-model="roomId"
+                                   value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
+                                   placeholder="例: 123456789"
+                                   class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_room_id') border-red-500 @enderror">
+                            <button type="button" @click="fetchMembers()"
+                                :disabled="loading || !roomId"
+                                class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span x-show="!loading">メンバー取得</span>
+                                <span x-show="loading" x-cloak>取得中...</span>
+                            </button>
+                        </div>
                         @error('chatwork_room_id')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div>
+                        <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">通知先メンバー（To指定）</label>
+                        <template x-if="members.length > 0">
+                            <select name="chatwork_id" id="chatwork_id"
+                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="">選択してください</option>
+                                <template x-for="member in members" :key="member.account_id">
+                                    <option :value="member.account_id" :selected="member.account_id == selectedId" x-text="member.name + ' (' + member.account_id + ')'"></option>
+                                </template>
+                            </select>
+                        </template>
+                        <template x-if="members.length === 0">
+                            <input type="text" name="chatwork_id" id="chatwork_id"
+                                   value="{{ old('chatwork_id', $user->chatwork_id) }}"
+                                   placeholder="例: 1234567"
+                                   class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_id') border-red-500 @enderror">
+                        </template>
+                        <p class="mt-1 text-xs text-gray-500" x-show="members.length === 0">Room IDを入力して「メンバー取得」を押すとメンバー一覧から選択できます。</p>
+                        <p class="mt-1 text-sm text-red-600" x-show="errorMessage" x-text="errorMessage" x-cloak></p>
+                        @error('chatwork_id')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
+
+                <script>
+                    function adminChatworkMembers() {
+                        return {
+                            roomId: '{{ old('chatwork_room_id', $user->chatwork_room_id) }}',
+                            selectedId: '{{ old('chatwork_id', $user->chatwork_id) }}',
+                            members: [],
+                            loading: false,
+                            errorMessage: '',
+                            async fetchMembers() {
+                                if (!this.roomId) return;
+                                this.loading = true;
+                                this.errorMessage = '';
+                                this.members = [];
+                                try {
+                                    const res = await fetch(`/api/chatwork/members/${this.roomId}`);
+                                    if (res.ok) {
+                                        this.members = await res.json();
+                                    } else {
+                                        const data = await res.json();
+                                        this.errorMessage = data.error || 'メンバーの取得に失敗しました。';
+                                    }
+                                } catch (e) {
+                                    this.errorMessage = '通信エラーが発生しました。';
+                                } finally {
+                                    this.loading = false;
+                                }
+                            }
+                        }
+                    }
+                </script>
             </div>
 
             {{-- Is Active Toggle --}}

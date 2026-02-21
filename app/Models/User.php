@@ -20,7 +20,8 @@ class User extends Authenticatable
         'line_user_id',
         'chatwork_id',
         'chatwork_room_id',
-        'notification_channel',
+        'notify_email',
+        'notify_line',
         'is_active',
     ];
 
@@ -35,6 +36,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'notify_email' => 'boolean',
+            'notify_line' => 'boolean',
         ];
     }
 

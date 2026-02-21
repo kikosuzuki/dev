@@ -24,7 +24,8 @@ class ProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'chatwork_id' => ['nullable', 'string', 'max:100'],
             'chatwork_room_id' => ['nullable', 'string', 'max:100'],
-            'notification_channel' => ['required', Rule::in(['email', 'line', 'both'])],
+            'notify_email' => ['boolean'],
+            'notify_line' => ['boolean'],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ]);
 

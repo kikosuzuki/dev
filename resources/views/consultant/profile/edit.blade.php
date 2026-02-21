@@ -148,13 +148,24 @@
                         </label>
                     </div>
                     <div>
-                        <label for="notification_channel" class="block text-sm font-medium text-gray-700 mb-1">通知方法</label>
-                        <select id="notification_channel" name="notification_channel"
-                            class="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="email" {{ old('notification_channel', $user->notification_channel) === 'email' ? 'selected' : '' }}>メール</option>
-                            <option value="line" {{ old('notification_channel', $user->notification_channel) === 'line' ? 'selected' : '' }}>LINE</option>
-                            <option value="both" {{ old('notification_channel', $user->notification_channel) === 'both' ? 'selected' : '' }}>メール + LINE</option>
-                        </select>
+                        <span class="block text-sm font-medium text-gray-700 mb-2">通知方法</span>
+                        <div class="space-y-2">
+                            <label class="inline-flex items-center">
+                                <input type="hidden" name="notify_email" value="0">
+                                <input type="checkbox" name="notify_email" value="1"
+                                    {{ old('notify_email', $user->notify_email) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">メール</span>
+                            </label>
+                            <br>
+                            <label class="inline-flex items-center">
+                                <input type="hidden" name="notify_line" value="0">
+                                <input type="checkbox" name="notify_line" value="1"
+                                    {{ old('notify_line', $user->notify_line) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">LINE</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -105,57 +105,115 @@
                 </div>
 
                 {{-- Chatwork Settings --}}
-                <div class="p-4 bg-gray-50 rounded-md border border-gray-200">
+                <div class="p-4 bg-gray-50 rounded-md border border-gray-200" x-data="chatworkMembers()">
                     <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
                     <div class="space-y-4">
                         <div>
-                            <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork ID</label>
-                            <input
-                                type="text"
-                                id="chatwork_id"
-                                name="chatwork_id"
-                                value="{{ old('chatwork_id', $user->chatwork_id) }}"
-                                placeholder="例: 1234567"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_id') border-red-300 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-gray-500">ChatworkのアカウントIDを入力してください。</p>
-                            @error('chatwork_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
                             <label for="chatwork_room_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork Room ID</label>
-                            <input
-                                type="text"
-                                id="chatwork_room_id"
-                                name="chatwork_room_id"
-                                value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
-                                placeholder="例: 123456789"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_room_id') border-red-300 @enderror"
-                            >
-                            <p class="mt-1 text-xs text-gray-500">通知を受け取るルームのIDを入力してください。</p>
+                            <div class="flex space-x-2">
+                                <input
+                                    type="text"
+                                    id="chatwork_room_id"
+                                    name="chatwork_room_id"
+                                    x-model="roomId"
+                                    value="{{ old('chatwork_room_id', $user->chatwork_room_id) }}"
+                                    placeholder="例: 123456789"
+                                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_room_id') border-red-300 @enderror"
+                                >
+                                <button type="button" @click="fetchMembers()"
+                                    :disabled="loading || !roomId"
+                                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span x-show="!loading">メンバー取得</span>
+                                    <span x-show="loading" x-cloak>取得中...</span>
+                                </button>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">通知を受け取るルームのIDを入力し「メンバー取得」を押してください。</p>
                             @error('chatwork_room_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div>
+                            <label for="chatwork_id" class="block text-sm font-medium text-gray-700 mb-1">通知先メンバー（To指定）</label>
+                            <template x-if="members.length > 0">
+                                <select name="chatwork_id" id="chatwork_id"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">選択してください</option>
+                                    <template x-for="member in members" :key="member.account_id">
+                                        <option :value="member.account_id" :selected="member.account_id == selectedId" x-text="member.name + ' (' + member.account_id + ')'"></option>
+                                    </template>
+                                </select>
+                            </template>
+                            <template x-if="members.length === 0">
+                                <input
+                                    type="text"
+                                    id="chatwork_id"
+                                    name="chatwork_id"
+                                    value="{{ old('chatwork_id', $user->chatwork_id) }}"
+                                    placeholder="例: 1234567"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('chatwork_id') border-red-300 @enderror"
+                                >
+                            </template>
+                            <p class="mt-1 text-xs text-gray-500" x-show="members.length === 0">Room IDを入力して「メンバー取得」を押すとメンバー一覧から選択できます。</p>
+                            <p class="mt-1 text-sm text-red-600" x-show="errorMessage" x-text="errorMessage" x-cloak></p>
+                            @error('chatwork_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
+
+                    <script>
+                        function chatworkMembers() {
+                            return {
+                                roomId: '{{ old('chatwork_room_id', $user->chatwork_room_id) }}',
+                                selectedId: '{{ old('chatwork_id', $user->chatwork_id) }}',
+                                members: [],
+                                loading: false,
+                                errorMessage: '',
+                                async fetchMembers() {
+                                    if (!this.roomId) return;
+                                    this.loading = true;
+                                    this.errorMessage = '';
+                                    this.members = [];
+                                    try {
+                                        const res = await fetch(`/api/chatwork/members/${this.roomId}`);
+                                        if (res.ok) {
+                                            this.members = await res.json();
+                                        } else {
+                                            const data = await res.json();
+                                            this.errorMessage = data.error || 'メンバーの取得に失敗しました。';
+                                        }
+                                    } catch (e) {
+                                        this.errorMessage = '通信エラーが発生しました。';
+                                    } finally {
+                                        this.loading = false;
+                                    }
+                                }
+                            }
+                        }
+                    </script>
                 </div>
 
-                {{-- Notification Channel --}}
+                {{-- Notification Channels --}}
                 <div>
-                    <label for="notification_channel" class="block text-sm font-medium text-gray-700 mb-1">通知方法</label>
-                    <select
-                        id="notification_channel"
-                        name="notification_channel"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('notification_channel') border-red-300 @enderror"
-                    >
-                        <option value="email" {{ old('notification_channel', $user->notification_channel) === 'email' ? 'selected' : '' }}>メール</option>
-                        <option value="line" {{ old('notification_channel', $user->notification_channel) === 'line' ? 'selected' : '' }}>LINE</option>
-                        <option value="both" {{ old('notification_channel', $user->notification_channel) === 'both' ? 'selected' : '' }}>両方</option>
-                    </select>
-                    @error('notification_channel')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    <span class="block text-sm font-medium text-gray-700 mb-2">通知方法</span>
+                    <div class="space-y-2">
+                        <label class="inline-flex items-center">
+                            <input type="hidden" name="notify_email" value="0">
+                            <input type="checkbox" name="notify_email" value="1"
+                                {{ old('notify_email', $user->notify_email) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">メール</span>
+                        </label>
+                        <br>
+                        <label class="inline-flex items-center">
+                            <input type="hidden" name="notify_line" value="0">
+                            <input type="checkbox" name="notify_line" value="1"
+                                {{ old('notify_line', $user->notify_line) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">LINE</span>
+                        </label>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Chatworkは Room ID が設定されていれば常に送信されます。</p>
                 </div>
             </div>
 

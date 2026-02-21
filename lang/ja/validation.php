@@ -188,7 +188,8 @@ return [
         'slots' => '時間枠',
         'rating' => '評価',
         'comment' => 'コメント',
-        'notification_channel' => '通知方法',
+        'notify_email' => 'メール通知',
+        'notify_line' => 'LINE通知',
     ],
 
 ];

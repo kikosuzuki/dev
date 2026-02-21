@@ -237,13 +237,11 @@ class NotificationService
 
     private function send($user, Booking $booking, string $type, string $subject, string $content): void
     {
-        $channel = $user->notification_channel;
-
-        if (in_array($channel, ['email', 'both'])) {
+        if ($user->notify_email) {
             $this->sendEmail($user, $booking, $type, $subject, $content);
         }
 
-        if (in_array($channel, ['line', 'both'])) {
+        if ($user->notify_line) {
             $this->sendLine($user, $booking, $type, $content);
         }
 
