@@ -152,4 +152,37 @@ class BookingController extends Controller
 
         return back()->with('success', '予約を却下しました。');
     }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        if (!$booking->canCancel()) {
+            return back()->with('error', 'この予約はキャンセルできません。');
+        }
+
+        $request->validate([
+            'cancel_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $booking->update([
+            'status' => 'cancelled',
+            'cancel_reason' => $request->cancel_reason,
+        ]);
+
+        if ($booking->google_event_id) {
+            try {
+                $googleService = app(GoogleCalendarService::class);
+                $googleService->deleteEvent($booking->google_event_id);
+                $booking->update(['google_event_id' => null]);
+            } catch (\Exception $e) {
+                // Ignore Google Calendar errors
+            }
+        }
+
+        AuditLog::log('booking_cancelled_by_admin', $booking);
+
+        $notificationService = app(NotificationService::class);
+        $notificationService->sendBookingCancelled($booking);
+
+        return back()->with('success', '予約をキャンセルしました。予約者に通知が送信されました。');
+    }
 }
