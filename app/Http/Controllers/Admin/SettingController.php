@@ -23,7 +23,6 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'require_booking_approval' => ['boolean'],
             'cancel_policy_hours' => ['required', 'integer', 'min:0'],
             'booking_slot_duration' => ['required', 'integer', 'min:15'],
             'max_bookings_per_day' => ['required', 'integer', 'min:1'],

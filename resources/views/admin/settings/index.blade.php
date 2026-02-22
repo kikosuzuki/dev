@@ -44,24 +44,6 @@
                         <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">予約設定</h3>
 
                         <div class="space-y-6">
-                            {{-- Require Booking Approval --}}
-                            <div x-data="{ requireApproval: {{ (optional($settings['require_booking_approval'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }} }">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">予約の承認制</label>
-                                <div class="flex items-center">
-                                    <button type="button"
-                                            @click="requireApproval = !requireApproval"
-                                            :class="requireApproval ? 'bg-blue-600' : 'bg-gray-200'"
-                                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                                            role="switch">
-                                        <span :class="requireApproval ? 'translate-x-5' : 'translate-x-0'"
-                                              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                                    </button>
-                                    <input type="hidden" name="require_booking_approval" :value="requireApproval ? '1' : '0'">
-                                    <span class="ml-3 text-sm" :class="requireApproval ? 'text-blue-600 font-medium' : 'text-gray-500'" x-text="requireApproval ? 'ON（承認が必要）' : 'OFF（自動承認）'"></span>
-                                </div>
-                                <p class="mt-1 text-xs text-gray-500">OFFにすると、すべての予約が自動的に承認されます。ONの場合はコンサルタントまたは管理者の承認が必要です。</p>
-                            </div>
-
                             {{-- Cancel Policy Hours --}}
                             <div>
                                 <label for="cancel_policy_hours" class="block text-sm font-medium text-gray-700 mb-1">
