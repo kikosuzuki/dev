@@ -11,8 +11,13 @@
             </svg>
         </div>
 
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">予約を受け付けました</h1>
-        <p class="text-gray-600 mb-8">担当者が確認後、ご入力いただいたメールアドレスにご連絡いたします。</p>
+        @if($booking->isApproved())
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">予約が確定しました</h1>
+            <p class="text-gray-600 mb-8">ご入力いただいたメールアドレスに確認メールをお送りしました。</p>
+        @else
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">予約を受け付けました</h1>
+            <p class="text-gray-600 mb-8">担当者が確認後、ご入力いただいたメールアドレスにご連絡いたします。</p>
+        @endif
 
         <div class="bg-gray-50 rounded-lg p-6 text-left mb-8">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">予約内容</h2>
@@ -40,9 +45,15 @@
                 <div class="flex justify-between">
                     <dt class="text-sm text-gray-500">ステータス</dt>
                     <dd>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            確認待ち
-                        </span>
+                        @if($booking->isApproved())
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                確定
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                確認待ち
+                            </span>
+                        @endif
                     </dd>
                 </div>
                 @if($booking->notes)

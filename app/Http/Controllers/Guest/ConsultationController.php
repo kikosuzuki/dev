@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\ConsultantSchedule;
 use App\Models\SystemSetting;
+use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
@@ -105,6 +106,10 @@ class ConsultationController extends Controller
             return back()->with('error', 'このコンサルタントの予約枠は上限に達しています。別の日時をお選びください。');
         }
 
+        $consultant = $schedule->consultant;
+        $profile = $consultant->consultantProfile;
+        $autoApprove = $profile ? $profile->auto_approve : true;
+
         $booking = Booking::create([
             'user_id' => null,
             'consultant_id' => $schedule->user_id,
@@ -112,7 +117,7 @@ class ConsultationController extends Controller
             'booking_date' => $schedule->date,
             'start_time' => $schedule->start_time,
             'end_time' => $schedule->end_time,
-            'status' => 'pending',
+            'status' => $autoApprove ? 'approved' : 'pending',
             'notes' => $validated['notes'] ?? null,
             'amount' => 0,
             'is_guest' => true,
@@ -122,12 +127,25 @@ class ConsultationController extends Controller
             'guest_referrer' => $validated['guest_referrer'] ?? null,
         ]);
 
+        if ($autoApprove) {
+            try {
+                $googleService = app(GoogleCalendarService::class);
+                $eventId = $googleService->createEvent($booking);
+                if ($eventId) {
+                    $booking->update(['google_event_id' => $eventId]);
+                }
+            } catch (\Exception $e) {
+                // Google Calendar integration is optional
+            }
+        }
+
         AuditLog::log('guest_booking_created', $booking);
 
         $notificationService = app(NotificationService::class);
         $notificationService->sendGuestBookingConfirmation($booking);
 
-        return redirect()->route('consultation.complete', $booking)->with('success', '個別相談の予約を受け付けました。');
+        $statusMsg = $autoApprove ? '個別相談の予約が確定しました。' : '個別相談の予約を受け付けました。コンサルタントの承認をお待ちください。';
+        return redirect()->route('consultation.complete', $booking)->with('success', $statusMsg);
     }
 
     public function complete(Booking $booking)
