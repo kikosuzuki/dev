@@ -179,5 +179,135 @@
             </div>
         </div>
     </form>
+
+    {{-- Google Calendar Integration (separate from main profile form) --}}
+    <div class="bg-white rounded-lg shadow mt-8">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-6">Googleカレンダー連携</h2>
+
+            @if($profile && $profile->isGoogleConnected())
+                {{-- Connected State --}}
+                <div class="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <svg class="h-5 w-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-green-800">接続済み</p>
+                        @if($profile->google_calendar_email)
+                            <p class="text-xs text-green-600">{{ $profile->google_calendar_email }}</p>
+                        @endif
+                    </div>
+                    <form method="POST" action="{{ route('consultant.google.disconnect') }}"
+                          onsubmit="return confirm('Googleアカウントの連携を解除しますか？')">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition">
+                            連携解除
+                        </button>
+                    </form>
+                </div>
+
+                {{-- Calendar Selection --}}
+                <div class="mt-4" x-data="calendarSelector()">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">同期先カレンダー</label>
+                    <div class="flex items-center space-x-3">
+                        <select x-model="selectedCalendar"
+                                :disabled="loading"
+                                class="block w-full max-w-md border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100">
+                            <option value="" x-show="loading">読み込み中...</option>
+                            <template x-for="cal in calendars" :key="cal.id">
+                                <option :value="cal.id" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')"></option>
+                            </template>
+                        </select>
+                        <button @click="saveCalendar()"
+                                :disabled="saving || loading"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition">
+                            <span x-show="!saving">保存</span>
+                            <span x-show="saving">保存中...</span>
+                        </button>
+                    </div>
+                    <p x-show="error" x-text="error" class="mt-1 text-sm text-red-600"></p>
+                    <p x-show="successMsg" x-text="successMsg" class="mt-1 text-sm text-green-600"></p>
+                    <p class="mt-1 text-xs text-gray-500">予約が承認された際にイベントが作成されるカレンダーを選択してください。</p>
+                </div>
+
+                <script>
+                    function calendarSelector() {
+                        return {
+                            calendars: [],
+                            selectedCalendar: '{{ $profile->google_calendar_id ?? "primary" }}',
+                            loading: true,
+                            saving: false,
+                            error: '',
+                            successMsg: '',
+                            init() {
+                                fetch('{{ route("consultant.google.calendars") }}', {
+                                    headers: { 'Accept': 'application/json' }
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    this.calendars = data.calendars || [];
+                                    if (data.selected && this.calendars.length > 0) {
+                                        this.selectedCalendar = data.selected;
+                                    }
+                                    this.loading = false;
+                                })
+                                .catch(() => {
+                                    this.error = 'カレンダー一覧の取得に失敗しました。';
+                                    this.loading = false;
+                                });
+                            },
+                            saveCalendar() {
+                                this.saving = true;
+                                this.error = '';
+                                this.successMsg = '';
+                                fetch('{{ route("consultant.google.calendar.update") }}', {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ google_calendar_id: this.selectedCalendar })
+                                })
+                                .then(r => {
+                                    if (r.ok) {
+                                        this.successMsg = 'カレンダーを変更しました。';
+                                    } else {
+                                        this.error = 'カレンダーの保存に失敗しました。';
+                                    }
+                                    this.saving = false;
+                                })
+                                .catch(() => {
+                                    this.error = 'カレンダーの保存に失敗しました。';
+                                    this.saving = false;
+                                });
+                            }
+                        };
+                    }
+                </script>
+            @else
+                {{-- Disconnected State --}}
+                <div class="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                    <svg class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-600">未接続</p>
+                        <p class="text-xs text-gray-400">Googleアカウントを連携すると、予約がご自身のカレンダーに自動同期されます。</p>
+                    </div>
+                    <a href="{{ route('consultant.google.auth') }}" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition">
+                        <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                        </svg>
+                        Googleアカウントを連携
+                    </a>
+                </div>
+            @endif
+            <p class="mt-2 text-xs text-gray-500">連携すると、予約が承認された際にご自身のGoogleカレンダーにイベントが自動作成されます。</p>
+        </div>
+    </div>
 </div>
 @endsection

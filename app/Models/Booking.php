@@ -17,6 +17,7 @@ class Booking extends Model
         'notes',
         'cancel_reason',
         'google_event_id',
+        'consultant_google_event_id',
         'meeting_url',
         'amount',
         'is_guest',

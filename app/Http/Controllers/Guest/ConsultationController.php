@@ -108,8 +108,7 @@ class ConsultationController extends Controller
 
         $consultant = $schedule->consultant;
         $profile = $consultant->consultantProfile;
-        $requireApproval = SystemSetting::get('require_booking_approval', '1') === '1';
-        $autoApprove = !$requireApproval || ($profile ? $profile->auto_approve : true);
+        $autoApprove = $profile ? $profile->auto_approve : true;
 
         $booking = Booking::create([
             'user_id' => null,
@@ -131,10 +130,11 @@ class ConsultationController extends Controller
         if ($autoApprove) {
             try {
                 $googleService = app(GoogleCalendarService::class);
-                $eventId = $googleService->createEvent($booking);
-                if ($eventId) {
-                    $booking->update(['google_event_id' => $eventId]);
-                }
+                [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+                $booking->update([
+                    'google_event_id' => $adminEventId,
+                    'consultant_google_event_id' => $consultantEventId,
+                ]);
             } catch (\Exception $e) {
                 // Google Calendar integration is optional
             }

@@ -66,8 +66,7 @@ class BookingController extends Controller
 
         $consultant = $schedule->consultant;
         $profile = $consultant->consultantProfile;
-        $requireApproval = SystemSetting::get('require_booking_approval', '1') === '1';
-        $autoApprove = !$requireApproval || ($profile ? $profile->auto_approve : true);
+        $autoApprove = $profile ? $profile->auto_approve : true;
 
         $booking = Booking::create([
             'user_id' => auth()->id(),
@@ -84,10 +83,11 @@ class BookingController extends Controller
         if ($autoApprove) {
             try {
                 $googleService = app(GoogleCalendarService::class);
-                $eventId = $googleService->createEvent($booking);
-                if ($eventId) {
-                    $booking->update(['google_event_id' => $eventId]);
-                }
+                [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+                $booking->update([
+                    'google_event_id' => $adminEventId,
+                    'consultant_google_event_id' => $consultantEventId,
+                ]);
             } catch (\Exception $e) {
                 // Google Calendar integration is optional
             }
@@ -132,11 +132,11 @@ class BookingController extends Controller
             'cancel_reason' => $request->cancel_reason,
         ]);
 
-        if ($booking->google_event_id) {
+        if ($booking->google_event_id || $booking->consultant_google_event_id) {
             try {
                 $googleService = app(GoogleCalendarService::class);
-                $googleService->deleteEvent($booking->google_event_id);
-                $booking->update(['google_event_id' => null]);
+                $googleService->syncDeleteEvent($booking);
+                $booking->update(['google_event_id' => null, 'consultant_google_event_id' => null]);
             } catch (\Exception $e) {
                 // Ignore Google Calendar errors
             }

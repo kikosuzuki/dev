@@ -13,6 +13,7 @@ use App\Http\Controllers\Consultant\DashboardController as ConsultantDashboard;
 use App\Http\Controllers\Consultant\ScheduleController;
 use App\Http\Controllers\Consultant\BookingManageController;
 use App\Http\Controllers\Consultant\ProfileController as ConsultantProfileController;
+use App\Http\Controllers\Consultant\GoogleAuthController as ConsultantGoogleAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\ConsultantStatsController;
@@ -49,9 +50,9 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Google OAuth callback (needs auth + admin, but outside prefix since redirect_uri is fixed)
+// Google OAuth callback (shared by admin and consultant, outside prefix since redirect_uri is fixed)
 Route::get('/google/callback', [GoogleAuthController::class, 'callback'])
-    ->middleware(['auth', 'role:admin'])
+    ->middleware(['auth'])
     ->name('google.callback');
 
 // Chatwork API (authenticated users)
@@ -110,6 +111,12 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ConsultantProfileController::class, 'update'])->name('profile.update');
+
+    // Google Calendar OAuth
+    Route::get('/google/auth', [ConsultantGoogleAuthController::class, 'redirect'])->name('google.auth');
+    Route::post('/google/disconnect', [ConsultantGoogleAuthController::class, 'disconnect'])->name('google.disconnect');
+    Route::get('/google/calendars', [ConsultantGoogleAuthController::class, 'calendars'])->name('google.calendars');
+    Route::put('/google/calendar', [ConsultantGoogleAuthController::class, 'updateCalendar'])->name('google.calendar.update');
 });
 
 // Admin routes
