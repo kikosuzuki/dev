@@ -185,4 +185,25 @@ class BookingController extends Controller
 
         return back()->with('success', '予約をキャンセルしました。予約者に通知が送信されました。');
     }
+
+    public function updateConsultationRecord(Request $request, Booking $booking)
+    {
+        if (!$booking->isGuest()) {
+            return back()->with('error', '個別相談の予約のみ記録できます。');
+        }
+
+        $request->validate([
+            'consultation_result' => ['required', 'in:success,failure,pending'],
+            'consultation_notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $booking->update([
+            'consultation_result' => $request->consultation_result,
+            'consultation_notes' => $request->consultation_notes,
+        ]);
+
+        AuditLog::log('consultation_record_updated', $booking);
+
+        return back()->with('success', '相談記録を保存しました。');
+    }
 }

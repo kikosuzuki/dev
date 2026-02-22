@@ -24,6 +24,8 @@ class Booking extends Model
         'guest_email',
         'guest_phone',
         'guest_referrer',
+        'consultation_result',
+        'consultation_notes',
         'reminder_day_before_sent',
         'reminder_day_of_sent',
         'reminder_10min_sent',

@@ -129,6 +129,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve'])->name('bookings.approve');
     Route::post('/bookings/{booking}/reject', [AdminBookingController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
+    Route::put('/bookings/{booking}/consultation-record', [AdminBookingController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
     Route::post('/bookings/{booking}/guest-email', [AdminGuestEmailController::class, 'send'])->name('bookings.guest-email.send');
 
     // Available schedules

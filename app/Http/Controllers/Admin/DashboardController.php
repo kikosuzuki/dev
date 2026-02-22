@@ -9,8 +9,10 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $consultationResult = $request->get('consultation_result');
+
         $stats = [
             'total_users' => User::where('role', 'user')->count(),
             'total_consultants' => User::where('role', 'consultant')->count(),
@@ -24,9 +26,19 @@ class DashboardController extends Controller
                 ->sum('amount'),
         ];
 
-        $recentBookings = Booking::with(['user', 'consultant'])
-            ->orderByDesc('created_at')
-            ->paginate(10);
+        $query = Booking::with(['user', 'consultant'])
+            ->orderByDesc('created_at');
+
+        if ($consultationResult && $consultationResult !== 'all') {
+            $query->where('is_guest', true);
+            if ($consultationResult === 'unrecorded') {
+                $query->whereNull('consultation_result');
+            } else {
+                $query->where('consultation_result', $consultationResult);
+            }
+        }
+
+        $recentBookings = $query->paginate(10)->appends($request->query());
 
         $monthlyBookings = Booking::selectRaw('DATE_FORMAT(booking_date, "%Y-%m") as month, COUNT(*) as count, SUM(amount) as revenue')
             ->whereIn('status', ['approved', 'completed'])
@@ -35,6 +47,6 @@ class DashboardController extends Controller
             ->limit(12)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentBookings', 'monthlyBookings'));
+        return view('admin.dashboard', compact('stats', 'recentBookings', 'monthlyBookings', 'consultationResult'));
     }
 }
