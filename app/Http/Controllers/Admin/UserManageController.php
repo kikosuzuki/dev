@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Booking;
 use App\Models\ConsultantProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -15,6 +16,11 @@ class UserManageController extends Controller
     public function index(Request $request)
     {
         $role = $request->get('role', 'all');
+
+        if ($role === 'guest') {
+            return $this->guestIndex($request);
+        }
+
         $query = User::query();
 
         if ($role !== 'all') {
@@ -32,6 +38,27 @@ class UserManageController extends Controller
         $users = $query->orderByDesc('created_at')->paginate(20);
 
         return view('admin.users.index', compact('users', 'role'));
+    }
+
+    private function guestIndex(Request $request)
+    {
+        $role = 'guest';
+        $query = Booking::where('is_guest', true)
+            ->with('consultant.consultantProfile');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('guest_name', 'like', "%{$search}%")
+                    ->orWhere('guest_email', 'like', "%{$search}%")
+                    ->orWhere('guest_phone', 'like', "%{$search}%")
+                    ->orWhere('guest_referrer', 'like', "%{$search}%");
+            });
+        }
+
+        $guests = $query->orderByDesc('booking_date')->paginate(20);
+
+        return view('admin.users.index', compact('guests', 'role'));
     }
 
     public function create()
@@ -115,5 +142,37 @@ class UserManageController extends Controller
         AuditLog::log("user_{$status}", $user);
 
         return back()->with('success', "ユーザーを{$status}しました。");
+    }
+
+    public function editGuest(Booking $booking)
+    {
+        if (!$booking->isGuest()) {
+            abort(404);
+        }
+
+        $booking->load('consultant.consultantProfile');
+
+        return view('admin.users.guest-edit', compact('booking'));
+    }
+
+    public function updateGuest(Request $request, Booking $booking)
+    {
+        if (!$booking->isGuest()) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'guest_name' => ['required', 'string', 'max:255'],
+            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_phone' => ['required', 'string', 'max:20'],
+            'guest_referrer' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $oldValues = $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']);
+        $booking->update($validated);
+
+        AuditLog::log('guest_booking_updated', $booking, $oldValues, $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']));
+
+        return redirect()->route('admin.users.index', ['role' => 'guest'])->with('success', 'ゲスト相談者情報を更新しました。');
     }
 }

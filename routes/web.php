@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // User management
     Route::get('/users', [UserManageController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserManageController::class, 'create'])->name('users.create');
+    Route::get('/users/guest/{booking}/edit', [UserManageController::class, 'editGuest'])->name('users.guest.edit');
+    Route::put('/users/guest/{booking}', [UserManageController::class, 'updateGuest'])->name('users.guest.update');
     Route::post('/users', [UserManageController::class, 'store'])->name('users.store');
     Route::get('/users/{user}/edit', [UserManageController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserManageController::class, 'update'])->name('users.update');
