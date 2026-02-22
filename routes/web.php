@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\ChatworkController as AdminChatworkController;
 use App\Http\Controllers\Admin\GuestEmailController as AdminGuestEmailController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
@@ -47,6 +48,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+// Google OAuth callback (needs auth + admin, but outside prefix since redirect_uri is fixed)
+Route::get('/google/callback', [GoogleAuthController::class, 'callback'])
+    ->middleware(['auth', 'role:admin'])
+    ->name('google.callback');
 
 // Chatwork API (authenticated users)
 Route::middleware('auth')->get('/api/chatwork/members/{roomId}', [ChatworkMemberController::class, 'index'])->name('api.chatwork.members');
@@ -137,4 +143,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Google Calendar OAuth
+    Route::get('/google/auth', [GoogleAuthController::class, 'redirect'])->name('google.auth');
+    Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect');
 });
