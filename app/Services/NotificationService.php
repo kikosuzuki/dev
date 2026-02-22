@@ -130,6 +130,10 @@ class NotificationService
 
         $customMessage = SystemSetting::get('guest_booking_confirmation_message', '');
 
+        if ($customMessage) {
+            $customMessage = $this->replacePlaceholders($customMessage, $booking->guest_name ?? '', "{$date} {$time}");
+        }
+
         $subject = '【予約受付】個別相談のご予約を承りました';
         $content = "{$booking->guest_name}様\n\n"
             . "個別相談のご予約を受け付けました。\n"
@@ -178,6 +182,7 @@ class NotificationService
         $customMessage = $consultantProfile?->reminder_message
             ?: SystemSetting::get('guest_reminder_message')
             ?: 'お忘れなくご参加ください。';
+        $customMessage = $this->replacePlaceholders($customMessage, $booking->guest_name ?? '', "{$date} {$time}");
 
         $subject = "【リマインド】{$typeLabel}の個別相談のご予約";
         $content = "{$booking->guest_name}様\n\n"
@@ -227,6 +232,7 @@ class NotificationService
         $customMessage = $consultantProfile?->reminder_message
             ?: SystemSetting::get('default_reminder_message')
             ?: 'お忘れなくご参加ください。';
+        $customMessage = $this->replacePlaceholders($customMessage, $user->name, "{$date} {$time}");
 
         $subject = "【リマインド】{$typeLabel}のコンサルティング予約";
         $content = "{$user->name}様\n\n"
@@ -320,6 +326,11 @@ class NotificationService
         } catch (\Exception $e) {
             $this->logNotification($user->id, $booking->id, 'line', $type, null, $content, 'failed', $e->getMessage());
         }
+    }
+
+    private function replacePlaceholders(string $text, string $name, string $date): string
+    {
+        return str_replace(['{name}', '{date}'], [$name, $date], $text);
     }
 
     private function logNotification(?int $userId, int $bookingId, string $channel, string $type, ?string $subject, ?string $content, string $status, ?string $errorMessage = null): void

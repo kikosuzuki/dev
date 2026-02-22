@@ -24,10 +24,18 @@ class GuestEmailController extends Controller
             return back()->with('error', 'この予約にはゲストのメールアドレスが設定されていません。');
         }
 
+        $dateLabel = $booking->booking_date->format('Y年m月d日') . ' '
+            . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - '
+            . \Carbon\Carbon::parse($booking->end_time)->format('H:i');
+
+        $replacements = ['{name}' => $booking->guest_name ?? '', '{date}' => $dateLabel];
+        $subject = str_replace(array_keys($replacements), array_values($replacements), $validated['subject']);
+        $message = str_replace(array_keys($replacements), array_values($replacements), $validated['message']);
+
         try {
-            Mail::raw($validated['message'], function ($mail) use ($booking, $validated) {
+            Mail::raw($message, function ($mail) use ($booking, $subject) {
                 $mail->to($booking->guest_email)
-                    ->subject($validated['subject']);
+                    ->subject($subject);
             });
 
             return back()->with('success', "{$booking->guest_name}さんにメールを送信しました。");
