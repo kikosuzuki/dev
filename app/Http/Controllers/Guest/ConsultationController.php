@@ -108,7 +108,8 @@ class ConsultationController extends Controller
 
         $consultant = $schedule->consultant;
         $profile = $consultant->consultantProfile;
-        $autoApprove = $profile ? $profile->auto_approve : true;
+        $requireApproval = SystemSetting::get('require_booking_approval', '1') === '1';
+        $autoApprove = !$requireApproval || ($profile ? $profile->auto_approve : true);
 
         $booking = Booking::create([
             'user_id' => null,
