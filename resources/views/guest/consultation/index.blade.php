@@ -33,6 +33,9 @@
     <div class="bg-white rounded-lg shadow p-4 mb-8">
         <form method="GET" action="{{ route('consultation.index') }}" class="flex flex-wrap items-end gap-4">
             <input type="hidden" name="view" value="list">
+            @if($intro)
+                <input type="hidden" name="intro" value="{{ $intro }}">
+            @endif
             <div>
                 <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">開始日</label>
                 <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
@@ -47,7 +50,7 @@
                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-emerald-700 transition">
                     検索
                 </button>
-                <a href="{{ route('consultation.index', ['view' => 'list']) }}" class="ml-2 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition">
+                <a href="{{ route('consultation.index', array_merge(['view' => 'list'], $intro ? ['intro' => $intro] : [])) }}" class="ml-2 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition">
                     リセット
                 </a>
             </div>
@@ -91,7 +94,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <a href="{{ route('consultation.create', $schedule) }}"
+                                <a href="{{ route('consultation.create', array_merge(['schedule' => $schedule->id], $intro ? ['intro' => $intro] : [])) }}"
                                     class="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition">
                                     予約する
                                 </a>
@@ -177,7 +180,7 @@
                     @if($slots->isNotEmpty())
                         <div class="space-y-1">
                             @foreach($slots as $slot)
-                                <a href="{{ route('consultation.create', $slot) }}"
+                                <a href="{{ route('consultation.create', array_merge(['schedule' => $slot->id], $intro ? ['intro' => $intro] : [])) }}"
                                     class="block text-xs p-1.5 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition"
                                     title="{{ $consultantLabels[$slot->user_id] ?? '' }}">
                                     {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}

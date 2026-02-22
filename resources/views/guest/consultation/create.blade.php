@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto">
     <div class="mb-8">
-        <a href="{{ route('consultation.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition mb-4">
+        <a href="{{ route('consultation.index', $intro ? ['intro' => $intro] : []) }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition mb-4">
             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -41,6 +41,9 @@
         <form method="POST" action="{{ route('consultation.store') }}">
             @csrf
             <input type="hidden" name="schedule_id" value="{{ $schedule->id }}">
+            @if($intro)
+                <input type="hidden" name="guest_referrer" value="{{ $intro }}">
+            @endif
 
             <div class="space-y-5">
                 <div>
@@ -93,7 +96,7 @@
             </div>
 
             <div class="flex items-center justify-end space-x-4 mt-8">
-                <a href="{{ route('consultation.index') }}"
+                <a href="{{ route('consultation.index', $intro ? ['intro' => $intro] : []) }}"
                     class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition text-sm font-medium">
                     キャンセル
                 </a>

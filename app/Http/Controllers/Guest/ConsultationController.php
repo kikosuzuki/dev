@@ -34,6 +34,7 @@ class ConsultationController extends Controller
         }
 
         $view = $request->get('view', 'list');
+        $intro = $request->get('intro');
 
         // List view: paginated
         $perPage = (int) SystemSetting::get('schedule_per_page', 30);
@@ -60,19 +61,21 @@ class ConsultationController extends Controller
         }
 
         return response()
-            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels'))
+            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels', 'intro'))
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
     }
 
-    public function create(ConsultantSchedule $schedule)
+    public function create(Request $request, ConsultantSchedule $schedule)
     {
         if (!$schedule->is_available || $schedule->isBooked()) {
             return back()->with('error', 'この時間枠は既に予約済みです。');
         }
 
-        return view('guest.consultation.create', compact('schedule'));
+        $intro = $request->get('intro');
+
+        return view('guest.consultation.create', compact('schedule', 'intro'));
     }
 
     public function store(Request $request)
@@ -83,6 +86,7 @@ class ConsultationController extends Controller
             'guest_email' => ['required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'guest_referrer' => ['nullable', 'string', 'max:255'],
         ]);
 
         $schedule = ConsultantSchedule::findOrFail($validated['schedule_id']);
@@ -115,6 +119,7 @@ class ConsultationController extends Controller
             'guest_name' => $validated['guest_name'],
             'guest_email' => $validated['guest_email'],
             'guest_phone' => $validated['guest_phone'],
+            'guest_referrer' => $validated['guest_referrer'] ?? null,
         ]);
 
         AuditLog::log('guest_booking_created', $booking);
