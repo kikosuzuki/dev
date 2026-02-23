@@ -13,7 +13,32 @@
         </a>
         <h1 class="text-2xl font-bold text-gray-900">個別相談の予約</h1>
         <p class="mt-1 text-gray-600">お客様情報をご入力のうえ、予約を確定してください。</p>
+        <p class="mt-2 text-sm font-bold text-red-600">※ 経営者・個人事業主の方が対象です。商品が無い方・副業の方は申込をご遠慮下さい。</p>
     </div>
+
+    {{-- コンサルタント情報 --}}
+    @if($schedule->consultant)
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">担当コンサルタント</h2>
+            <div class="flex items-center space-x-4">
+                @if($schedule->consultant->consultantProfile?->photo)
+                    <img src="{{ Storage::url($schedule->consultant->consultantProfile->photo) }}"
+                        alt="{{ $schedule->consultant->name }}"
+                        class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                @else
+                    <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center border-2 border-gray-200">
+                        <span class="text-emerald-600 font-bold text-xl">{{ mb_substr($schedule->consultant->name, 0, 1) }}</span>
+                    </div>
+                @endif
+                <div>
+                    <p class="text-base font-semibold text-gray-900">{{ $schedule->consultant->name }}</p>
+                    @if($schedule->consultant->consultantProfile?->specialty)
+                        <p class="text-sm text-gray-600 mt-0.5">{{ $schedule->consultant->consultantProfile->specialty }}</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- 予約日時 --}}
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -46,19 +71,6 @@
             @endif
 
             <div class="space-y-5">
-                @if(!$intro)
-                <div>
-                    <label for="guest_referrer" class="block text-sm font-medium text-gray-700 mb-1">
-                        紹介者（任意）
-                    </label>
-                    <input type="text" id="guest_referrer" name="guest_referrer" value="{{ old('guest_referrer') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-                        placeholder="紹介者名があればご記入ください">
-                    @error('guest_referrer')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-                @endif
                 <div>
                     <label for="guest_name" class="block text-sm font-medium text-gray-700 mb-1">
                         お名前 <span class="text-red-500">*</span>
@@ -106,6 +118,20 @@
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
+
+                @if(!$intro)
+                <div>
+                    <label for="guest_referrer" class="block text-sm font-medium text-gray-700 mb-1">
+                        紹介者（任意）
+                    </label>
+                    <input type="text" id="guest_referrer" name="guest_referrer" value="{{ old('guest_referrer') }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                        placeholder="紹介者名があればご記入ください">
+                    @error('guest_referrer')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                @endif
             </div>
 
             <div class="flex items-center justify-end space-x-4 mt-8">

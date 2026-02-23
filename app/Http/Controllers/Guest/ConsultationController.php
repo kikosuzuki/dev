@@ -88,6 +88,7 @@ class ConsultationController extends Controller
         }
 
         $intro = $request->get('intro');
+        $schedule->load('consultant.consultantProfile');
 
         return view('guest.consultation.create', compact('schedule', 'intro'));
     }

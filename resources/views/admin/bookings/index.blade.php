@@ -43,6 +43,16 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">相談結果</label>
+                    <select name="consultation_result" class="rounded-md border-gray-300 shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" style="padding: 0.5rem 2rem 0.5rem 0.75rem;">
+                        <option value="all" {{ ($consultation_result ?? '') == 'all' || !($consultation_result ?? '') ? 'selected' : '' }}>全て</option>
+                        <option value="success" {{ ($consultation_result ?? '') == 'success' ? 'selected' : '' }}>成約</option>
+                        <option value="failure" {{ ($consultation_result ?? '') == 'failure' ? 'selected' : '' }}>不成約</option>
+                        <option value="pending" {{ ($consultation_result ?? '') == 'pending' ? 'selected' : '' }}>検討中</option>
+                        <option value="unrecorded" {{ ($consultation_result ?? '') == 'unrecorded' ? 'selected' : '' }}>未記録</option>
+                    </select>
+                </div>
+                <div>
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         絞り込み
@@ -74,6 +84,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約日</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談結果</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -109,6 +120,18 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">完了</span>
                                 @elseif($booking->status === 'cancelled')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">キャンセル</span>
+                                @endif
+                            </td>
+                            {{-- 相談結果 --}}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if($booking->consultation_result === 'success')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">成約</span>
+                                @elseif($booking->consultation_result === 'failure')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">不成約</span>
+                                @elseif($booking->consultation_result === 'pending')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">検討中</span>
+                                @else
+                                    <span class="text-gray-400 text-xs">-</span>
                                 @endif
                             </td>
                             {{-- メモ --}}
@@ -188,6 +211,59 @@
                                     }
                                 }">
                                 <div class="flex items-center gap-2">
+                                    @if($booking->isApproved() || $booking->status === 'completed')
+                                        <div x-data="{ showRecordModal: false }">
+                                            <button type="button" @click="showRecordModal = true"
+                                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                記録
+                                            </button>
+                                            <div x-show="showRecordModal" x-cloak @keydown.escape.window="showRecordModal = false"
+                                                class="fixed inset-0 z-50 overflow-y-auto" x-transition>
+                                                <div class="flex items-center justify-center min-h-screen px-4">
+                                                    <div class="fixed inset-0 bg-black/50" @click="showRecordModal = false"></div>
+                                                    <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
+                                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">相談記録</h3>
+                                                        <p class="text-sm text-gray-500 mb-4">{{ $booking->bookerName() }} / {{ $booking->booking_date->format('Y/m/d') }}</p>
+                                                        <form method="POST" action="{{ route('admin.bookings.consultation-record.update', $booking) }}">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <div class="mb-4">
+                                                                <label class="block text-sm font-medium text-gray-700 mb-2">相談結果 <span class="text-red-500">*</span></label>
+                                                                <div class="flex gap-4">
+                                                                    <label class="inline-flex items-center">
+                                                                        <input type="radio" name="consultation_result" value="success" class="form-radio text-green-600 focus:ring-green-500" {{ $booking->consultation_result === 'success' ? 'checked' : '' }}>
+                                                                        <span class="ml-2 text-sm text-gray-700">成約</span>
+                                                                    </label>
+                                                                    <label class="inline-flex items-center">
+                                                                        <input type="radio" name="consultation_result" value="failure" class="form-radio text-red-600 focus:ring-red-500" {{ $booking->consultation_result === 'failure' ? 'checked' : '' }}>
+                                                                        <span class="ml-2 text-sm text-gray-700">不成約</span>
+                                                                    </label>
+                                                                    <label class="inline-flex items-center">
+                                                                        <input type="radio" name="consultation_result" value="pending" class="form-radio text-yellow-600 focus:ring-yellow-500" {{ $booking->consultation_result === 'pending' ? 'checked' : '' }}>
+                                                                        <span class="ml-2 text-sm text-gray-700">検討中</span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-4">
+                                                                <label class="block text-sm font-medium text-gray-700 mb-2">相談メモ <span class="text-red-500">*</span></label>
+                                                                <textarea name="consultation_notes" rows="5" required
+                                                                    class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-purple-500 focus:border-purple-500"
+                                                                    placeholder="相談内容、結果の詳細、フォローアップ事項など...">{{ $booking->consultation_notes }}</textarea>
+                                                            </div>
+                                                            <div class="flex justify-end space-x-3">
+                                                                <button type="button" @click="showRecordModal = false"
+                                                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">閉じる</button>
+                                                                <button type="submit"
+                                                                    class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700">保存</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     @if($booking->isGuest() && $booking->guest_email)
                                         <button @click="emailOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">
                                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -283,7 +359,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
+                            <td colspan="11" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
                         </tr>
                     @endforelse
                 </tbody>

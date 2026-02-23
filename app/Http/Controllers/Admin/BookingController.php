@@ -20,6 +20,7 @@ class BookingController extends Controller
         $consultant_id = $request->get('consultant_id');
         $status = $request->get('status');
         $booking_type = $request->get('booking_type', 'all');
+        $consultation_result = $request->get('consultation_result');
 
         $now = now();
         $endDate = match ($period) {
@@ -65,6 +66,15 @@ class BookingController extends Controller
             $query->where('is_guest', true);
         }
 
+        // Filter by consultation result
+        if ($consultation_result && $consultation_result !== 'all') {
+            if ($consultation_result === 'unrecorded') {
+                $query->whereNull('consultation_result');
+            } else {
+                $query->where('consultation_result', $consultation_result);
+            }
+        }
+
         $bookings = $query->orderBy('booking_date')
             ->orderBy('start_time')
             ->paginate(20)
@@ -93,7 +103,7 @@ class BookingController extends Controller
                 'body' => $t->body ?? '',
             ])->toArray();
 
-        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'emailTemplates'));
+        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'consultation_result', 'emailTemplates'));
     }
 
     public function cancel(Request $request, Booking $booking)
