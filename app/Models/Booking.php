@@ -27,6 +27,7 @@ class Booking extends Model
         'guest_referrer',
         'consultation_result',
         'consultation_notes',
+        'important_document_issued',
         'admin_notes',
         'reminder_day_before_sent',
         'reminder_day_of_sent',
@@ -38,6 +39,7 @@ class Booking extends Model
         return [
             'booking_date' => 'date',
             'is_guest' => 'boolean',
+            'important_document_issued' => 'boolean',
             'reminder_day_before_sent' => 'boolean',
             'reminder_day_of_sent' => 'boolean',
             'reminder_10min_sent' => 'boolean',

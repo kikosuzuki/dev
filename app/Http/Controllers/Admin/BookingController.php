@@ -144,11 +144,13 @@ class BookingController extends Controller
         $request->validate([
             'consultation_result' => ['required', 'in:success,failure,pending'],
             'consultation_notes' => ['required', 'string'],
+            'important_document_issued' => ['nullable', 'boolean'],
         ]);
 
         $data = [
             'consultation_result' => $request->consultation_result,
             'consultation_notes' => $request->consultation_notes,
+            'important_document_issued' => $request->boolean('important_document_issued'),
         ];
 
         // 承認済みの予約は自動的に完了にする
