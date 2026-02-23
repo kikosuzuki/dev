@@ -29,64 +29,6 @@ class BookingManageController extends Controller
         return view('consultant.bookings.index', compact('bookings', 'status'));
     }
 
-    public function approve(Booking $booking)
-    {
-        if ($booking->consultant_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if (!$booking->isPending()) {
-            return back()->with('error', 'この予約は承認できません。');
-        }
-
-        $booking->update(['status' => 'approved']);
-
-        try {
-            $googleService = app(GoogleCalendarService::class);
-            [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
-            $booking->update([
-                'google_event_id' => $adminEventId,
-                'consultant_google_event_id' => $consultantEventId,
-            ]);
-        } catch (\Exception $e) {
-            // Optional
-        }
-
-        AuditLog::log('booking_approved', $booking);
-
-        $notificationService = app(NotificationService::class);
-        $notificationService->sendBookingConfirmation($booking);
-
-        return back()->with('success', '予約を承認しました。');
-    }
-
-    public function reject(Request $request, Booking $booking)
-    {
-        if ($booking->consultant_id !== auth()->id()) {
-            abort(403);
-        }
-
-        if (!$booking->isPending()) {
-            return back()->with('error', 'この予約は拒否できません。');
-        }
-
-        $request->validate([
-            'cancel_reason' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $booking->update([
-            'status' => 'rejected',
-            'cancel_reason' => $request->cancel_reason,
-        ]);
-
-        AuditLog::log('booking_rejected', $booking);
-
-        $notificationService = app(NotificationService::class);
-        $notificationService->sendBookingRejected($booking);
-
-        return back()->with('success', '予約を拒否しました。');
-    }
-
     public function complete(Booking $booking)
     {
         if ($booking->consultant_id !== auth()->id()) {

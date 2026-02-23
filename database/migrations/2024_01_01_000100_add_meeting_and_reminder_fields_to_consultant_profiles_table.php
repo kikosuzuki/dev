@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('consultant_profiles', function (Blueprint $table) {
-            $table->string('meeting_url', 500)->nullable()->after('auto_approve');
+            $table->string('meeting_url', 500)->nullable()->after('languages');
             $table->text('reminder_message')->nullable()->after('meeting_url');
         });
     }

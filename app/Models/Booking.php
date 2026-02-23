@@ -65,12 +65,7 @@ class Booking extends Model
 
     public function canCancel(): bool
     {
-        return in_array($this->status, ['pending', 'approved']);
-    }
-
-    public function isPending(): bool
-    {
-        return $this->status === 'pending';
+        return $this->status === 'approved';
     }
 
     public function isApproved(): bool

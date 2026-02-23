@@ -16,7 +16,7 @@ return new class extends Migration
             $table->date('booking_date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'completed'])->default('pending');
+            $table->enum('status', ['approved', 'cancelled', 'completed'])->default('approved');
             $table->text('notes')->nullable();
             $table->text('cancel_reason')->nullable();
             $table->string('google_event_id')->nullable();

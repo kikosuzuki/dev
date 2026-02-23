@@ -134,19 +134,6 @@
             <div class="p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">設定</h2>
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label for="auto_approve" class="text-sm font-medium text-gray-700">自動承認</label>
-                            <p class="text-xs text-gray-500">有効にすると、予約リクエストが自動的に承認されます。</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="hidden" name="auto_approve" value="0">
-                            <input type="checkbox" id="auto_approve" name="auto_approve" value="1"
-                                {{ old('auto_approve', $profile->auto_approve ?? false) ? 'checked' : '' }}
-                                class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
-                    </div>
                     <div>
                         <span class="block text-sm font-medium text-gray-700 mb-2">通知方法</span>
                         <div class="space-y-2">
@@ -227,7 +214,7 @@
                     </div>
                     <p x-show="error" x-text="error" class="mt-1 text-sm text-red-600"></p>
                     <p x-show="successMsg" x-text="successMsg" class="mt-1 text-sm text-green-600"></p>
-                    <p class="mt-1 text-xs text-gray-500">予約が承認された際にイベントが作成されるカレンダーを選択してください。</p>
+                    <p class="mt-1 text-xs text-gray-500">予約が確定した際にイベントが作成されるカレンダーを選択してください。</p>
                 </div>
 
                 <script>
@@ -306,7 +293,7 @@
                     </a>
                 </div>
             @endif
-            <p class="mt-2 text-xs text-gray-500">連携すると、予約が承認された際にご自身のGoogleカレンダーにイベントが自動作成されます。</p>
+            <p class="mt-2 text-xs text-gray-500">連携すると、予約が確定した際にご自身のGoogleカレンダーにイベントが自動作成されます。</p>
         </div>
     </div>
 </div>

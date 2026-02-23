@@ -26,13 +26,9 @@
                 class="py-3 px-1 border-b-2 text-sm font-medium transition {{ $status === 'all' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                 全て
             </a>
-            <a href="{{ route('user.bookings.index', ['status' => 'pending']) }}"
-                class="py-3 px-1 border-b-2 text-sm font-medium transition {{ $status === 'pending' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                保留中
-            </a>
             <a href="{{ route('user.bookings.index', ['status' => 'approved']) }}"
                 class="py-3 px-1 border-b-2 text-sm font-medium transition {{ $status === 'approved' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
-                承認済み
+                確定済み
             </a>
             <a href="{{ route('user.bookings.index', ['status' => 'completed']) }}"
                 class="py-3 px-1 border-b-2 text-sm font-medium transition {{ $status === 'completed' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
@@ -68,20 +64,14 @@
                                         {{ $booking->consultant->name }}
                                     </h3>
                                     @switch($booking->status)
-                                        @case('pending')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">保留中</span>
-                                            @break
                                         @case('approved')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">承認済み</span>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
                                             @break
                                         @case('completed')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">完了</span>
                                             @break
                                         @case('cancelled')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">キャンセル済み</span>
-                                            @break
-                                        @case('rejected')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">拒否</span>
                                             @break
                                     @endswitch
                                 </div>

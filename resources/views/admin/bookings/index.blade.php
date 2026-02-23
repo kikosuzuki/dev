@@ -29,8 +29,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
                     <select name="status" class="rounded-md border-gray-300 shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" style="padding: 0.5rem 2rem 0.5rem 0.75rem;">
                         <option value="all" {{ $status == 'all' ? 'selected' : '' }}>全て</option>
-                        <option value="pending" {{ $status == 'pending' ? 'selected' : '' }}>保留中</option>
-                        <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>承認済</option>
+                        <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>確定済み</option>
                     </select>
                 </div>
                 <div>
@@ -101,11 +100,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($booking->status === 'pending')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">保留中</span>
-                                @elseif($booking->status === 'approved')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">承認済</span>
-                                @endif
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @if($booking->isGuest() && $booking->guest_referrer)

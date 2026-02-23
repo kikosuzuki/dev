@@ -62,14 +62,14 @@
 
         <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
-                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
                     <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-500">保留中の予約</p>
-                    <p class="text-2xl font-semibold text-gray-900">{{ number_format($stats['pending_bookings']) }}</p>
+                    <p class="text-sm font-medium text-gray-500">確定済み予約</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ number_format($stats['active_bookings']) }}</p>
                 </div>
             </div>
         </div>
@@ -170,20 +170,14 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d') }} {{ $booking->start_time }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @switch($booking->status)
-                                    @case('pending')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">保留中</span>
-                                        @break
                                     @case('approved')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">承認済</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
                                         @break
                                     @case('completed')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">完了</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">完了</span>
                                         @break
                                     @case('cancelled')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">キャンセル</span>
-                                        @break
-                                    @case('rejected')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">却下</span>
                                         @break
                                     @default
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{{ $booking->status }}</span>
@@ -206,56 +200,6 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <div class="flex items-center space-x-2">
-                                    @if($booking->isPending())
-                                        <form action="{{ route('admin.bookings.approve', $booking) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                                承認
-                                            </button>
-                                        </form>
-                                        <div x-data="{ showRejectModal: false }">
-                                            <button type="button" @click="showRejectModal = true"
-                                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                                却下
-                                            </button>
-                                            <div x-show="showRejectModal" x-cloak
-                                                class="fixed inset-0 z-50 overflow-y-auto"
-                                                x-transition:enter="ease-out duration-300"
-                                                x-transition:enter-start="opacity-0"
-                                                x-transition:enter-end="opacity-100"
-                                                x-transition:leave="ease-in duration-200"
-                                                x-transition:leave-start="opacity-100"
-                                                x-transition:leave-end="opacity-0">
-                                                <div class="flex items-center justify-center min-h-screen px-4">
-                                                    <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="showRejectModal = false"></div>
-                                                    <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
-                                                        <h3 class="text-lg font-medium text-gray-900 mb-4">予約を却下</h3>
-                                                        <form action="{{ route('admin.bookings.reject', $booking) }}" method="POST">
-                                                            @csrf
-                                                            <div class="mb-4">
-                                                                <label for="cancel_reason_{{ $booking->id }}" class="block text-sm font-medium text-gray-700 mb-1">却下理由</label>
-                                                                <textarea id="cancel_reason_{{ $booking->id }}" name="cancel_reason" rows="3"
-                                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                                                    placeholder="却下理由を入力してください"></textarea>
-                                                            </div>
-                                                            <div class="flex justify-end space-x-3">
-                                                                <button type="button" @click="showRejectModal = false"
-                                                                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                                                    キャンセル
-                                                                </button>
-                                                                <button type="submit"
-                                                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                                                    却下する
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
                                     {{-- Consultation Record Button (Guest bookings only) --}}
                                     @if($booking->isGuest())
                                         <div x-data="{ showRecordModal: false }">
@@ -351,7 +295,7 @@
                                         </div>
                                     @endif
 
-                                    @if(!$booking->isPending() && !$booking->isGuest() && !$booking->canCancel())
+                                    @if(!$booking->isGuest() && !$booking->canCancel())
                                         <span class="text-gray-400 text-xs">-</span>
                                     @endif
                                 </div>

@@ -15,7 +15,6 @@ class ConsultantProfile extends Model
         'photo',
         'qualifications',
         'languages',
-        'auto_approve',
         'meeting_url',
         'reminder_message',
         'google_refresh_token',
@@ -36,7 +35,6 @@ class ConsultantProfile extends Model
         return [
             'qualifications' => 'array',
             'languages' => 'array',
-            'auto_approve' => 'boolean',
             'is_featured' => 'boolean',
             'average_rating' => 'decimal:2',
         ];

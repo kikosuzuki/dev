@@ -17,7 +17,7 @@ class DashboardController extends Controller
             'total_users' => User::where('role', 'user')->count(),
             'total_consultants' => User::where('role', 'consultant')->count(),
             'total_bookings' => Booking::count(),
-            'pending_bookings' => Booking::where('status', 'pending')->count(),
+            'active_bookings' => Booking::where('status', 'approved')->count(),
             'this_month_bookings' => Booking::whereMonth('booking_date', now()->month)
                 ->whereYear('booking_date', now()->year)->count(),
             'this_month_revenue' => Booking::whereMonth('booking_date', now()->month)

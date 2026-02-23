@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->json('qualifications')->nullable();
             $table->json('languages')->nullable();
-            $table->boolean('auto_approve')->default(true);
             $table->boolean('is_featured')->default(false);
             $table->decimal('average_rating', 3, 2)->default(0);
             $table->integer('total_reviews')->default(0);
