@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Consultant;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -41,6 +42,10 @@ class ProfileController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
+            $existingProfile = $user->consultantProfile;
+            if ($existingProfile && $existingProfile->photo) {
+                Storage::disk('public')->delete($existingProfile->photo);
+            }
             $path = $request->file('photo')->store('consultant_photos', 'public');
             $profileData['photo'] = $path;
         }
@@ -59,5 +64,17 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('success', 'プロフィールを更新しました。');
+    }
+
+    public function deletePhoto()
+    {
+        $profile = auth()->user()->consultantProfile;
+
+        if ($profile && $profile->photo) {
+            Storage::disk('public')->delete($profile->photo);
+            $profile->update(['photo' => null]);
+        }
+
+        return back()->with('success', 'プロフィール写真を削除しました。');
     }
 }
