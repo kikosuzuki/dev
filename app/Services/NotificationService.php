@@ -47,6 +47,11 @@ class NotificationService
             . ($booking->notes ? "■ 備考: {$booking->notes}\n" : '');
 
         $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
+
+        // System Room ID notification
+        $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultant->name}\n■ 日時: {$date} {$time}"
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+        $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
     private function sendGuestBookingApproved(Booking $booking): void
@@ -107,6 +112,11 @@ class NotificationService
             . ($booking->notes ? "■ 相談内容: {$booking->notes}\n" : '');
 
         $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
+
+        // System Room ID notification
+        $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+        $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
     public function sendBookingCancelled(Booking $booking): void
@@ -173,6 +183,11 @@ class NotificationService
             . "■ 日時: {$date}\n";
 
         $this->send($consultant, $booking, 'booking_cancelled', $subject, $consultantContent);
+
+        // System Room ID notification
+        $defaultCwMsg = "予約がキャンセルされました。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
+            . ($booking->cancel_reason ? "\n■ 理由: {$booking->cancel_reason}" : '');
+        $this->sendSystemChatwork($booking, 'chatwork_cancel_notification_message', $defaultCwMsg);
     }
 
     public function sendGuestReminder(Booking $booking, string $type): void
@@ -390,11 +405,66 @@ class NotificationService
         }
     }
 
-    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = ''): string
+    /**
+     * システム設定のRoom IDにChatwork通知を送信
+     */
+    private function sendSystemChatwork(Booking $booking, string $settingKey, string $defaultMessage): void
+    {
+        $systemRoomId = SystemSetting::get('chatwork_room_id', '');
+        if (!$systemRoomId || SystemSetting::get('chatwork_enabled', '0') !== '1') {
+            return;
+        }
+
+        $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
+        $bookerName = $booking->bookerName();
+        $consultantName = $consultant->name;
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? '');
+        $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
+
+        $customMessage = SystemSetting::get($settingKey, '');
+        $message = $customMessage
+            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId)
+            : $defaultMessage;
+
+        try {
+            $chatworkService = new ChatworkService();
+            $chatworkService->sendMessage($systemRoomId, $message);
+            $this->logNotification(null, $booking->id, 'chatwork_system', $settingKey, null, $message, 'sent');
+        } catch (\Exception $e) {
+            $this->logNotification(null, $booking->id, 'chatwork_system', $settingKey, null, $message, 'failed', $e->getMessage());
+        }
+    }
+
+    /**
+     * 当日朝のChatwork通知を送信（スケジューラーから呼ばれる）
+     */
+    public function sendMorningChatworkNotification(Booking $booking): void
+    {
+        $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
+        $bookerName = $booking->bookerName();
+        $consultantName = $consultant->name;
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? '');
+        $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
+
+        $defaultMessage = "本日の予約があります。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+
+        $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
+    }
+
+    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = ''): string
     {
         return str_replace(
-            ['{name}', '{date}', '{consultant}', '{meeting_url}'],
-            [$name, $date, $consultantName, $meetingUrl],
+            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}'],
+            [$name, $date, $consultantName, $meetingUrl, $chatworkId],
             $text
         );
     }

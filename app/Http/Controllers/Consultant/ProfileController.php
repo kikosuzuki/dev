@@ -24,6 +24,7 @@ class ProfileController extends Controller
             'qualifications' => ['nullable', 'string'],
             'languages' => ['nullable', 'string'],
             'meeting_url' => ['nullable', 'url', 'max:500'],
+            'chatwork_account_id' => ['nullable', 'string', 'max:50'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -36,6 +37,7 @@ class ProfileController extends Controller
             'qualifications' => $validated['qualifications'] ? array_map('trim', explode(',', $validated['qualifications'])) : [],
             'languages' => $validated['languages'] ? array_map('trim', explode(',', $validated['languages'])) : [],
             'meeting_url' => $validated['meeting_url'],
+            'chatwork_account_id' => $validated['chatwork_account_id'],
         ];
 
         if ($request->hasFile('photo')) {

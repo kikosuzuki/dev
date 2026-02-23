@@ -112,12 +112,21 @@
             {{-- Meeting Settings --}}
             <div class="p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">ミーティング設定</h2>
-                <div>
-                    <label for="meeting_url" class="block text-sm font-medium text-gray-700 mb-1">ミーティングURL（Zoom等）</label>
-                    <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $profile->meeting_url ?? '') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                        placeholder="https://zoom.us/j/1234567890">
-                    <p class="mt-1 text-xs text-gray-500">リマインド通知に含まれるミーティングリンクです。Zoom、Google Meet等のURLを入力してください。</p>
+                <div class="space-y-6">
+                    <div>
+                        <label for="meeting_url" class="block text-sm font-medium text-gray-700 mb-1">ミーティングURL（Zoom等）</label>
+                        <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $profile->meeting_url ?? '') }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="https://zoom.us/j/1234567890">
+                        <p class="mt-1 text-xs text-gray-500">リマインド通知に含まれるミーティングリンクです。Zoom、Google Meet等のURLを入力してください。</p>
+                    </div>
+                    <div>
+                        <label for="chatwork_account_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork アカウントID</label>
+                        <input type="text" id="chatwork_account_id" name="chatwork_account_id" value="{{ old('chatwork_account_id', $profile->chatwork_account_id ?? '') }}"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="1234567">
+                        <p class="mt-1 text-xs text-gray-500">Chatwork通知でTO指定に使用されるアカウントIDです。Chatworkのプロフィールから確認できます。</p>
+                    </div>
                 </div>
             </div>
 
