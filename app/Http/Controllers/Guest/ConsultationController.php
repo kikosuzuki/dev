@@ -15,12 +15,26 @@ class ConsultationController extends Controller
 {
     public function index(Request $request)
     {
-        $disclosureDays = (int) SystemSetting::get('guest_schedule_disclosure_days', 30);
+        // Check if booking acceptance is enabled
+        if (SystemSetting::get('booking_acceptance_enabled', '1') !== '1') {
+            return view('guest.consultation.closed');
+        }
+
+        $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
+        $hoursFromNow = (int) SystemSetting::get('hours_from_now', 2);
+        $minDateTime = now()->addHours($hoursFromNow);
 
         $query = ConsultantSchedule::where('is_available', true)
             ->upcoming()
             ->where('date', '<=', $maxDate)
+            ->where(function ($q) use ($minDateTime) {
+                $q->where('date', '>', $minDateTime->toDateString())
+                  ->orWhere(function ($q2) use ($minDateTime) {
+                      $q2->where('date', $minDateTime->toDateString())
+                         ->where('start_time', '>=', $minDateTime->format('H:i:s'));
+                  });
+            })
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })
@@ -38,10 +52,9 @@ class ConsultationController extends Controller
         $intro = $request->get('intro');
 
         // List view: paginated
-        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = (clone $query)->orderBy('date')
             ->orderBy('start_time')
-            ->paginate($perPage);
+            ->paginate(30);
 
         // Calendar view: grouped by date
         $year = (int) $request->get('year', now()->year);
@@ -81,6 +94,10 @@ class ConsultationController extends Controller
 
     public function store(Request $request)
     {
+        if (SystemSetting::get('booking_acceptance_enabled', '1') !== '1') {
+            return redirect()->route('consultation.index')->with('error', '現在予約の受付を停止しております。');
+        }
+
         $validated = $request->validate([
             'schedule_id' => ['required', 'exists:consultant_schedules,id'],
             'guest_name' => ['required', 'string', 'max:255'],

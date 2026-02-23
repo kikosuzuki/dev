@@ -23,6 +23,8 @@ class User extends Authenticatable
         'notify_email',
         'notify_line',
         'is_active',
+        'admin_notes',
+        'user_type',
     ];
 
     protected $hidden = [

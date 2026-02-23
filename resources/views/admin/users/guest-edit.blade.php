@@ -95,6 +95,18 @@
                 <p class="mt-1 text-xs text-gray-500">紹介者の付け替えが必要な場合は、こちらを変更してください。</p>
             </div>
 
+            {{-- Admin Notes --}}
+            <div class="mb-6">
+                <label for="admin_notes" class="block text-sm font-medium text-gray-700 mb-1">管理メモ</label>
+                <textarea name="admin_notes" id="admin_notes" rows="4"
+                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('admin_notes') border-red-500 @enderror"
+                          placeholder="社内用のメモを入力（コンサルタントからも閲覧・編集可能）">{{ old('admin_notes', $booking->admin_notes) }}</textarea>
+                @error('admin_notes')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">コンサルタントの予約一覧からも閲覧・編集可能です。</p>
+            </div>
+
             {{-- Actions --}}
             <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
                 <a href="{{ route('admin.users.index', ['role' => 'guest']) }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">

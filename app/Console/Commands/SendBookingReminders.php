@@ -15,12 +15,6 @@ class SendBookingReminders extends Command
 
     public function handle(NotificationService $notificationService): int
     {
-        // Check if reminders are enabled
-        if (SystemSetting::get('reminder_enabled', '1') !== '1') {
-            $this->info('Reminders are disabled.');
-            return Command::SUCCESS;
-        }
-
         $now = Carbon::now();
         $today = $now->toDateString();
         $tomorrow = $now->copy()->addDay()->toDateString();
@@ -30,7 +24,7 @@ class SendBookingReminders extends Command
         $minutesBefore = (int) SystemSetting::get('reminder_minutes_before', 10);
 
         // Day-before reminders
-        if ($now->hour === $dayBeforeHour) {
+        if (SystemSetting::get('reminder_day_before_enabled', '1') === '1' && $now->hour === $dayBeforeHour) {
             $bookings = Booking::where('booking_date', $tomorrow)
                 ->where('status', 'approved')
                 ->where('reminder_day_before_sent', false)
@@ -49,7 +43,7 @@ class SendBookingReminders extends Command
         }
 
         // Day-of reminders
-        if ($now->hour === $dayOfHour) {
+        if (SystemSetting::get('reminder_day_of_enabled', '1') === '1' && $now->hour === $dayOfHour) {
             $bookings = Booking::where('booking_date', $today)
                 ->where('status', 'approved')
                 ->where('reminder_day_of_sent', false)
@@ -68,24 +62,26 @@ class SendBookingReminders extends Command
         }
 
         // N-minutes-before reminders
-        $laterTime = $now->copy()->addMinutes($minutesBefore)->format('H:i:s');
-        $currentTime = $now->format('H:i:s');
+        if (SystemSetting::get('reminder_minutes_before_enabled', '1') === '1') {
+            $laterTime = $now->copy()->addMinutes($minutesBefore)->format('H:i:s');
+            $currentTime = $now->format('H:i:s');
 
-        $bookings = Booking::where('booking_date', $today)
-            ->where('status', 'approved')
-            ->where('reminder_10min_sent', false)
-            ->where('start_time', '>=', $currentTime)
-            ->where('start_time', '<=', $laterTime)
-            ->with(['user', 'consultant.consultantProfile'])
-            ->get();
+            $bookings = Booking::where('booking_date', $today)
+                ->where('status', 'approved')
+                ->where('reminder_10min_sent', false)
+                ->where('start_time', '>=', $currentTime)
+                ->where('start_time', '<=', $laterTime)
+                ->with(['user', 'consultant.consultantProfile'])
+                ->get();
 
-        foreach ($bookings as $booking) {
-            try {
-                $notificationService->sendReminder($booking, 'reminder_before_start');
-                $booking->update(['reminder_10min_sent' => true]);
-                $this->info("{$minutesBefore}-min reminder sent for booking #{$booking->id}");
-            } catch (\Exception $e) {
-                $this->error("{$minutesBefore}-min reminder failed for booking #{$booking->id}: {$e->getMessage()}");
+            foreach ($bookings as $booking) {
+                try {
+                    $notificationService->sendReminder($booking, 'reminder_before_start');
+                    $booking->update(['reminder_10min_sent' => true]);
+                    $this->info("{$minutesBefore}-min reminder sent for booking #{$booking->id}");
+                } catch (\Exception $e) {
+                    $this->error("{$minutesBefore}-min reminder failed for booking #{$booking->id}: {$e->getMessage()}");
+                }
             }
         }
 

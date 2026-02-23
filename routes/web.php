@@ -105,6 +105,7 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     Route::post('/bookings/{booking}/complete', [BookingManageController::class, 'complete'])->name('bookings.complete');
     Route::post('/bookings/{booking}/cancel', [BookingManageController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [BookingManageController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
+    Route::put('/bookings/{booking}/user-notes', [BookingManageController::class, 'updateUserNotes'])->name('bookings.user-notes.update');
 
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');
@@ -136,6 +137,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
     Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [AdminBookingController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
+    Route::put('/bookings/{booking}/notes', [AdminBookingController::class, 'updateNotes'])->name('bookings.notes.update');
     Route::post('/bookings/{booking}/guest-email', [AdminGuestEmailController::class, 'send'])->name('bookings.guest-email.send');
 
     // Available schedules
@@ -150,7 +152,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::put('/settings/booking', [SettingController::class, 'updateBooking'])->name('settings.update.booking');
+    Route::put('/settings/reminder', [SettingController::class, 'updateReminder'])->name('settings.update.reminder');
+    Route::put('/settings/templates', [SettingController::class, 'updateTemplates'])->name('settings.update.templates');
+    Route::put('/settings/integration', [SettingController::class, 'updateIntegration'])->name('settings.update.integration');
 
     // Google Calendar OAuth
     Route::get('/google/auth', [GoogleAuthController::class, 'redirect'])->name('google.auth');

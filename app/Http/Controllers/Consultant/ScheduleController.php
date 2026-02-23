@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Consultant;
 
+use App\Helpers\JapaneseHolidays;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantSchedule;
 use Illuminate\Http\Request;
@@ -82,10 +83,12 @@ class ScheduleController extends Controller
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'slot_duration' => ['required', 'integer', 'min:15', 'max:240'],
+            'skip_holidays' => ['boolean'],
         ]);
 
         $dayMap = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
         $selectedDays = array_map(fn ($d) => $dayMap[$d], $validated['days_of_week']);
+        $skipHolidays = !empty($validated['skip_holidays']);
 
         $consultant = auth()->user();
         $start = \Carbon\Carbon::parse($validated['start_date']);
@@ -93,7 +96,7 @@ class ScheduleController extends Controller
         $count = 0;
 
         while ($start->lte($end)) {
-            if (in_array($start->dayOfWeek, $selectedDays)) {
+            if (in_array($start->dayOfWeek, $selectedDays) && (!$skipHolidays || !JapaneseHolidays::isHoliday($start))) {
                 $slotStart = \Carbon\Carbon::parse($validated['start_time']);
                 $slotEnd = \Carbon\Carbon::parse($validated['end_time']);
                 $duration = (int)$validated['slot_duration'];

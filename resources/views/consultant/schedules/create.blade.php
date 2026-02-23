@@ -137,6 +137,16 @@
                 </div>
             </div>
 
+            <div class="mb-6">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" name="skip_holidays" value="1"
+                        {{ old('skip_holidays') ? 'checked' : '' }}
+                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <span class="ml-2 text-sm text-gray-700">祝日を除外する</span>
+                </label>
+                <p class="mt-1 text-xs text-gray-500">チェックすると、日本の祝日にはスケジュール枠を登録しません。</p>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                 <div>
                     <label for="bulk_start_time" class="block text-sm font-medium text-gray-700 mb-1">開始時間</label>

@@ -112,6 +112,8 @@ class UserManageController extends Controller
             'chatwork_id' => ['nullable', 'string', 'max:100'],
             'chatwork_room_id' => ['nullable', 'string', 'max:100'],
             'is_active' => ['boolean'],
+            'admin_notes' => ['nullable', 'string'],
+            'user_type' => ['required', Rule::in(['member', 'consultation'])],
         ]);
 
         $oldValues = $user->toArray();
@@ -123,6 +125,8 @@ class UserManageController extends Controller
             'chatwork_id' => $validated['chatwork_id'] ?? null,
             'chatwork_room_id' => $validated['chatwork_room_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
+            'admin_notes' => $validated['admin_notes'] ?? null,
+            'user_type' => $validated['user_type'],
         ]);
 
         if ($request->filled('password')) {
@@ -166,12 +170,13 @@ class UserManageController extends Controller
             'guest_email' => ['required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:20'],
             'guest_referrer' => ['nullable', 'string', 'max:255'],
+            'admin_notes' => ['nullable', 'string'],
         ]);
 
-        $oldValues = $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']);
+        $oldValues = $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer', 'admin_notes']);
         $booking->update($validated);
 
-        AuditLog::log('guest_booking_updated', $booking, $oldValues, $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']));
+        AuditLog::log('guest_booking_updated', $booking, $oldValues, $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer', 'admin_notes']));
 
         return redirect()->route('admin.users.index', ['role' => 'guest'])->with('success', 'ゲスト相談者情報を更新しました。');
     }
