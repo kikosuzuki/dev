@@ -158,7 +158,7 @@
                 @error('admin_notes')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-1 text-xs text-gray-500">社内記録用。コンサルタントの予約一覧からも確認・編集できます。</p>
+                <p class="mt-1 text-xs text-gray-500">社内記録用。</p>
             </div>
 
             {{-- Is Active Toggle --}}

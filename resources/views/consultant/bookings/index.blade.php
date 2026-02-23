@@ -254,6 +254,15 @@
                                                                         class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-purple-500 focus:border-purple-500"
                                                                         placeholder="相談内容、結果の詳細、フォローアップ事項など...">{{ $booking->consultation_notes }}</textarea>
                                                                 </div>
+                                                                <div class="mb-4">
+                                                                    <label class="inline-flex items-center">
+                                                                        <input type="hidden" name="important_document_issued" value="0">
+                                                                        <input type="checkbox" name="important_document_issued" value="1"
+                                                                            {{ $booking->important_document_issued ? 'checked' : '' }}
+                                                                            class="rounded border-gray-300 text-purple-600 shadow-sm focus:ring-purple-500">
+                                                                        <span class="ml-2 text-sm font-medium text-gray-700">重要事項説明書を発行済み</span>
+                                                                    </label>
+                                                                </div>
                                                                 <div class="flex justify-end space-x-3">
                                                                     <button type="button" @click="showRecordModal = false"
                                                                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">閉じる</button>

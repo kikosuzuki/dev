@@ -109,24 +109,15 @@
                 </div>
             </div>
 
-            {{-- Meeting & Reminder Settings --}}
+            {{-- Meeting Settings --}}
             <div class="p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-6">ミーティング・リマインド設定</h2>
-                <div class="space-y-6">
-                    <div>
-                        <label for="meeting_url" class="block text-sm font-medium text-gray-700 mb-1">ミーティングURL（Zoom等）</label>
-                        <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $profile->meeting_url ?? '') }}"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="https://zoom.us/j/1234567890">
-                        <p class="mt-1 text-xs text-gray-500">リマインド通知に含まれるミーティングリンクです。Zoom、Google Meet等のURLを入力してください。</p>
-                    </div>
-                    <div>
-                        <label for="reminder_message" class="block text-sm font-medium text-gray-700 mb-1">カスタムリマインドメッセージ</label>
-                        <textarea id="reminder_message" name="reminder_message" rows="4"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="リマインド通知に追加したいメッセージを入力してください（例: 事前にZoomアプリの更新をお願いします）">{{ old('reminder_message', $profile->reminder_message ?? '') }}</textarea>
-                        <p class="mt-1 text-xs text-gray-500">空欄の場合はシステムのデフォルトメッセージが使用されます。</p>
-                    </div>
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">ミーティング設定</h2>
+                <div>
+                    <label for="meeting_url" class="block text-sm font-medium text-gray-700 mb-1">ミーティングURL（Zoom等）</label>
+                    <input type="url" id="meeting_url" name="meeting_url" value="{{ old('meeting_url', $profile->meeting_url ?? '') }}"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="https://zoom.us/j/1234567890">
+                    <p class="mt-1 text-xs text-gray-500">リマインド通知に含まれるミーティングリンクです。Zoom、Google Meet等のURLを入力してください。</p>
                 </div>
             </div>
 
@@ -135,24 +126,15 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">設定</h2>
                 <div class="space-y-6">
                     <div>
-                        <span class="block text-sm font-medium text-gray-700 mb-2">通知方法</span>
-                        <div class="space-y-2">
-                            <label class="inline-flex items-center">
-                                <input type="hidden" name="notify_email" value="0">
-                                <input type="checkbox" name="notify_email" value="1"
-                                    {{ old('notify_email', $user->notify_email) ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                <span class="ml-2 text-sm text-gray-700">メール</span>
-                            </label>
-                            <br>
-                            <label class="inline-flex items-center">
-                                <input type="hidden" name="notify_line" value="0">
-                                <input type="checkbox" name="notify_line" value="1"
-                                    {{ old('notify_line', $user->notify_line) ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                <span class="ml-2 text-sm text-gray-700">LINE</span>
-                            </label>
-                        </div>
+                        <span class="block text-sm font-medium text-gray-700 mb-1">メール通知</span>
+                        <p class="text-xs text-gray-500 mb-2">予約の確定・キャンセル・リマインド等の通知を受け取りたい場合はチェックを入れてください。</p>
+                        <label class="inline-flex items-center">
+                            <input type="hidden" name="notify_email" value="0">
+                            <input type="checkbox" name="notify_email" value="1"
+                                {{ old('notify_email', $user->notify_email) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">メールで通知を受け取る</span>
+                        </label>
                     </div>
                 </div>
             </div>

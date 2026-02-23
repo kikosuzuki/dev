@@ -132,6 +132,11 @@
                                     @enderror
                                 </div>
 
+                                {{-- Placeholder info --}}
+                                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                    <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）</p>
+                                </div>
+
                                 {{-- Booking Confirmation Message --}}
                                 <div class="p-4 bg-gray-50 rounded-lg">
                                     <h4 class="text-sm font-medium text-gray-700 mb-3">予約完了（自動返信）メール</h4>
@@ -260,6 +265,11 @@
                             @method('PUT')
 
                             <div class="space-y-6">
+                                {{-- Placeholder info --}}
+                                <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                    <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）</p>
+                                </div>
+
                                 {{-- Day-Before Reminder --}}
                                 <div class="p-4 bg-gray-50 rounded-lg">
                                     <div class="flex items-center justify-between mb-4">
@@ -441,7 +451,10 @@
                     <div class="bg-white rounded-lg shadow">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-lg font-semibold text-gray-900">ゲスト向けメッセージ設定</h2>
-                            <p class="mt-1 text-xs text-gray-500">テンプレートを最大10件まで登録できます。本文では <code class="bg-gray-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-gray-100 px-1 rounded">{date}</code>（予約日時）が自動置換されます。</p>
+                            <p class="mt-1 text-xs text-gray-500">テンプレートを最大10件まで登録できます。</p>
+                            <div class="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（予約日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）</p>
+                            </div>
                         </div>
                         <script id="templates-initial-data" type="application/json">@json($templatesJson)</script>
                         <form method="POST" action="{{ route('admin.settings.update.templates') }}" class="p-6"
