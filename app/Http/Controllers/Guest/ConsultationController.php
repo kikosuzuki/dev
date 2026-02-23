@@ -26,6 +26,9 @@ class ConsultationController extends Controller
         $minDateTime = now()->addHours($hoursFromNow);
 
         $query = ConsultantSchedule::where('is_available', true)
+            ->whereHas('consultant', function ($q) {
+                $q->where('is_active', true);
+            })
             ->upcoming()
             ->where('date', '<=', $maxDate)
             ->where(function ($q) use ($minDateTime) {
