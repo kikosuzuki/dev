@@ -33,7 +33,7 @@ class BookingController extends Controller
         };
 
         $query = Booking::with(['user', 'consultant', 'schedule'])
-            ->whereIn('status', ['pending', 'approved']);
+            ->where('status', 'approved');
 
         if ($endDate) {
             $query->where('booking_date', '>=', $now->toDateString())
@@ -104,55 +104,6 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'emailTemplates'));
     }
 
-    public function approve(Booking $booking)
-    {
-        if (!$booking->isPending()) {
-            return back()->with('error', 'この予約は承認できません。');
-        }
-
-        $booking->update(['status' => 'approved']);
-
-        try {
-            $googleService = app(GoogleCalendarService::class);
-            $eventId = $googleService->createEvent($booking);
-            if ($eventId) {
-                $booking->update(['google_event_id' => $eventId]);
-            }
-        } catch (\Exception $e) {
-            // Optional
-        }
-
-        AuditLog::log('booking_approved', $booking);
-
-        $notificationService = app(NotificationService::class);
-        $notificationService->sendBookingConfirmation($booking);
-
-        return back()->with('success', '予約を承認しました。');
-    }
-
-    public function reject(Request $request, Booking $booking)
-    {
-        if (!$booking->isPending()) {
-            return back()->with('error', 'この予約は却下できません。');
-        }
-
-        $request->validate([
-            'cancel_reason' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $booking->update([
-            'status' => 'rejected',
-            'cancel_reason' => $request->cancel_reason,
-        ]);
-
-        AuditLog::log('booking_rejected', $booking);
-
-        $notificationService = app(NotificationService::class);
-        $notificationService->sendBookingRejected($booking);
-
-        return back()->with('success', '予約を却下しました。');
-    }
-
     public function cancel(Request $request, Booking $booking)
     {
         if (!$booking->canCancel()) {
@@ -168,11 +119,11 @@ class BookingController extends Controller
             'cancel_reason' => $request->cancel_reason,
         ]);
 
-        if ($booking->google_event_id) {
+        if ($booking->google_event_id || $booking->consultant_google_event_id) {
             try {
                 $googleService = app(GoogleCalendarService::class);
-                $googleService->deleteEvent($booking->google_event_id);
-                $booking->update(['google_event_id' => null]);
+                $googleService->syncDeleteEvent($booking);
+                $booking->update(['google_event_id' => null, 'consultant_google_event_id' => null]);
             } catch (\Exception $e) {
                 // Ignore Google Calendar errors
             }

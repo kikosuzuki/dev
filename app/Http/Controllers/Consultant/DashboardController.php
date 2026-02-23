@@ -19,14 +19,8 @@ class DashboardController extends Controller
             ->with('user')
             ->get();
 
-        $pendingBookings = Booking::where('consultant_id', $consultant->id)
-            ->where('status', 'pending')
-            ->orderBy('booking_date')
-            ->with('user')
-            ->get();
-
         $upcomingBookings = Booking::where('consultant_id', $consultant->id)
-            ->whereIn('status', ['approved'])
+            ->where('status', 'approved')
             ->where('booking_date', '>=', now()->toDateString())
             ->orderBy('booking_date')
             ->orderBy('start_time')
@@ -49,6 +43,6 @@ class DashboardController extends Controller
                 ->sum('amount'),
         ];
 
-        return view('consultant.dashboard', compact('todayBookings', 'pendingBookings', 'upcomingBookings', 'stats'));
+        return view('consultant.dashboard', compact('todayBookings', 'upcomingBookings', 'stats'));
     }
 }

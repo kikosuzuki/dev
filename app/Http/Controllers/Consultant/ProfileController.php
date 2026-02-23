@@ -23,7 +23,6 @@ class ProfileController extends Controller
             'experience_years' => ['required', 'integer', 'min:0'],
             'qualifications' => ['nullable', 'string'],
             'languages' => ['nullable', 'string'],
-            'auto_approve' => ['boolean'],
             'meeting_url' => ['nullable', 'url', 'max:500'],
             'reminder_message' => ['nullable', 'string', 'max:2000'],
             'photo' => ['nullable', 'image', 'max:2048'],
@@ -37,7 +36,6 @@ class ProfileController extends Controller
             'experience_years' => $validated['experience_years'],
             'qualifications' => $validated['qualifications'] ? array_map('trim', explode(',', $validated['qualifications'])) : [],
             'languages' => $validated['languages'] ? array_map('trim', explode(',', $validated['languages'])) : [],
-            'auto_approve' => $request->boolean('auto_approve'),
             'meeting_url' => $validated['meeting_url'],
             'reminder_message' => $validated['reminder_message'],
         ];

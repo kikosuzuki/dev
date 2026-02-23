@@ -17,7 +17,7 @@ class DashboardController extends Controller
             'total_users' => User::where('role', 'user')->count(),
             'total_consultants' => User::where('role', 'consultant')->count(),
             'total_bookings' => Booking::count(),
-            'pending_bookings' => Booking::where('status', 'pending')->count(),
+            'active_bookings' => Booking::where('status', 'approved')->count(),
             'this_month_bookings' => Booking::whereMonth('booking_date', now()->month)
                 ->whereYear('booking_date', now()->year)->count(),
             'this_month_revenue' => Booking::whereMonth('booking_date', now()->month)
@@ -40,7 +40,7 @@ class DashboardController extends Controller
 
         $recentBookings = $query->paginate(10)->appends($request->query());
 
-        $monthlyBookings = Booking::selectRaw('DATE_FORMAT(booking_date, "%Y-%m") as month, COUNT(*) as count, SUM(amount) as revenue')
+        $monthlyBookings = Booking::selectRaw('strftime("%Y-%m", booking_date) as month, COUNT(*) as count, SUM(amount) as revenue')
             ->whereIn('status', ['approved', 'completed'])
             ->groupBy('month')
             ->orderByDesc('month')

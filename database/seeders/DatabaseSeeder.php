@@ -103,7 +103,6 @@ class DatabaseSeeder extends Seeder
                 'experience_years' => $data['experience_years'],
                 'qualifications' => $data['qualifications'],
                 'languages' => $data['languages'],
-                'auto_approve' => true,
                 'is_featured' => true,
             ]);
 

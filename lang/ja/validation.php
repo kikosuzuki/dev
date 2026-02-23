@@ -168,7 +168,6 @@ return [
         'experience_years' => '経験年数',
         'qualifications' => '資格',
         'languages' => '対応言語',
-        'auto_approve' => '自動承認',
         'meeting_url' => 'ミーティングURL',
         'reminder_message' => 'リマインドメッセージ',
         'photo' => 'プロフィール写真',

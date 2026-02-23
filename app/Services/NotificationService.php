@@ -54,11 +54,21 @@ class NotificationService
         $subject = '【予約確定】個別相談のご予約が確定しました';
         $content = "{$booking->guest_name}様\n\n"
             . "個別相談のご予約が確定しました。\n\n"
-            . "■ 日時: {$date} {$time}\n"
-            . "■ ステータス: 承認済み\n\n"
+            . "■ 日時: {$date} {$time}\n\n"
             . "よろしくお願いいたします。";
 
         $this->sendGuestEmail($booking, $subject, $content);
+
+        // Also notify consultant
+        $consultantContent = "{$consultant->name}様\n\n"
+            . "個別相談の新しい予約が入りました。\n\n"
+            . "■ お客様名: {$booking->guest_name}\n"
+            . "■ メール: {$booking->guest_email}\n"
+            . "■ 電話番号: {$booking->guest_phone}\n"
+            . "■ 日時: {$date} {$time}\n"
+            . ($booking->notes ? "■ 相談内容: {$booking->notes}\n" : '');
+
+        $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
     }
 
     public function sendBookingCancelled(Booking $booking): void
@@ -93,73 +103,6 @@ class NotificationService
             . "■ 日時: {$date}\n";
 
         $this->send($consultant, $booking, 'booking_cancelled', $subject, $consultantContent);
-    }
-
-    public function sendBookingRejected(Booking $booking): void
-    {
-        $consultant = $booking->consultant;
-        $date = $booking->booking_date->format('Y年m月d日');
-
-        $subject = '【予約不承認】コンサルティング予約について';
-
-        if ($booking->isGuest()) {
-            $content = "{$booking->guest_name}様\n\n"
-                . "申し訳ございませんが、以下の予約が承認されませんでした。\n\n"
-                . "■ 日時: {$date}\n"
-                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '')
-                . "\n別の日時をお試しください。";
-
-            $this->sendGuestEmail($booking, $subject, $content);
-        } else {
-            $user = $booking->user;
-            $content = "{$user->name}様\n\n"
-                . "申し訳ございませんが、以下の予約が承認されませんでした。\n\n"
-                . "■ コンサルタント: {$consultant->name}\n"
-                . "■ 日時: {$date}\n"
-                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '')
-                . "\n別の日時をお試しください。";
-
-            $this->send($user, $booking, 'booking_rejected', $subject, $content);
-        }
-    }
-
-    public function sendGuestBookingConfirmation(Booking $booking): void
-    {
-        $date = $booking->booking_date->format('Y年m月d日');
-        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
-
-        $customMessage = SystemSetting::get('guest_booking_confirmation_message', '');
-
-        if ($customMessage) {
-            $customMessage = $this->replacePlaceholders($customMessage, $booking->guest_name ?? '', "{$date} {$time}");
-        }
-
-        $subject = '【予約受付】個別相談のご予約を承りました';
-        $content = "{$booking->guest_name}様\n\n"
-            . "個別相談のご予約を受け付けました。\n"
-            . "担当者が確認後、改めてご連絡いたします。\n\n"
-            . "■ 日時: {$date} {$time}\n"
-            . "■ ステータス: 確認待ち\n";
-
-        if ($customMessage) {
-            $content .= "\n{$customMessage}\n";
-        }
-
-        $content .= "\nよろしくお願いいたします。";
-
-        $this->sendGuestEmail($booking, $subject, $content);
-
-        // Also notify consultant
-        $consultant = $booking->consultant;
-        $consultantContent = "{$consultant->name}様\n\n"
-            . "個別相談の新しい予約が入りました。\n\n"
-            . "■ お客様名: {$booking->guest_name}\n"
-            . "■ メール: {$booking->guest_email}\n"
-            . "■ 電話番号: {$booking->guest_phone}\n"
-            . "■ 日時: {$date} {$time}\n"
-            . ($booking->notes ? "■ 相談内容: {$booking->notes}\n" : '');
-
-        $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
     }
 
     public function sendGuestReminder(Booking $booking, string $type): void
