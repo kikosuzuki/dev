@@ -61,6 +61,23 @@ class SendBookingReminders extends Command
             }
         }
 
+        // Morning Chatwork notification (8:00 AM)
+        if ($now->hour === 8 && SystemSetting::get('chatwork_enabled', '0') === '1') {
+            $morningBookings = Booking::where('booking_date', $today)
+                ->where('status', 'approved')
+                ->with(['user', 'consultant.consultantProfile'])
+                ->get();
+
+            foreach ($morningBookings as $booking) {
+                try {
+                    $notificationService->sendMorningChatworkNotification($booking);
+                    $this->info("Morning Chatwork notification sent for booking #{$booking->id}");
+                } catch (\Exception $e) {
+                    $this->error("Morning Chatwork notification failed for booking #{$booking->id}: {$e->getMessage()}");
+                }
+            }
+        }
+
         // N-minutes-before reminders
         if (SystemSetting::get('reminder_minutes_before_enabled', '1') === '1') {
             $laterTime = $now->copy()->addMinutes($minutesBefore)->format('H:i:s');

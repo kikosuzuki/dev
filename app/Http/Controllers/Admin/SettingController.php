@@ -38,8 +38,6 @@ class SettingController extends Controller
             'cancel_notification_email_subject' => ['nullable', 'string', 'max:200'],
             'cancel_notification_email_body' => ['nullable', 'string', 'max:2000'],
             'cancel_notification_line_message' => ['nullable', 'string', 'max:2000'],
-            'chatwork_booking_confirm_message' => ['nullable', 'string', 'max:2000'],
-            'chatwork_cancel_notification_message' => ['nullable', 'string', 'max:2000'],
             'max_bookings_per_day' => ['required', 'integer', 'min:1'],
         ]);
 
@@ -130,6 +128,9 @@ class SettingController extends Controller
             'chatwork_api_token' => ['nullable', 'string'],
             'chatwork_room_id' => ['nullable', 'string', 'max:50'],
             'chatwork_enabled' => ['boolean'],
+            'chatwork_booking_confirm_message' => ['nullable', 'string', 'max:2000'],
+            'chatwork_cancel_notification_message' => ['nullable', 'string', 'max:2000'],
+            'chatwork_morning_notification_message' => ['nullable', 'string', 'max:2000'],
             'google_calendar_enabled' => ['boolean'],
         ]);
 

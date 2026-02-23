@@ -197,30 +197,6 @@
                                     </div>
                                 </div>
 
-                                {{-- Chatwork Booking Confirmation --}}
-                                <div class="p-4 bg-gray-50 rounded-lg">
-                                    <h4 class="text-sm font-medium text-gray-700 mb-3">予約完了通知（Chatwork）</h4>
-                                    <div>
-                                        <label for="chatwork_booking_confirm_message" class="block text-xs font-medium text-gray-600 mb-1">メッセージカスタマイズ（Chatwork）</label>
-                                        <textarea name="chatwork_booking_confirm_message" id="chatwork_booking_confirm_message" rows="4"
-                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                  placeholder="Chatworkへの予約完了通知メッセージを入力してください。">{{ old('chatwork_booking_confirm_message', optional($settings['chatwork_booking_confirm_message'] ?? null)->value ?? '') }}</textarea>
-                                        <p class="mt-1 text-xs text-gray-500">Chatworkへの予約完了通知に使用されるメッセージです。空欄時はデフォルトの文面が使用されます。</p>
-                                    </div>
-                                </div>
-
-                                {{-- Chatwork Cancel Notification --}}
-                                <div class="p-4 bg-gray-50 rounded-lg">
-                                    <h4 class="text-sm font-medium text-gray-700 mb-3">予約キャンセル通知（Chatwork）</h4>
-                                    <div>
-                                        <label for="chatwork_cancel_notification_message" class="block text-xs font-medium text-gray-600 mb-1">メッセージカスタマイズ（Chatwork）</label>
-                                        <textarea name="chatwork_cancel_notification_message" id="chatwork_cancel_notification_message" rows="4"
-                                                  class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                  placeholder="Chatworkへの予約キャンセル通知メッセージを入力してください。">{{ old('chatwork_cancel_notification_message', optional($settings['chatwork_cancel_notification_message'] ?? null)->value ?? '') }}</textarea>
-                                        <p class="mt-1 text-xs text-gray-500">Chatworkへの予約キャンセル通知に使用されるメッセージです。空欄時はデフォルトの文面が使用されます。</p>
-                                    </div>
-                                </div>
-
                                 {{-- Max Bookings Per Day --}}
                                 <div>
                                     <label for="max_bookings_per_day" class="block text-sm font-medium text-gray-700 mb-1">
@@ -638,6 +614,38 @@
                                                 <span class="ml-3 text-sm" :class="chatworkEnabled ? 'text-green-600 font-medium' : 'text-gray-500'" x-text="chatworkEnabled ? '有効' : '無効'"></span>
                                             </div>
                                             <p class="mt-1 text-xs text-gray-500">有効にするとChatwork経由での通知が送信されます。</p>
+                                        </div>
+
+                                        {{-- Chatwork Notification Message Templates --}}
+                                        <div class="mt-6 pt-4 border-t border-gray-200">
+                                            <h4 class="text-sm font-semibold text-gray-800 mb-3">Chatwork通知メッセージ設定</h4>
+                                            <p class="text-xs text-gray-500 mb-3">システム設定のRoom IDに送信されるメッセージをカスタマイズできます。</p>
+                                            <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-4">
+                                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）</p>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <div>
+                                                    <label for="chatwork_booking_confirm_message" class="block text-xs font-medium text-gray-600 mb-1">予約確定通知メッセージ</label>
+                                                    <textarea name="chatwork_booking_confirm_message" id="chatwork_booking_confirm_message" rows="4"
+                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                              placeholder="予約が入った時にChatworkへ送信されるメッセージ">{{ old('chatwork_booking_confirm_message', optional($settings['chatwork_booking_confirm_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+                                                <div>
+                                                    <label for="chatwork_cancel_notification_message" class="block text-xs font-medium text-gray-600 mb-1">キャンセル通知メッセージ</label>
+                                                    <textarea name="chatwork_cancel_notification_message" id="chatwork_cancel_notification_message" rows="4"
+                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                              placeholder="キャンセル時にChatworkへ送信されるメッセージ">{{ old('chatwork_cancel_notification_message', optional($settings['chatwork_cancel_notification_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+                                                <div>
+                                                    <label for="chatwork_morning_notification_message" class="block text-xs font-medium text-gray-600 mb-1">当日朝通知メッセージ（毎朝8:00配信）</label>
+                                                    <textarea name="chatwork_morning_notification_message" id="chatwork_morning_notification_message" rows="4"
+                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                              placeholder="当日朝8:00にChatworkへ送信されるメッセージ">{{ old('chatwork_morning_notification_message', optional($settings['chatwork_morning_notification_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">当日の予約があるコンサルタントへ朝8:00に配信されます。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
