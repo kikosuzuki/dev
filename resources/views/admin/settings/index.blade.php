@@ -308,7 +308,7 @@
                                         </a>
                                     </div>
                                 @endif
-                                <p class="mt-1 text-xs text-gray-500">予約承認時にこのアカウントのカレンダーにイベントが作成され、コンサルタントとユーザーに招待が届きます。</p>
+                                <p class="mt-1 text-xs text-gray-500">予約確定時にこのアカウントのカレンダーにイベントが作成され、コンサルタントとユーザーに招待が届きます。</p>
                             </div>
 
                             {{-- Google Calendar Toggle --}}
@@ -334,8 +334,8 @@
 
                     {{-- Guest Email Template Settings --}}
                     <div class="mb-8">
-                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">ゲスト向けメールテンプレート</h3>
-                        <p class="text-xs text-gray-500 mb-4">予約一覧からゲストにメールを送信する際のテンプレートを設定します。本文では <code class="bg-gray-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-gray-100 px-1 rounded">{date}</code>（予約日時）が自動置換されます。</p>
+                        <h3 class="text-md font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">ゲスト向けメールテンプレート（手動送信用）</h3>
+                        <p class="text-xs text-gray-500 mb-4">管理者が<strong>予約一覧画面から手動で</strong>ゲストにメールを送信する際に使用するテンプレートです。予約確定時の自動送信メールには使用されません。本文では <code class="bg-gray-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-gray-100 px-1 rounded">{date}</code>（予約日時）が自動置換されます。</p>
 
                         <div class="space-y-6">
                             {{-- Confirm Template --}}
@@ -447,7 +447,7 @@
                                 <textarea name="guest_booking_confirmation_message" id="guest_booking_confirmation_message" rows="3"
                                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                                           placeholder="予約確認メールに追加するメッセージを入力してください。">{{ old('guest_booking_confirmation_message', optional($settings['guest_booking_confirmation_message'] ?? null)->value ?? '') }}</textarea>
-                                <p class="mt-1 text-xs text-gray-500">個別相談客への予約受付メールに追記されるメッセージです。空欄時はデフォルトの文面のみ送信されます。</p>
+                                <p class="mt-1 text-xs text-gray-500">ゲストが予約を完了した際に<strong>自動送信される【予約確定】メール</strong>に追記されるメッセージです。空欄時はデフォルトの文面のみ送信されます。</p>
                             </div>
 
                             {{-- Guest Reminder Message --}}
