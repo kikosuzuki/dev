@@ -28,8 +28,10 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
                     <select name="status" class="rounded-md border-gray-300 shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" style="padding: 0.5rem 2rem 0.5rem 0.75rem;">
+                        <option value="approved" {{ (!$status || $status == 'approved') ? 'selected' : '' }}>確定済み</option>
+                        <option value="completed" {{ $status == 'completed' ? 'selected' : '' }}>完了</option>
+                        <option value="cancelled" {{ $status == 'cancelled' ? 'selected' : '' }}>キャンセル</option>
                         <option value="all" {{ $status == 'all' ? 'selected' : '' }}>全て</option>
-                        <option value="approved" {{ $status == 'approved' ? 'selected' : '' }}>確定済み</option>
                     </select>
                 </div>
                 <div>
@@ -54,7 +56,7 @@
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">
-                埋まっている予約
+                予約一覧
                 <span class="ml-2 text-sm font-normal text-gray-500">（{{ $periods[$period] ?? '' }}）</span>
             </h2>
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
@@ -72,6 +74,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約日</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
@@ -100,7 +103,55 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
+                                @if($booking->status === 'approved')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
+                                @elseif($booking->status === 'completed')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">完了</span>
+                                @elseif($booking->status === 'cancelled')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">キャンセル</span>
+                                @endif
+                            </td>
+                            {{-- メモ --}}
+                            <td class="px-6 py-4" x-data="{ showNotesModal: false }">
+                                @if($booking->admin_notes)
+                                    <button type="button" @click="showNotesModal = true"
+                                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        編集
+                                    </button>
+                                @else
+                                    <button type="button" @click="showNotesModal = true"
+                                        class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-400 hover:bg-gray-100 border border-dashed border-gray-300 transition">
+                                        <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        未記入
+                                    </button>
+                                @endif
+                                {{-- Notes Edit Modal --}}
+                                <div x-show="showNotesModal" x-cloak @keydown.escape.window="showNotesModal = false"
+                                    class="fixed inset-0 z-50 overflow-y-auto" x-transition>
+                                    <div class="flex items-center justify-center min-h-screen px-4">
+                                        <div class="fixed inset-0 bg-black/50" @click="showNotesModal = false"></div>
+                                        <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
+                                            <h3 class="text-lg font-semibold text-gray-900 mb-2">管理メモ</h3>
+                                            <p class="text-sm text-gray-500 mb-4">{{ $booking->bookerName() }}</p>
+                                            <form method="POST" action="{{ route('admin.bookings.notes.update', $booking) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="mb-4">
+                                                    <textarea name="admin_notes" rows="6"
+                                                        class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                                        placeholder="社内用メモを入力...">{{ $booking->admin_notes }}</textarea>
+                                                </div>
+                                                <div class="flex justify-end space-x-3">
+                                                    <button type="button" @click="showNotesModal = false"
+                                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">閉じる</button>
+                                                    <button type="submit"
+                                                        class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">保存</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @if($booking->isGuest() && $booking->guest_referrer)
@@ -150,6 +201,7 @@
                                             キャンセル
                                         </button>
                                     @endif
+
                                 </div>
 
                                 {{-- Cancel Confirmation Modal --}}
@@ -226,11 +278,12 @@
                                         </div>
                                     </div>
                                 @endif
+
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
+                            <td colspan="10" class="px-6 py-8 text-center text-sm text-gray-500">該当する予約がありません</td>
                         </tr>
                     @endforelse
                 </tbody>

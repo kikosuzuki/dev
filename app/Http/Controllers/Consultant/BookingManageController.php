@@ -94,22 +94,51 @@ class BookingManageController extends Controller
             abort(403);
         }
 
-        if (!$booking->isGuest()) {
-            return back()->with('error', '個別相談の予約のみ記録できます。');
-        }
-
         $request->validate([
             'consultation_result' => ['required', 'in:success,failure,pending'],
-            'consultation_notes' => ['nullable', 'string', 'max:2000'],
+            'consultation_notes' => ['required', 'string'],
         ]);
 
-        $booking->update([
+        $data = [
             'consultation_result' => $request->consultation_result,
             'consultation_notes' => $request->consultation_notes,
-        ]);
+        ];
+
+        // 承認済みの予約は自動的に完了にする
+        if ($booking->isApproved()) {
+            $data['status'] = 'completed';
+        }
+
+        $booking->update($data);
+
+        // 完了時にコンサルタントの実績をカウント
+        if ($booking->status === 'completed' && $booking->wasChanged('status')) {
+            $profile = auth()->user()->consultantProfile;
+            if ($profile) {
+                $profile->increment('total_bookings');
+            }
+            AuditLog::log('booking_completed', $booking);
+        }
 
         AuditLog::log('consultation_record_updated', $booking);
 
         return back()->with('success', '相談記録を保存しました。');
+    }
+
+    public function updateUserNotes(Request $request, Booking $booking)
+    {
+        if ($booking->consultant_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'admin_notes' => ['nullable', 'string'],
+        ]);
+
+        $booking->update([
+            'admin_notes' => $request->admin_notes,
+        ]);
+
+        return back()->with('success', 'メモを保存しました。');
     }
 }

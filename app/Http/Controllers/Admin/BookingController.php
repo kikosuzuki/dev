@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Booking;
+use App\Models\GuestMessageTemplate;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\GoogleCalendarService;
@@ -32,8 +33,19 @@ class BookingController extends Controller
             default => $now->copy()->addMonth(),
         };
 
-        $query = Booking::with(['user', 'consultant', 'schedule'])
-            ->where('status', 'approved');
+        $query = Booking::with(['user', 'consultant', 'schedule']);
+
+        // Status filter (default: approved)
+        if (!$status || $status === 'approved') {
+            $query->where('status', 'approved');
+        } elseif ($status === 'completed') {
+            $query->where('status', 'completed');
+        } elseif ($status === 'cancelled') {
+            $query->where('status', 'cancelled');
+        } else {
+            // 'all' - no status filter
+            $query->whereIn('status', ['approved', 'completed', 'cancelled']);
+        }
 
         if ($endDate) {
             $query->where('booking_date', '>=', $now->toDateString())
@@ -44,10 +56,6 @@ class BookingController extends Controller
 
         if ($consultant_id) {
             $query->where('consultant_id', $consultant_id);
-        }
-
-        if ($status && $status !== 'all') {
-            $query->where('status', $status);
         }
 
         // Filter by booking type (member / guest)
@@ -78,28 +86,12 @@ class BookingController extends Controller
             'all' => '全期間',
         ];
 
-        $emailTemplates = [
-            [
-                'label' => '予約確認',
-                'subject' => SystemSetting::get('guest_email_tpl_confirm_subject', '【予約確認】個別相談のご予約について'),
-                'body' => SystemSetting::get('guest_email_tpl_confirm_body', "{name}様\n\nご予約の確認をお願いいたします。\n\n■ 日時: {date}\n\nご不明な点がございましたらお気軽にご連絡ください。"),
-            ],
-            [
-                'label' => 'リマインド',
-                'subject' => SystemSetting::get('guest_email_tpl_remind_subject', '【リマインド】個別相談のご予約について'),
-                'body' => SystemSetting::get('guest_email_tpl_remind_body', "{name}様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: {date}\n\nご準備のほどよろしくお願いいたします。"),
-            ],
-            [
-                'label' => 'フォローアップ',
-                'subject' => SystemSetting::get('guest_email_tpl_followup_subject', '【フォローアップ】個別相談について'),
-                'body' => SystemSetting::get('guest_email_tpl_followup_body', "{name}様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。"),
-            ],
-            [
-                'label' => 'お知らせ',
-                'subject' => SystemSetting::get('guest_email_tpl_notice_subject', '【お知らせ】'),
-                'body' => SystemSetting::get('guest_email_tpl_notice_body', "{name}様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n"),
-            ],
-        ];
+        $emailTemplates = GuestMessageTemplate::ordered()->get()
+            ->map(fn ($t) => [
+                'label' => $t->name,
+                'subject' => $t->subject ?? '',
+                'body' => $t->body ?? '',
+            ])->toArray();
 
         return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'emailTemplates'));
     }
@@ -139,22 +131,47 @@ class BookingController extends Controller
 
     public function updateConsultationRecord(Request $request, Booking $booking)
     {
-        if (!$booking->isGuest()) {
-            return back()->with('error', '個別相談の予約のみ記録できます。');
-        }
-
         $request->validate([
             'consultation_result' => ['required', 'in:success,failure,pending'],
-            'consultation_notes' => ['nullable', 'string', 'max:2000'],
+            'consultation_notes' => ['required', 'string'],
         ]);
 
-        $booking->update([
+        $data = [
             'consultation_result' => $request->consultation_result,
             'consultation_notes' => $request->consultation_notes,
-        ]);
+        ];
+
+        // 承認済みの予約は自動的に完了にする
+        if ($booking->isApproved()) {
+            $data['status'] = 'completed';
+        }
+
+        $booking->update($data);
+
+        // 完了時にコンサルタントの実績をカウント
+        if ($booking->status === 'completed' && $booking->wasChanged('status')) {
+            $profile = $booking->consultant?->consultantProfile;
+            if ($profile) {
+                $profile->increment('total_bookings');
+            }
+            AuditLog::log('booking_completed', $booking);
+        }
 
         AuditLog::log('consultation_record_updated', $booking);
 
         return back()->with('success', '相談記録を保存しました。');
+    }
+
+    public function updateNotes(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'admin_notes' => ['nullable', 'string'],
+        ]);
+
+        $booking->update([
+            'admin_notes' => $request->admin_notes,
+        ]);
+
+        return back()->with('success', 'メモを保存しました。');
     }
 }

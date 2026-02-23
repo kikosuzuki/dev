@@ -161,6 +161,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ロール</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種別</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登録日</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -183,6 +184,13 @@
                                         @default
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">ユーザー</span>
                                     @endswitch
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($user->user_type === 'consultation')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">会員</span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->is_active)
@@ -251,7 +259,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">ユーザーが見つかりません</td>
+                                <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">ユーザーが見つかりません</td>
                             </tr>
                         @endforelse
                     </tbody>

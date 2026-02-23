@@ -136,6 +136,31 @@
                 </script>
             </div>
 
+            {{-- User Type --}}
+            <div class="mb-6">
+                <label for="user_type" class="block text-sm font-medium text-gray-700 mb-1">種別</label>
+                <select name="user_type" id="user_type"
+                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('user_type') border-red-500 @enderror">
+                    <option value="member" {{ old('user_type', $user->user_type) === 'member' ? 'selected' : '' }}>会員</option>
+                    <option value="consultation" {{ old('user_type', $user->user_type) === 'consultation' ? 'selected' : '' }}>個別相談</option>
+                </select>
+                @error('user_type')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Admin Notes --}}
+            <div class="mb-6">
+                <label for="admin_notes" class="block text-sm font-medium text-gray-700 mb-1">管理メモ</label>
+                <textarea name="admin_notes" id="admin_notes" rows="4"
+                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('admin_notes') border-red-500 @enderror"
+                          placeholder="社内用のメモを入力（コンサルタントからも閲覧・編集可能）">{{ old('admin_notes', $user->admin_notes) }}</textarea>
+                @error('admin_notes')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">社内記録用。コンサルタントの予約一覧からも確認・編集できます。</p>
+            </div>
+
             {{-- Is Active Toggle --}}
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">ステータス</label>

@@ -66,10 +66,27 @@ class NotificationService
 
         $this->sendGuestEmail($booking, $subject, $content);
 
+        // LINE message (separate from email)
+        $customLineMessage = SystemSetting::get('booking_confirm_line_message', '');
+        if ($customLineMessage) {
+            $lineContent = $this->replacePlaceholders($customLineMessage, $guestName, $dateTime);
+        } else {
+            $lineContent = "{$guestName}様\n個別相談のご予約が確定しました。\n■ 日時: {$dateTime}";
+        }
+
+        if ($booking->guest_line_user_id) {
+            try {
+                $lineService = app(LineNotificationService::class);
+                $lineService->pushMessage($booking->guest_line_user_id, $lineContent);
+            } catch (\Exception $e) {
+                Log::error('Failed to send LINE message to guest', ['error' => $e->getMessage()]);
+            }
+        }
+
         // Also notify consultant
         $consultantContent = "{$consultant->name}様\n\n"
             . "個別相談の新しい予約が入りました。\n\n"
-            . "■ お客様名: {$booking->guest_name}\n"
+            . "■ お客様名: {$guestName}\n"
             . "■ メール: {$booking->guest_email}\n"
             . "■ 電話番号: {$booking->guest_phone}\n"
             . "■ 日時: {$date} {$time}\n"
@@ -83,17 +100,46 @@ class NotificationService
     {
         $consultant = $booking->consultant;
         $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
         $bookerName = $booking->bookerName();
 
-        $subject = '【キャンセル】コンサルティング予約のキャンセル';
+        // Email subject (custom or default)
+        $customSubject = SystemSetting::get('cancel_notification_email_subject', '');
+        $subject = $customSubject
+            ? $this->replacePlaceholders($customSubject, $bookerName, $dateTime)
+            : '【キャンセル】コンサルティング予約のキャンセル';
 
         if ($booking->isGuest()) {
-            $content = "{$bookerName}様\n\n"
-                . "以下の予約がキャンセルされました。\n\n"
-                . "■ 日時: {$date}\n"
-                . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
+            // Email body (custom or default)
+            $customEmailBody = SystemSetting::get('cancel_notification_email_body', '');
+            if ($customEmailBody) {
+                $content = $this->replacePlaceholders($customEmailBody, $bookerName, $dateTime);
+            } else {
+                $content = "{$bookerName}様\n\n"
+                    . "以下の予約がキャンセルされました。\n\n"
+                    . "■ 日時: {$date}\n"
+                    . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
+            }
 
             $this->sendGuestEmail($booking, $subject, $content);
+
+            // LINE message for guest (separate from email)
+            $customLineMessage = SystemSetting::get('cancel_notification_line_message', '');
+            if ($customLineMessage) {
+                $lineContent = $this->replacePlaceholders($customLineMessage, $bookerName, $dateTime);
+            } else {
+                $lineContent = "{$bookerName}様\n以下の予約がキャンセルされました。\n■ 日時: {$date}";
+            }
+
+            if ($booking->guest_line_user_id) {
+                try {
+                    $lineService = app(LineNotificationService::class);
+                    $lineService->pushMessage($booking->guest_line_user_id, $lineContent);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send LINE cancel message to guest', ['error' => $e->getMessage()]);
+                }
+            }
         } else {
             $user = $booking->user;
             $content = "{$user->name}様\n\n"
@@ -117,6 +163,8 @@ class NotificationService
     {
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
+        $guestName = $booking->guest_name ?? '';
 
         $minutesBefore = (int) SystemSetting::get('reminder_minutes_before', 10);
         $typeLabel = match ($type) {
@@ -130,24 +178,57 @@ class NotificationService
         $consultantProfile = $consultant->consultantProfile;
         $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
 
-        $customMessage = $consultantProfile?->reminder_message
-            ?: SystemSetting::get('guest_reminder_message')
-            ?: 'お忘れなくご参加ください。';
-        $customMessage = $this->replacePlaceholders($customMessage, $booking->guest_name ?? '', "{$date} {$time}");
+        // Determine type-specific setting key prefixes
+        $keyPrefix = match ($type) {
+            'reminder_day_before' => 'reminder_day_before',
+            'reminder_day_of' => 'reminder_day_of',
+            'reminder_before_start' => 'reminder_minutes_before',
+            default => null,
+        };
 
-        $subject = "【リマインド】{$typeLabel}の個別相談のご予約";
-        $content = "{$booking->guest_name}様\n\n"
-            . "{$typeLabel}、個別相談のご予約があります。\n\n"
-            . "■ 日時: {$date} {$time}\n"
-            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
-            . "\n{$customMessage}";
+        // Email subject (custom or default)
+        $customSubject = $keyPrefix ? SystemSetting::get("{$keyPrefix}_email_subject", '') : '';
+        $subject = $customSubject
+            ? $this->replacePlaceholders($customSubject, $guestName, $dateTime)
+            : "【リマインド】{$typeLabel}の個別相談のご予約";
+
+        // Email body (consultant profile > system setting > built-in)
+        $customEmailBody = $consultantProfile?->reminder_message
+            ?: ($keyPrefix ? SystemSetting::get("{$keyPrefix}_email_body", '') : '')
+            ?: '';
+        if ($customEmailBody) {
+            $content = $this->replacePlaceholders($customEmailBody, $guestName, $dateTime);
+        } else {
+            $content = "{$guestName}様\n\n"
+                . "{$typeLabel}、個別相談のご予約があります。\n\n"
+                . "■ 日時: {$dateTime}\n"
+                . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
+                . "\nお忘れなくご参加ください。";
+        }
 
         $this->sendGuestEmail($booking, $subject, $content);
 
+        // LINE message (separate from email)
+        $customLineMessage = $keyPrefix ? SystemSetting::get("{$keyPrefix}_line_message", '') : '';
+        if ($customLineMessage) {
+            $lineContent = $this->replacePlaceholders($customLineMessage, $guestName, $dateTime);
+        } else {
+            $lineContent = "{$guestName}様\n{$typeLabel}、個別相談のご予約があります。\n■ 日時: {$dateTime}";
+        }
+
+        if ($booking->guest_line_user_id) {
+            try {
+                $lineService = app(LineNotificationService::class);
+                $lineService->pushMessage($booking->guest_line_user_id, $lineContent);
+            } catch (\Exception $e) {
+                Log::error('Failed to send LINE reminder to guest', ['error' => $e->getMessage()]);
+            }
+        }
+
         // Also remind consultant
         $consultantContent = "{$consultant->name}様\n\n"
-            . "{$typeLabel}、{$booking->guest_name}様（個別相談）との予約があります。\n\n"
-            . "■ 日時: {$date} {$time}\n"
+            . "{$typeLabel}、{$guestName}様（個別相談）との予約があります。\n\n"
+            . "■ 日時: {$dateTime}\n"
             . "■ 電話番号: {$booking->guest_phone}\n"
             . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
 
@@ -167,6 +248,7 @@ class NotificationService
         $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
 
         $minutesBefore = (int) SystemSetting::get('reminder_minutes_before', 10);
         $typeLabel = match ($type) {
@@ -179,26 +261,41 @@ class NotificationService
         // Determine meeting URL: booking > consultant profile
         $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
 
-        // Determine custom message: consultant profile > system default > built-in
-        $customMessage = $consultantProfile?->reminder_message
-            ?: SystemSetting::get('default_reminder_message')
-            ?: 'お忘れなくご参加ください。';
-        $customMessage = $this->replacePlaceholders($customMessage, $user->name, "{$date} {$time}");
+        // Determine type-specific setting key prefix
+        $keyPrefix = match ($type) {
+            'reminder_day_before' => 'reminder_day_before',
+            'reminder_day_of' => 'reminder_day_of',
+            'reminder_before_start' => 'reminder_minutes_before',
+            default => null,
+        };
 
-        $subject = "【リマインド】{$typeLabel}のコンサルティング予約";
-        $content = "{$user->name}様\n\n"
-            . "{$typeLabel}、コンサルティングの予約があります。\n\n"
-            . "■ コンサルタント: {$consultant->name}\n"
-            . "■ 日時: {$date} {$time}\n"
-            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
-            . "\n{$customMessage}";
+        // Email subject (custom or default)
+        $customSubject = $keyPrefix ? SystemSetting::get("{$keyPrefix}_email_subject", '') : '';
+        $subject = $customSubject
+            ? $this->replacePlaceholders($customSubject, $user->name, $dateTime)
+            : "【リマインド】{$typeLabel}のコンサルティング予約";
+
+        // Email body: consultant profile > system setting > built-in
+        $customEmailBody = $consultantProfile?->reminder_message
+            ?: ($keyPrefix ? SystemSetting::get("{$keyPrefix}_email_body", '') : '')
+            ?: '';
+        if ($customEmailBody) {
+            $content = $this->replacePlaceholders($customEmailBody, $user->name, $dateTime);
+        } else {
+            $content = "{$user->name}様\n\n"
+                . "{$typeLabel}、コンサルティングの予約があります。\n\n"
+                . "■ コンサルタント: {$consultant->name}\n"
+                . "■ 日時: {$dateTime}\n"
+                . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
+                . "\nお忘れなくご参加ください。";
+        }
 
         $this->send($user, $booking, $type, $subject, $content);
 
         // Also remind consultant
         $consultantContent = "{$consultant->name}様\n\n"
             . "{$typeLabel}、{$user->name}様とのコンサルティングがあります。\n\n"
-            . "■ 日時: {$date} {$time}\n"
+            . "■ 日時: {$dateTime}\n"
             . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
