@@ -81,7 +81,10 @@ class UserStatsController extends Controller
         ];
 
         // Available years for the selector (from earliest booking year to current year)
-        $earliestYear = Booking::min(DB::raw('strftime("%Y", booking_date)'));
+        $driver = Booking::getConnectionResolver()->connection()->getDriverName();
+        $earliestYear = $driver === 'sqlite'
+            ? Booking::min(DB::raw('strftime("%Y", booking_date)'))
+            : Booking::selectRaw('MIN(YEAR(booking_date)) as min_year')->value('min_year');
         $earliestYear = $earliestYear ? (int) $earliestYear : $now->year;
         $availableYears = range($now->year, $earliestYear);
 
