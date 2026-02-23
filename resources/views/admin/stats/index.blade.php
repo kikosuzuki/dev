@@ -47,6 +47,9 @@
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">総予約</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">完了</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">キャンセル</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">成約</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">不成約</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">検討中</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">稼働時間</th>
                     </tr>
                 </thead>
@@ -74,13 +77,28 @@
                                     {{ number_format($consultant->stats['cancelled'] ?? 0) }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($consultant->stats['consultation_success'] ?? 0) > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ number_format($consultant->stats['consultation_success'] ?? 0) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($consultant->stats['consultation_failure'] ?? 0) > 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ number_format($consultant->stats['consultation_failure'] ?? 0) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ ($consultant->stats['consultation_pending'] ?? 0) > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ number_format($consultant->stats['consultation_pending'] ?? 0) }}
+                                </span>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
                                 {{ number_format($consultant->stats['hours'] ?? 0, 1) }}時間
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
                                 この期間のデータがありません
                             </td>
                         </tr>

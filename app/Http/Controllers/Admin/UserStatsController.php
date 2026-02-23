@@ -40,18 +40,6 @@ class UserStatsController extends Controller
                     $q->whereYear('booking_date', $selectedYear)
                       ->where('status', 'cancelled');
                 },
-                'bookingsAsUser as consultation_success' => function ($q) use ($selectedYear) {
-                    $q->whereYear('booking_date', $selectedYear)
-                      ->where('consultation_result', 'success');
-                },
-                'bookingsAsUser as consultation_failure' => function ($q) use ($selectedYear) {
-                    $q->whereYear('booking_date', $selectedYear)
-                      ->where('consultation_result', 'failure');
-                },
-                'bookingsAsUser as consultation_pending' => function ($q) use ($selectedYear) {
-                    $q->whereYear('booking_date', $selectedYear)
-                      ->where('consultation_result', 'pending');
-                },
             ])
             ->orderByDesc('this_month_bookings')
             ->paginate(20)
@@ -72,12 +60,6 @@ class UserStatsController extends Controller
             'total_bookings_this_year' => Booking::whereYear('booking_date', $selectedYear)
                 ->whereIn('status', ['pending', 'approved', 'completed'])
                 ->count(),
-            'consultation_success' => Booking::whereYear('booking_date', $selectedYear)
-                ->where('consultation_result', 'success')->count(),
-            'consultation_failure' => Booking::whereYear('booking_date', $selectedYear)
-                ->where('consultation_result', 'failure')->count(),
-            'consultation_pending' => Booking::whereYear('booking_date', $selectedYear)
-                ->where('consultation_result', 'pending')->count(),
         ];
 
         // Available years for the selector (from earliest booking year to current year)

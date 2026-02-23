@@ -42,22 +42,6 @@
         </div>
     </div>
 
-    {{-- Consultation Result Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
-            <p class="text-sm font-medium text-gray-500">成約（{{ $selectedYear }}年）</p>
-            <p class="text-2xl font-semibold text-green-600 mt-1">{{ number_format($summary['consultation_success']) }}</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-6">
-            <p class="text-sm font-medium text-gray-500">不成約（{{ $selectedYear }}年）</p>
-            <p class="text-2xl font-semibold text-red-600 mt-1">{{ number_format($summary['consultation_failure']) }}</p>
-        </div>
-        <div class="bg-white rounded-lg shadow p-6">
-            <p class="text-sm font-medium text-gray-500">検討中（{{ $selectedYear }}年）</p>
-            <p class="text-2xl font-semibold text-yellow-600 mt-1">{{ number_format($summary['consultation_pending']) }}</p>
-        </div>
-    </div>
-
     {{-- User List --}}
     <div class="bg-white rounded-lg shadow">
         <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -75,9 +59,6 @@
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $selectedYear }}年予約</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $selectedYear }}年完了</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ $selectedYear }}年キャンセル</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">成約</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">不成約</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">検討中</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -110,25 +91,10 @@
                                     {{ $user->cancelled_this_year }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->consultation_success > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ $user->consultation_success }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->consultation_failure > 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ $user->consultation_failure }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->consultation_pending > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ $user->consultation_pending }}
-                                </span>
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-6 py-8 text-center text-sm text-gray-500">ユーザーがいません</td>
+                            <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">ユーザーがいません</td>
                         </tr>
                     @endforelse
                 </tbody>
