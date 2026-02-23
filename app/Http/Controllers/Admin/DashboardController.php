@@ -80,7 +80,12 @@ class DashboardController extends Controller
 
         $consultants = User::where('role', 'consultant')->orderBy('name')->get();
 
-        $monthlyBookings = Booking::selectRaw('DATE_FORMAT(booking_date, "%Y-%m") as month, COUNT(*) as count, SUM(amount) as revenue')
+        $driver = Booking::getConnectionResolver()->connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "strftime('%Y-%m', booking_date)"
+            : 'DATE_FORMAT(booking_date, "%Y-%m")';
+
+        $monthlyBookings = Booking::selectRaw("{$monthExpr} as month, COUNT(*) as count, SUM(amount) as revenue")
             ->whereIn('status', ['approved', 'completed'])
             ->groupBy('month')
             ->orderByDesc('month')
