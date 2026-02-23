@@ -19,8 +19,10 @@ class NotificationService
 
         $user = $booking->user;
         $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
 
         $subject = '【予約確定】コンサルティング予約のお知らせ';
         $content = "{$user->name}様\n\n"
@@ -28,6 +30,7 @@ class NotificationService
             . "■ コンサルタント: {$consultant->name}\n"
             . "■ 日時: {$date} {$time}\n"
             . "■ ステータス: {$booking->status}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
             . ($booking->notes ? "■ 備考: {$booking->notes}\n" : '')
             . "\nよろしくお願いいたします。";
 
@@ -40,6 +43,7 @@ class NotificationService
             . "■ メール: {$user->email}\n"
             . "■ 日時: {$date} {$time}\n"
             . "■ ステータス: {$booking->status}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
             . ($booking->notes ? "■ 備考: {$booking->notes}\n" : '');
 
         $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
@@ -48,27 +52,17 @@ class NotificationService
     private function sendGuestBookingApproved(Booking $booking): void
     {
         $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
-        $dateTime = "{$date} {$time}";
-        $guestName = $booking->guest_name ?? '';
+        $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? null);
 
-        // Email subject (custom or default)
-        $customSubject = SystemSetting::get('booking_confirm_email_subject', '');
-        $subject = $customSubject
-            ? $this->replacePlaceholders($customSubject, $guestName, $dateTime)
-            : '【予約確定】個別相談のご予約が確定しました';
-
-        // Email body
-        $customEmailBody = SystemSetting::get('booking_confirm_email_body', '');
-        if ($customEmailBody) {
-            $content = $this->replacePlaceholders($customEmailBody, $guestName, $dateTime);
-        } else {
-            $content = "{$guestName}様\n\n"
-                . "個別相談のご予約が確定しました。\n\n"
-                . "■ 日時: {$dateTime}\n"
-                . "\nよろしくお願いいたします。";
-        }
+        $subject = '【予約確定】個別相談のご予約が確定しました';
+        $content = "{$booking->guest_name}様\n\n"
+            . "個別相談のご予約が確定しました。\n\n"
+            . "■ 日時: {$date} {$time}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
+            . "\nよろしくお願いいたします。";
 
         $this->sendGuestEmail($booking, $subject, $content);
 
@@ -95,7 +89,8 @@ class NotificationService
             . "■ お客様名: {$guestName}\n"
             . "■ メール: {$booking->guest_email}\n"
             . "■ 電話番号: {$booking->guest_phone}\n"
-            . "■ 日時: {$dateTime}\n"
+            . "■ 日時: {$date} {$time}\n"
+            . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '')
             . ($booking->notes ? "■ 相談内容: {$booking->notes}\n" : '');
 
         $this->send($consultant, $booking, 'booking_confirmed', $subject, $consultantContent);
