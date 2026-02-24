@@ -263,11 +263,12 @@
                                                             <option value="お知らせがございます。詳細につきましては下記をご確認ください。">お知らせ</option>
                                                         </select>
                                                     </div>
-                                                    <p class="mb-4 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2">
-                                                        <span>メッセージはこのユーザーに設定されたChatworkルーム（Room ID: {{ $user->chatwork_room_id }}）に送信されます。</span>
-                                                        <span x-show="cwLoading" class="block mt-1 text-gray-400">Chatwork名を取得中...</span>
-                                                        <span x-show="!cwLoading && cwName" class="block mt-1 font-medium text-gray-700" x-text="'送信先: ' + cwName"></span>
-                                                    </p>
+                                                    <div class="mb-4 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 break-words">
+                                                        <p>メッセージはこのユーザーに設定された<br>Chatworkルームに送信されます。</p>
+                                                        <p class="mt-1 text-gray-400">Room ID: {{ $user->chatwork_room_id }}</p>
+                                                        <p x-show="cwLoading" class="mt-1 text-gray-400">Chatwork名を取得中...</p>
+                                                        <p x-show="!cwLoading && cwName" class="mt-1 font-medium text-gray-700" x-text="'送信先: ' + cwName"></p>
+                                                    </div>
                                                     <div class="mb-4">
                                                         <label for="cw_msg_{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">メッセージ</label>
                                                         <textarea id="cw_msg_{{ $user->id }}" name="message" rows="5" required
