@@ -15,7 +15,7 @@ class UserManageController extends Controller
 {
     public function index(Request $request)
     {
-        $role = $request->get('role', 'all');
+        $role = $request->get('role');
 
         if ($role === 'guest') {
             return $this->guestIndex($request);
@@ -23,7 +23,7 @@ class UserManageController extends Controller
 
         $query = User::query();
 
-        if ($role !== 'all') {
+        if ($role) {
             $query->where('role', $role);
         }
 
