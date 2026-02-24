@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class BookingManageController extends Controller
 {
@@ -15,6 +16,8 @@ class BookingManageController extends Controller
     {
         $consultant = auth()->user();
         $status = $request->get('status', 'all');
+        $search = $request->get('search');
+        $result = $request->get('result'); // 相談結果フィルター
 
         $query = Booking::where('consultant_id', $consultant->id)
             ->with('user')
@@ -24,9 +27,32 @@ class BookingManageController extends Controller
             $query->where('status', $status);
         }
 
+        // 相談結果フィルター（完了タブ用）
+        if ($result && in_array($result, ['success', 'failure', 'pending', 'none'])) {
+            if ($result === 'none') {
+                $query->whereNull('consultation_result');
+            } else {
+                $query->where('consultation_result', $result);
+            }
+        }
+
+        // 名前・メールアドレスで検索
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                // ゲスト予約: guest_name, guest_email
+                $q->where('guest_name', 'like', "%{$search}%")
+                    ->orWhere('guest_email', 'like', "%{$search}%")
+                    // 会員予約: users テーブルの name, email
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $bookings = $query->paginate(10);
 
-        return view('consultant.bookings.index', compact('bookings', 'status'));
+        return view('consultant.bookings.index', compact('bookings', 'status', 'search', 'result'));
     }
 
     public function complete(Booking $booking)
@@ -142,5 +168,51 @@ class BookingManageController extends Controller
         ]);
 
         return back()->with('success', 'メモを保存しました。');
+    }
+
+    public function sendEmail(Request $request, Booking $booking)
+    {
+        if ($booking->consultant_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'subject' => ['required', 'string', 'max:200'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+
+        // 送信先メールアドレスを取得
+        $toEmail = $booking->isGuest() ? $booking->guest_email : $booking->user?->email;
+        $toName = $booking->bookerName();
+
+        if (!$toEmail) {
+            return back()->with('error', '送信先のメールアドレスが見つかりません。');
+        }
+
+        // プレースホルダー置換
+        $dateLabel = $booking->booking_date->format('Y年m月d日') . ' '
+            . \Carbon\Carbon::parse($booking->start_time)->format('H:i') . ' - '
+            . \Carbon\Carbon::parse($booking->end_time)->format('H:i');
+
+        $replacements = [
+            '{name}' => $toName,
+            '{date}' => $dateLabel,
+            '{consultant}' => auth()->user()->name,
+        ];
+        $subject = str_replace(array_keys($replacements), array_values($replacements), $validated['subject']);
+        $body = str_replace(array_keys($replacements), array_values($replacements), $validated['message']);
+
+        try {
+            Mail::raw($body, function ($mail) use ($toEmail, $subject) {
+                $mail->to($toEmail)->subject($subject);
+            });
+
+            AuditLog::log('email_sent_by_consultant', $booking);
+
+            return back()->with('success', "{$toName}さんにメールを送信しました。");
+        } catch (\Exception $e) {
+            \Log::error('Consultant email send failed', ['error' => $e->getMessage(), 'booking_id' => $booking->id]);
+            return back()->with('error', 'メールの送信に失敗しました。');
+        }
     }
 }

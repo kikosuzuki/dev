@@ -106,6 +106,7 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     Route::post('/bookings/{booking}/cancel', [BookingManageController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [BookingManageController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
     Route::put('/bookings/{booking}/user-notes', [BookingManageController::class, 'updateUserNotes'])->name('bookings.user-notes.update');
+    Route::post('/bookings/{booking}/send-email', [BookingManageController::class, 'sendEmail'])->name('bookings.send-email');
 
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');

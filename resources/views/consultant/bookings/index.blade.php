@@ -16,26 +16,53 @@
         </div>
     @endif
 
+    {{-- 検索フォーム --}}
+    <div class="bg-white rounded-lg shadow mb-6 px-4 py-3">
+        <form method="GET" action="{{ route('consultant.bookings.index') }}" class="flex items-center gap-3">
+            @if($status !== 'all')
+                <input type="hidden" name="status" value="{{ $status }}">
+            @endif
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" name="search" value="{{ $search ?? '' }}"
+                    placeholder="名前またはメールアドレスで検索"
+                    class="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <button type="submit"
+                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                検索
+            </button>
+            @if($search)
+                <a href="{{ route('consultant.bookings.index', $status !== 'all' ? ['status' => $status] : []) }}"
+                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition">
+                    クリア
+                </a>
+            @endif
+        </form>
+    </div>
+
     {{-- Status Filter Tabs --}}
     <div class="bg-white rounded-lg shadow mb-6">
         <div class="border-b border-gray-200">
             <nav class="flex -mb-px overflow-x-auto" aria-label="Tabs">
-                <a href="{{ route('consultant.bookings.index') }}"
+                <a href="{{ route('consultant.bookings.index', $search ? ['search' => $search] : []) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ !$status ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     すべて
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'approved']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'approved'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'approved' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     確定済み
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'completed']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'completed'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'completed' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     完了
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'cancelled']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'cancelled'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'cancelled' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     キャンセル
@@ -43,6 +70,36 @@
             </nav>
         </div>
     </div>
+
+    {{-- 相談結果フィルター（完了タブのみ） --}}
+    @if($status === 'completed')
+        @php
+            $resultParams = array_merge(['status' => 'completed'], $search ? ['search' => $search] : []);
+        @endphp
+        <div class="flex items-center gap-2 mb-6 flex-wrap">
+            <span class="text-sm font-medium text-gray-600">相談結果:</span>
+            <a href="{{ route('consultant.bookings.index', $resultParams) }}"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition {{ !$result ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                すべて
+            </a>
+            <a href="{{ route('consultant.bookings.index', array_merge($resultParams, ['result' => 'success'])) }}"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition {{ $result === 'success' ? 'bg-green-600 text-white' : 'bg-green-50 text-green-700 hover:bg-green-100' }}">
+                成約
+            </a>
+            <a href="{{ route('consultant.bookings.index', array_merge($resultParams, ['result' => 'failure'])) }}"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition {{ $result === 'failure' ? 'bg-red-600 text-white' : 'bg-red-50 text-red-700 hover:bg-red-100' }}">
+                不成約
+            </a>
+            <a href="{{ route('consultant.bookings.index', array_merge($resultParams, ['result' => 'pending'])) }}"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition {{ $result === 'pending' ? 'bg-yellow-600 text-white' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100' }}">
+                検討中
+            </a>
+            <a href="{{ route('consultant.bookings.index', array_merge($resultParams, ['result' => 'none'])) }}"
+                class="px-3 py-1.5 text-xs font-medium rounded-full transition {{ $result === 'none' ? 'bg-gray-600 text-white' : 'bg-gray-50 text-gray-500 hover:bg-gray-100' }}">
+                未記録
+            </a>
+        </div>
+    @endif
 
     {{-- Bookings List --}}
     <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -108,6 +165,7 @@
                                     @php
                                         $currentNotes = $booking->admin_notes;
                                     @endphp
+                                    @if($booking->status !== 'completed')
                                     @if($currentNotes)
                                         <button type="button" @click="showNotesModal = true"
                                             class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
@@ -120,6 +178,7 @@
                                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             未記入
                                         </button>
+                                    @endif
                                     @endif
 
                                     {{-- Notes Edit Modal --}}
@@ -160,8 +219,8 @@
                                         <span class="text-gray-400 text-xs">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <div class="flex items-center space-x-2">
+                                <td class="px-6 py-4 text-sm">
+                                    <div class="flex flex-wrap items-center gap-1.5">
                                         {{-- Cancel button (approved only) --}}
                                         @if($booking->isApproved())
                                             <div x-data="{ showCancelModal: false }">
@@ -203,6 +262,56 @@
                                                                         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
                                                                         キャンセルする
                                                                     </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        {{-- Email Send Button (approved only) --}}
+                                        @if($booking->isApproved())
+                                            <div x-data="{ showEmailModal: false }">
+                                                <button type="button" @click="showEmailModal = true"
+                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                    メール
+                                                </button>
+
+                                                {{-- Email Send Modal --}}
+                                                <div x-show="showEmailModal" x-cloak @keydown.escape.window="showEmailModal = false"
+                                                    class="fixed inset-0 z-50 overflow-y-auto" x-transition>
+                                                    <div class="flex items-center justify-center min-h-screen px-4">
+                                                        <div class="fixed inset-0 bg-black/50" @click="showEmailModal = false"></div>
+                                                        <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
+                                                            <h3 class="text-lg font-semibold text-gray-900 mb-2">メール送信</h3>
+                                                            <p class="text-sm text-gray-500 mb-1">
+                                                                送信先: {{ $booking->bookerName() }}
+                                                                ({{ $booking->isGuest() ? $booking->guest_email : $booking->user?->email }})
+                                                            </p>
+                                                            <p class="text-xs text-gray-400 mb-4">
+                                                                置換タグ: {name}=予約者名, {date}=予約日時, {consultant}=コンサルタント名
+                                                            </p>
+                                                            <form method="POST" action="{{ route('consultant.bookings.send-email', $booking) }}">
+                                                                @csrf
+                                                                <div class="mb-4">
+                                                                    <label class="block text-sm font-medium text-gray-700 mb-1">件名 <span class="text-red-500">*</span></label>
+                                                                    <input type="text" name="subject" required maxlength="200"
+                                                                        class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+                                                                        placeholder="例: {name}様 ご予約に関するご連絡">
+                                                                </div>
+                                                                <div class="mb-4">
+                                                                    <label class="block text-sm font-medium text-gray-700 mb-1">本文 <span class="text-red-500">*</span></label>
+                                                                    <textarea name="message" rows="8" required maxlength="5000"
+                                                                        class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+                                                                        placeholder="メール本文を入力してください..."></textarea>
+                                                                </div>
+                                                                <div class="flex justify-end space-x-3">
+                                                                    <button type="button" @click="showEmailModal = false"
+                                                                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">閉じる</button>
+                                                                    <button type="submit"
+                                                                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">送信</button>
                                                                 </div>
                                                             </form>
                                                         </div>
@@ -286,7 +395,7 @@
             {{-- Pagination --}}
             @if($bookings->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $bookings->appends(['status' => $status])->links() }}
+                    {{ $bookings->appends(['status' => $status, 'search' => $search, 'result' => $result])->links() }}
                 </div>
             @endif
         @endif
