@@ -4,16 +4,10 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex items-center justify-between mb-8">
         <h1 class="text-2xl font-bold text-gray-900">スケジュール管理</h1>
-        <div class="flex space-x-3">
-            <a href="{{ route('consultant.schedules.create') }}"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                新規登録
-            </a>
-            <a href="{{ route('consultant.schedules.create') }}?mode=bulk"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                一括登録
-            </a>
-        </div>
+        <a href="{{ route('consultant.schedules.create') }}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            新規登録
+        </a>
     </div>
 
     @if(session('success'))
