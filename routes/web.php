@@ -146,6 +146,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Available schedules
     Route::get('/schedules', [AdminScheduleController::class, 'index'])->name('schedules.index');
+    Route::get('/schedules/create', [AdminScheduleController::class, 'create'])->name('schedules.create');
+    Route::post('/schedules', [AdminScheduleController::class, 'store'])->name('schedules.store');
 
     // Consultant stats
     Route::get('/stats', [ConsultantStatsController::class, 'index'])->name('stats.index');
