@@ -17,7 +17,19 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('admin.schedules.store') }}">
+        <form method="POST" action="{{ route('admin.schedules.store') }}" x-data="{
+            duration: 60,
+            startTime: '{{ old('start_time', '') }}',
+            endTime: '{{ old('end_time', '') }}',
+            calcEnd() {
+                if (!this.startTime || !this.duration) return;
+                const [h, m] = this.startTime.split(':').map(Number);
+                const total = h * 60 + m + this.duration;
+                const endH = String(Math.floor(total / 60) % 24).padStart(2, '0');
+                const endM = String(total % 60).padStart(2, '0');
+                this.endTime = endH + ':' + endM;
+            }
+        }">
             @csrf
 
             {{-- コンサルタント選択 --}}
@@ -51,18 +63,30 @@
             </div>
 
             {{-- 時間 --}}
-            <div class="grid grid-cols-2 gap-4 mb-5">
+            <div class="grid grid-cols-3 gap-4 mb-5">
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">開始時間 <span class="text-red-500">*</span></label>
-                    <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}" required
+                    <input type="time" name="start_time" id="start_time" x-model="startTime" @change="calcEnd()" required
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     @error('start_time')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">所要時間</label>
+                    <select x-model.number="duration" @change="calcEnd()"
+                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        <option value="15">15分</option>
+                        <option value="30">30分</option>
+                        <option value="45">45分</option>
+                        <option value="60">60分</option>
+                        <option value="90">90分</option>
+                        <option value="120">120分</option>
+                    </select>
+                </div>
+                <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700 mb-1">終了時間 <span class="text-red-500">*</span></label>
-                    <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}" required
+                    <input type="time" name="end_time" id="end_time" x-model="endTime" required
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     @error('end_time')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

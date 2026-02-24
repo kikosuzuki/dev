@@ -28,9 +28,23 @@
 
     {{-- Single Day Registration --}}
     <div class="bg-white rounded-lg shadow mb-8" x-data="{
+        duration: 60,
         slots: [{ start_time: '09:00', end_time: '10:00' }],
+        calcEndTime(slot) {
+            if (!slot.start_time || !this.duration) return;
+            const [h, m] = slot.start_time.split(':').map(Number);
+            const total = h * 60 + m + this.duration;
+            const endH = String(Math.floor(total / 60) % 24).padStart(2, '0');
+            const endM = String(total % 60).padStart(2, '0');
+            slot.end_time = endH + ':' + endM;
+        },
         addSlot() {
-            this.slots.push({ start_time: '09:00', end_time: '10:00' });
+            const startTime = '09:00';
+            const [h, m] = startTime.split(':').map(Number);
+            const total = h * 60 + m + this.duration;
+            const endH = String(Math.floor(total / 60) % 24).padStart(2, '0');
+            const endM = String(total % 60).padStart(2, '0');
+            this.slots.push({ start_time: startTime, end_time: endH + ':' + endM });
         },
         removeSlot(index) {
             if (this.slots.length > 1) {
@@ -52,11 +66,24 @@
             </div>
 
             <div class="mb-4">
+                <div class="flex items-center space-x-3 mb-4">
+                    <label class="block text-sm font-medium text-gray-700">所要時間</label>
+                    <select x-model.number="duration" @change="slots.forEach(s => calcEndTime(s))"
+                        class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                        <option value="15">15分</option>
+                        <option value="30">30分</option>
+                        <option value="45">45分</option>
+                        <option value="60">60分</option>
+                        <option value="90">90分</option>
+                        <option value="120">120分</option>
+                    </select>
+                    <span class="text-xs text-gray-500">開始時間を入力すると終了時間が自動設定されます</span>
+                </div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">時間枠</label>
                 <template x-for="(slot, index) in slots" :key="index">
                     <div class="flex items-center space-x-3 mb-3">
                         <div>
-                            <input type="time" :name="'slots[' + index + '][start_time]'" x-model="slot.start_time" required
+                            <input type="time" :name="'slots[' + index + '][start_time]'" x-model="slot.start_time" @change="calcEndTime(slot)" required
                                 class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                         </div>
                         <span class="text-gray-500">~</span>

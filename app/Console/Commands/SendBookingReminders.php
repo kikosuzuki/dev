@@ -65,12 +65,14 @@ class SendBookingReminders extends Command
         if ($now->hour === 8 && SystemSetting::get('chatwork_enabled', '0') === '1') {
             $morningBookings = Booking::where('booking_date', $today)
                 ->where('status', 'approved')
+                ->where('morning_chatwork_sent', false)
                 ->with(['user', 'consultant.consultantProfile'])
                 ->get();
 
             foreach ($morningBookings as $booking) {
                 try {
                     $notificationService->sendMorningChatworkNotification($booking);
+                    $booking->update(['morning_chatwork_sent' => true]);
                     $this->info("Morning Chatwork notification sent for booking #{$booking->id}");
                 } catch (\Exception $e) {
                     $this->error("Morning Chatwork notification failed for booking #{$booking->id}: {$e->getMessage()}");
