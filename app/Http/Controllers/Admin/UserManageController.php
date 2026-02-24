@@ -114,7 +114,9 @@ class UserManageController extends Controller
             'notify_chatwork' => ['boolean'],
             'is_active' => ['boolean'],
             'admin_notes' => ['nullable', 'string'],
-            'user_type' => ['required', Rule::in(['member', 'consultation'])],
+            'user_type' => $request->role === 'user'
+                ? ['required', Rule::in(['member', 'consultation'])]
+                : ['nullable'],
         ]);
 
         $oldValues = $user->toArray();
@@ -128,7 +130,9 @@ class UserManageController extends Controller
             'notify_chatwork' => $request->boolean('notify_chatwork'),
             'is_active' => $request->boolean('is_active'),
             'admin_notes' => $validated['admin_notes'] ?? null,
-            'user_type' => $validated['user_type'],
+            'user_type' => $validated['role'] === 'user'
+                ? ($validated['user_type'] ?? 'member')
+                : 'member',
         ]);
 
         if ($request->filled('password')) {
