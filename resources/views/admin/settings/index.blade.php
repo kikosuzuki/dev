@@ -673,13 +673,11 @@
                                                             <p class="text-xs text-green-600">{{ $googleAdminEmail }}</p>
                                                         @endif
                                                     </div>
-                                                    <form method="POST" action="{{ route('admin.google.disconnect') }}" class="flex-shrink-0"
-                                                          onsubmit="return confirm('Googleアカウントの連携を解除しますか？')">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition">
-                                                            連携解除
-                                                        </button>
-                                                    </form>
+                                                    <button type="button"
+                                                            onclick="if(confirm('Googleアカウントの連携を解除しますか？')){fetch('{{ route('admin.google.disconnect') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'text/html'}}).then(()=>location.reload())}"
+                                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition flex-shrink-0">
+                                                        連携解除
+                                                    </button>
                                                 </div>
                                             @else
                                                 <div class="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
