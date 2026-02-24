@@ -340,8 +340,8 @@ class NotificationService
             $this->sendLine($user, $booking, $type, $content);
         }
 
-        // Always send to Chatwork if room ID is configured
-        if ($user->chatwork_room_id) {
+        // Send to Chatwork if enabled and room ID is configured
+        if ($user->notify_chatwork && $user->chatwork_room_id) {
             $this->sendChatwork($user, $booking, $type, $content);
         }
     }

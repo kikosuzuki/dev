@@ -102,6 +102,19 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chatwork通知</label>
+                        <div class="flex items-center">
+                            <input type="hidden" name="notify_chatwork" value="0">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="notify_chatwork" value="1"
+                                    {{ old('notify_chatwork', $user->notify_chatwork) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Chatwork通知を有効にする</span>
+                            </label>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">会員予約の通知をChatworkで受け取るかどうかを設定します。Room IDの設定も必要です。</p>
+                    </div>
                 </div>
 
                 <script>

@@ -212,8 +212,16 @@
                                 class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                             <span class="ml-2 text-sm text-gray-700">LINE</span>
                         </label>
+                        <br>
+                        <label class="inline-flex items-center">
+                            <input type="hidden" name="notify_chatwork" value="0">
+                            <input type="checkbox" name="notify_chatwork" value="1"
+                                {{ old('notify_chatwork', $user->notify_chatwork) ? 'checked' : '' }}
+                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">Chatwork</span>
+                        </label>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Chatworkは Room ID が設定されていれば常に送信されます。</p>
+                    <p class="mt-1 text-xs text-gray-500">Chatwork通知にはRoom IDの設定が必要です。</p>
                 </div>
             </div>
 

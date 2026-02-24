@@ -22,6 +22,7 @@ class User extends Authenticatable
         'chatwork_room_id',
         'notify_email',
         'notify_line',
+        'notify_chatwork',
         'is_active',
         'admin_notes',
         'user_type',
@@ -40,6 +41,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'notify_email' => 'boolean',
             'notify_line' => 'boolean',
+            'notify_chatwork' => 'boolean',
         ];
     }
 

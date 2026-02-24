@@ -26,6 +26,7 @@ class ProfileController extends Controller
             'chatwork_room_id' => ['nullable', 'string', 'max:100'],
             'notify_email' => ['boolean'],
             'notify_line' => ['boolean'],
+            'notify_chatwork' => ['boolean'],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ]);
 
