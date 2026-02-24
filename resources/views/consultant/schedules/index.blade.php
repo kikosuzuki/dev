@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="{ view: 'calendar' }">
     <div class="flex items-center justify-between mb-8">
         <h1 class="text-2xl font-bold text-gray-900">スケジュール管理</h1>
         <a href="{{ route('consultant.schedules.create') }}"
@@ -32,7 +32,26 @@
                 </svg>
                 前月
             </a>
-            <h2 class="text-lg font-semibold text-gray-900">{{ $year }}年{{ $month }}月</h2>
+            <div class="flex items-center space-x-4">
+                <h2 class="text-lg font-semibold text-gray-900">{{ $year }}年{{ $month }}月</h2>
+                {{-- View Toggle Buttons --}}
+                <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                    <button @click="view = 'calendar'" type="button"
+                        :class="view === 'calendar' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:text-gray-700'"
+                        class="p-2 transition-colors" title="カレンダー表示">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                    <button @click="view = 'list'" type="button"
+                        :class="view === 'list' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:text-gray-700'"
+                        class="p-2 border-l border-gray-300 transition-colors" title="リスト表示">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
             <a href="{{ route('consultant.schedules.index', ['month' => $month == 12 ? 1 : $month + 1, 'year' => $month == 12 ? $year + 1 : $year]) }}"
                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
                 翌月
@@ -43,8 +62,8 @@
         </div>
     </div>
 
-    {{-- Calendar Grid --}}
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    {{-- Calendar View --}}
+    <div x-show="view === 'calendar'" class="bg-white rounded-lg shadow overflow-hidden">
         {{-- Day of week header --}}
         <div class="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
             @foreach(['月', '火', '水', '木', '金', '土', '日'] as $dayLabel)
@@ -121,6 +140,80 @@
                 <div class="min-h-[120px] border-b border-r border-gray-200 bg-gray-50"></div>
             @endfor
         </div>
+    </div>
+
+    {{-- List View --}}
+    <div x-show="view === 'list'" x-cloak class="bg-white rounded-lg shadow overflow-hidden">
+        @php
+            $allSlots = collect($scheduleDates)->sortKeys();
+            $hasAnySlots = $allSlots->flatten()->isNotEmpty();
+        @endphp
+
+        @if($hasAnySlots)
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($allSlots as $dateKey => $slots)
+                        @php
+                            $dateCarbon = \Carbon\Carbon::parse($dateKey);
+                            $dayOfWeekLabels = ['日', '月', '火', '水', '木', '金', '土'];
+                            $dayOfWeekLabel = $dayOfWeekLabels[$dateCarbon->dayOfWeek];
+                            $isToday = $dateCarbon->isSameDay(\Carbon\Carbon::today());
+                        @endphp
+                        @foreach($slots as $slotIndex => $slot)
+                            @php
+                                $isBooked = $slot->isBooked();
+                            @endphp
+                            <tr class="{{ $isToday ? 'bg-indigo-50' : '' }}">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm">
+                                    @if($slotIndex === 0)
+                                        <span class="font-medium {{ $isToday ? 'text-indigo-600' : 'text-gray-900' }}">
+                                            {{ $dateCarbon->format('m/d') }}（{{ $dayOfWeekLabel }}）
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap">
+                                    @if($isBooked)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">予約済</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">空き</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-right text-sm">
+                                    @if(!$isBooked)
+                                        <form action="{{ route('consultant.schedules.destroy', $slot) }}" method="POST"
+                                            onsubmit="return confirm('このスケジュール枠を削除しますか？');" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-800 text-xs font-medium">
+                                                削除
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <div class="px-6 py-12 text-center text-gray-500">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-sm">この月にはスケジュール枠がありません。</p>
+            </div>
+        @endif
     </div>
 </div>
 @endsection
