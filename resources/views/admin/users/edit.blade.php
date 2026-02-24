@@ -149,8 +149,8 @@
                 </script>
             </div>
 
-            {{-- User Type --}}
-            <div class="mb-6">
+            {{-- User Type (会員ロールのみ表示) --}}
+            <div x-show="role === 'user'" x-transition class="mb-6">
                 <label for="user_type" class="block text-sm font-medium text-gray-700 mb-1">種別</label>
                 <select name="user_type" id="user_type"
                         class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('user_type') border-red-500 @enderror">

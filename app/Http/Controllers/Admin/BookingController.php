@@ -107,6 +107,109 @@ class BookingController extends Controller
         return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'consultation_result', 'emailTemplates'));
     }
 
+    public function exportCsv(Request $request)
+    {
+        $period = $request->get('period', '1month');
+        $consultant_id = $request->get('consultant_id');
+        $status = $request->get('status');
+        $booking_type = $request->get('booking_type', 'all');
+        $consultation_result = $request->get('consultation_result');
+
+        $now = now();
+        $endDate = match ($period) {
+            '1week' => $now->copy()->addWeek(),
+            '2weeks' => $now->copy()->addWeeks(2),
+            '1month' => $now->copy()->addMonth(),
+            '2months' => $now->copy()->addMonths(2),
+            '3months' => $now->copy()->addMonths(3),
+            '6months' => $now->copy()->addMonths(6),
+            'all' => null,
+            default => $now->copy()->addMonth(),
+        };
+
+        $query = Booking::with(['user', 'consultant', 'schedule']);
+
+        if (!$status || $status === 'approved') {
+            $query->where('status', 'approved');
+        } elseif ($status === 'completed') {
+            $query->where('status', 'completed');
+        } elseif ($status === 'cancelled') {
+            $query->where('status', 'cancelled');
+        } else {
+            $query->whereIn('status', ['approved', 'completed', 'cancelled']);
+        }
+
+        if ($endDate) {
+            $query->where('booking_date', '>=', $now->toDateString())
+                  ->where('booking_date', '<=', $endDate->toDateString());
+        } else {
+            $query->where('booking_date', '>=', $now->toDateString());
+        }
+
+        if ($consultant_id) {
+            $query->where('consultant_id', $consultant_id);
+        }
+
+        if ($booking_type === 'member') {
+            $query->where('is_guest', false);
+        } elseif ($booking_type === 'guest') {
+            $query->where('is_guest', true);
+        }
+
+        if ($consultation_result && $consultation_result !== 'all') {
+            if ($consultation_result === 'unrecorded') {
+                $query->whereNull('consultation_result');
+            } else {
+                $query->where('consultation_result', $consultation_result);
+            }
+        }
+
+        $bookings = $query->orderBy('booking_date')->orderBy('start_time')->get();
+
+        $statusLabels = ['approved' => '確定', 'completed' => '完了', 'cancelled' => 'キャンセル'];
+        $resultLabels = ['success' => '成約', 'failure' => '不成約', 'pending' => '検討中'];
+
+        $callback = function () use ($bookings, $statusLabels, $resultLabels) {
+            $file = fopen('php://output', 'w');
+            // BOM for Excel UTF-8
+            fwrite($file, "\xEF\xBB\xBF");
+
+            fputcsv($file, [
+                '予約ID', '種別', '予約者名', 'メール', '電話番号', '紹介者',
+                'コンサルタント', '予約日', '開始時間', '終了時間',
+                'ステータス', '相談結果', '備考', '管理メモ',
+            ]);
+
+            foreach ($bookings as $booking) {
+                fputcsv($file, [
+                    $booking->id,
+                    $booking->is_guest ? '個別相談' : '会員',
+                    $booking->is_guest ? $booking->guest_name : ($booking->user->name ?? ''),
+                    $booking->is_guest ? $booking->guest_email : ($booking->user->email ?? ''),
+                    $booking->is_guest ? $booking->guest_phone : ($booking->user->phone ?? ''),
+                    $booking->guest_referrer ?? '',
+                    $booking->consultant->name ?? '',
+                    $booking->booking_date->format('Y/m/d'),
+                    \Carbon\Carbon::parse($booking->start_time)->format('H:i'),
+                    \Carbon\Carbon::parse($booking->end_time)->format('H:i'),
+                    $statusLabels[$booking->status] ?? $booking->status,
+                    $resultLabels[$booking->consultation_result] ?? '',
+                    $booking->notes ?? '',
+                    $booking->admin_notes ?? '',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        $filename = '予約一覧_' . now()->format('Ymd_His') . '.csv';
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     public function create()
     {
         $consultants = User::where('role', 'consultant')

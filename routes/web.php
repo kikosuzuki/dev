@@ -137,6 +137,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/export-csv', [AdminBookingController::class, 'exportCsv'])->name('bookings.export-csv');
     Route::get('/bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/schedules', [AdminBookingController::class, 'getSchedules'])->name('bookings.schedules');

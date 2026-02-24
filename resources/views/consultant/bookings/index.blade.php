@@ -113,6 +113,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
@@ -141,6 +142,15 @@
                                         <div class="text-sm text-gray-500 mt-1">
                                             <span class="font-medium text-gray-600">備考:</span> {{ Str::limit($booking->notes, 50) }}
                                         </div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @if($booking->isGuest() && $booking->guest_referrer)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                            {{ $booking->guest_referrer }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -291,7 +301,7 @@
                                                                 ({{ $booking->isGuest() ? $booking->guest_email : $booking->user?->email }})
                                                             </p>
                                                             <p class="text-xs text-gray-400 mb-4">
-                                                                置換タグ: {name}=予約者名, {date}=予約日時, {consultant}=コンサルタント名
+                                                                置換タグ: {name}=予約者名, {date}=予約日時, {consultant}=コンサルタント名, {important_document_url}=重要事項説明書URL
                                                             </p>
                                                             <form method="POST" action="{{ route('consultant.bookings.send-email', $booking) }}">
                                                                 @csrf
