@@ -30,7 +30,7 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">基本情報</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">氏名</label>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">氏名 <span class="text-red-500">*</span></label>
                         <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
@@ -83,7 +83,7 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">専門情報</h2>
                 <div class="space-y-6">
                     <div>
-                        <label for="specialty" class="block text-sm font-medium text-gray-700 mb-1">専門分野</label>
+                        <label for="specialty" class="block text-sm font-medium text-gray-700 mb-1">専門分野 <span class="text-red-500">*</span></label>
                         <input type="text" id="specialty" name="specialty" value="{{ old('specialty', $profile->specialty ?? '') }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                             placeholder="例: キャリアコンサルティング">
@@ -96,7 +96,7 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
-                            <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-1">経験年数</label>
+                            <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-1">経験年数 <span class="text-red-500">*</span></label>
                             <input type="number" id="experience_years" name="experience_years" value="{{ old('experience_years', $profile->experience_years ?? '') }}" min="0"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                 placeholder="10">

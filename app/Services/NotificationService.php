@@ -10,6 +10,26 @@ use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
+    /**
+     * 同一通知が既に送信済みかチェック（重複防止）
+     */
+    private function alreadySent(int $bookingId, string $channel, string $type, ?int $userId = null): bool
+    {
+        $query = NotificationLog::where('booking_id', $bookingId)
+            ->where('channel', $channel)
+            ->where('type', $type)
+            ->where('status', 'sent')
+            ->where('created_at', '>=', now()->subHours(1));
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        } else {
+            $query->whereNull('user_id');
+        }
+
+        return $query->exists();
+    }
+
     public function sendBookingConfirmation(Booking $booking): void
     {
         if ($booking->isGuest()) {
@@ -148,7 +168,7 @@ class NotificationService
                     . ($booking->cancel_reason ? "■ 理由: {$booking->cancel_reason}\n" : '');
             }
 
-            $this->sendGuestEmail($booking, $subject, $content);
+            $this->sendGuestEmail($booking, $subject, $content, 'booking_cancelled');
 
             // LINE message for guest (separate from email)
             $customLineMessage = SystemSetting::get('cancel_notification_line_message', '');
@@ -236,7 +256,7 @@ class NotificationService
                 . "\nお忘れなくご参加ください。";
         }
 
-        $this->sendGuestEmail($booking, $subject, $content);
+        $this->sendGuestEmail($booking, $subject, $content, $type);
 
         // LINE message (separate from email)
         $customLineMessage = $keyPrefix ? SystemSetting::get("{$keyPrefix}_line_message", '') : '';
@@ -348,6 +368,11 @@ class NotificationService
 
     private function sendEmail($user, Booking $booking, string $type, string $subject, string $content): void
     {
+        // 重複防止チェック
+        if ($this->alreadySent($booking->id, 'email', $type, $user->id)) {
+            return;
+        }
+
         try {
             Mail::raw($content, function ($message) use ($user, $subject) {
                 $message->to($user->email)
@@ -360,22 +385,32 @@ class NotificationService
         }
     }
 
-    private function sendGuestEmail(Booking $booking, string $subject, string $content): void
+    private function sendGuestEmail(Booking $booking, string $subject, string $content, string $type = 'booking_confirmed'): void
     {
+        // 重複防止チェック
+        if ($this->alreadySent($booking->id, 'email', $type)) {
+            return;
+        }
+
         try {
             Mail::raw($content, function ($message) use ($booking, $subject) {
                 $message->to($booking->guest_email)
                     ->subject($subject);
             });
 
-            $this->logNotification(null, $booking->id, 'email', 'booking_confirmed', $subject, $content, 'sent');
+            $this->logNotification(null, $booking->id, 'email', $type, $subject, $content, 'sent');
         } catch (\Exception $e) {
-            $this->logNotification(null, $booking->id, 'email', 'booking_confirmed', $subject, $content, 'failed', $e->getMessage());
+            $this->logNotification(null, $booking->id, 'email', $type, $subject, $content, 'failed', $e->getMessage());
         }
     }
 
     private function sendChatwork($user, Booking $booking, string $type, string $content): void
     {
+        // 重複防止チェック
+        if ($this->alreadySent($booking->id, 'chatwork', $type, $user->id)) {
+            return;
+        }
+
         try {
             $chatworkService = new ChatworkService();
             $message = $user->chatwork_id
@@ -392,6 +427,11 @@ class NotificationService
     private function sendLine($user, Booking $booking, string $type, string $content): void
     {
         if (!$user->line_user_id) {
+            return;
+        }
+
+        // 重複防止チェック
+        if ($this->alreadySent($booking->id, 'line', $type, $user->id)) {
             return;
         }
 
@@ -415,7 +455,17 @@ class NotificationService
             return;
         }
 
+        // 重複防止: 同一booking・同一typeで既に送信済みならスキップ
+        if ($this->alreadySent($booking->id, 'chatwork_system', $settingKey)) {
+            return;
+        }
+
         $consultant = $booking->consultant;
+
+        // コンサルタントの個人ルームとシステムルームが同一の場合はスキップ（send()で既に送信済み）
+        if ($consultant->chatwork_room_id && (string) $consultant->chatwork_room_id === (string) $systemRoomId) {
+            return;
+        }
         $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
