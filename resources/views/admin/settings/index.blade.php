@@ -673,13 +673,11 @@
                                                             <p class="text-xs text-green-600">{{ $googleAdminEmail }}</p>
                                                         @endif
                                                     </div>
-                                                    <form method="POST" action="{{ route('admin.google.disconnect') }}" class="flex-shrink-0"
-                                                          onsubmit="return confirm('Googleアカウントの連携を解除しますか？')">
-                                                        @csrf
-                                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition">
-                                                            連携解除
-                                                        </button>
-                                                    </form>
+                                                    <button type="button"
+                                                            onclick="if(confirm('Googleアカウントの連携を解除しますか？')){fetch('{{ route('admin.google.disconnect') }}',{method:'POST',headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'text/html'}}).then(()=>location.reload())}"
+                                                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 transition flex-shrink-0">
+                                                        連携解除
+                                                    </button>
                                                 </div>
                                             @else
                                                 <div class="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
@@ -703,6 +701,88 @@
                                             @endif
                                             <p class="mt-1 text-xs text-gray-500">予約確定時にこのアカウントのカレンダーにイベントが作成されます。</p>
                                         </div>
+
+                                        {{-- Google Calendar Selector --}}
+                                        @if($isGoogleConnected)
+                                            <div x-data="adminCalendarSelector()" x-init="init()">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">同期先カレンダー</label>
+                                                <div class="flex items-center space-x-3">
+                                                    <select x-model="selectedCalendar"
+                                                            :disabled="loading"
+                                                            class="block w-full max-w-md border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100">
+                                                        <option value="" x-show="loading">読み込み中...</option>
+                                                        <template x-for="cal in calendars" :key="cal.id">
+                                                            <option :value="cal.id" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')"></option>
+                                                        </template>
+                                                    </select>
+                                                    <button type="button" @click="saveCalendar()"
+                                                            :disabled="saving || loading"
+                                                            class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition">
+                                                        <span x-show="!saving">保存</span>
+                                                        <span x-show="saving" x-cloak>保存中...</span>
+                                                    </button>
+                                                </div>
+                                                <p x-show="error" x-text="error" class="mt-1 text-sm text-red-600" x-cloak></p>
+                                                <p x-show="successMsg" x-text="successMsg" class="mt-1 text-sm text-green-600" x-cloak></p>
+                                                <p class="mt-1 text-xs text-gray-500">予約が確定した際にイベントが作成されるカレンダーを選択してください。</p>
+                                            </div>
+
+                                            <script>
+                                                function adminCalendarSelector() {
+                                                    return {
+                                                        calendars: [],
+                                                        selectedCalendar: 'primary',
+                                                        loading: true,
+                                                        saving: false,
+                                                        error: '',
+                                                        successMsg: '',
+                                                        init() {
+                                                            fetch('{{ route("admin.google.calendars") }}', {
+                                                                headers: { 'Accept': 'application/json' }
+                                                            })
+                                                            .then(r => r.json())
+                                                            .then(data => {
+                                                                this.calendars = data.calendars || [];
+                                                                if (data.selected && this.calendars.length > 0) {
+                                                                    this.selectedCalendar = data.selected;
+                                                                }
+                                                                this.loading = false;
+                                                            })
+                                                            .catch(() => {
+                                                                this.error = 'カレンダー一覧の取得に失敗しました。';
+                                                                this.loading = false;
+                                                            });
+                                                        },
+                                                        saveCalendar() {
+                                                            this.saving = true;
+                                                            this.error = '';
+                                                            this.successMsg = '';
+                                                            fetch('{{ route("admin.google.calendar.update") }}', {
+                                                                method: 'PUT',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    'Accept': 'application/json',
+                                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                                                },
+                                                                body: JSON.stringify({ google_calendar_id: this.selectedCalendar })
+                                                            })
+                                                            .then(r => {
+                                                                if (r.ok) {
+                                                                    this.successMsg = 'カレンダーを変更しました。';
+                                                                } else {
+                                                                    this.error = 'カレンダーの保存に失敗しました。';
+                                                                }
+                                                                this.saving = false;
+                                                            })
+                                                            .catch(() => {
+                                                                this.error = 'カレンダーの保存に失敗しました。';
+                                                                this.saving = false;
+                                                            });
+                                                        }
+                                                    };
+                                                }
+                                            </script>
+                                        @endif
 
                                         {{-- Google Calendar Toggle --}}
                                         <div>
