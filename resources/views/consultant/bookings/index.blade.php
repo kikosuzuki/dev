@@ -16,26 +16,53 @@
         </div>
     @endif
 
+    {{-- 検索フォーム --}}
+    <div class="bg-white rounded-lg shadow mb-6 px-4 py-3">
+        <form method="GET" action="{{ route('consultant.bookings.index') }}" class="flex items-center gap-3">
+            @if($status !== 'all')
+                <input type="hidden" name="status" value="{{ $status }}">
+            @endif
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" name="search" value="{{ $search ?? '' }}"
+                    placeholder="名前またはメールアドレスで検索"
+                    class="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <button type="submit"
+                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                検索
+            </button>
+            @if($search)
+                <a href="{{ route('consultant.bookings.index', $status !== 'all' ? ['status' => $status] : []) }}"
+                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition">
+                    クリア
+                </a>
+            @endif
+        </form>
+    </div>
+
     {{-- Status Filter Tabs --}}
     <div class="bg-white rounded-lg shadow mb-6">
         <div class="border-b border-gray-200">
             <nav class="flex -mb-px overflow-x-auto" aria-label="Tabs">
-                <a href="{{ route('consultant.bookings.index') }}"
+                <a href="{{ route('consultant.bookings.index', $search ? ['search' => $search] : []) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ !$status ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     すべて
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'approved']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'approved'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'approved' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     確定済み
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'completed']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'completed'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'completed' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     完了
                 </a>
-                <a href="{{ route('consultant.bookings.index', ['status' => 'cancelled']) }}"
+                <a href="{{ route('consultant.bookings.index', array_merge(['status' => 'cancelled'], $search ? ['search' => $search] : [])) }}"
                     class="whitespace-nowrap py-4 px-6 border-b-2 text-sm font-medium
                         {{ $status === 'cancelled' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
                     キャンセル
@@ -286,7 +313,7 @@
             {{-- Pagination --}}
             @if($bookings->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200">
-                    {{ $bookings->appends(['status' => $status])->links() }}
+                    {{ $bookings->appends(['status' => $status, 'search' => $search])->links() }}
                 </div>
             @endif
         @endif

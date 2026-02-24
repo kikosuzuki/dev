@@ -15,6 +15,7 @@ class BookingManageController extends Controller
     {
         $consultant = auth()->user();
         $status = $request->get('status', 'all');
+        $search = $request->get('search');
 
         $query = Booking::where('consultant_id', $consultant->id)
             ->with('user')
@@ -24,9 +25,23 @@ class BookingManageController extends Controller
             $query->where('status', $status);
         }
 
+        // 名前・メールアドレスで検索
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                // ゲスト予約: guest_name, guest_email
+                $q->where('guest_name', 'like', "%{$search}%")
+                    ->orWhere('guest_email', 'like', "%{$search}%")
+                    // 会員予約: users テーブルの name, email
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
         $bookings = $query->paginate(10);
 
-        return view('consultant.bookings.index', compact('bookings', 'status'));
+        return view('consultant.bookings.index', compact('bookings', 'status', 'search'));
     }
 
     public function complete(Booking $booking)
