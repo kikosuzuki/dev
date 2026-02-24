@@ -188,17 +188,22 @@
                 <div class="mt-4" x-data="calendarSelector()">
                     <label class="block text-sm font-medium text-gray-700 mb-2">同期先カレンダー</label>
                     <div class="flex items-center space-x-3">
-                        <select x-model="selectedCalendar"
-                                :disabled="loading"
-                                class="block w-full max-w-md border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100">
-                            <option value="" x-show="loading">読み込み中...</option>
-                            <template x-for="cal in calendars" :key="cal.id">
-                                <option :value="cal.id" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')"></option>
-                            </template>
-                        </select>
+                        <template x-if="loading">
+                            <select disabled class="block w-full max-w-md border-gray-300 rounded-md shadow-sm sm:text-sm bg-gray-100">
+                                <option>読み込み中...</option>
+                            </select>
+                        </template>
+                        <template x-if="!loading">
+                            <select x-model="selectedCalendar"
+                                    class="block w-full max-w-md border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <template x-for="cal in calendars" :key="cal.id">
+                                    <option :value="cal.id" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')" :selected="cal.id === selectedCalendar"></option>
+                                </template>
+                            </select>
+                        </template>
                         <button @click="saveCalendar()"
                                 :disabled="saving || loading"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition">
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition whitespace-nowrap">
                             <span x-show="!saving">保存</span>
                             <span x-show="saving">保存中...</span>
                         </button>
