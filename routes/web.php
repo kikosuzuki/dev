@@ -160,4 +160,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Google Calendar OAuth
     Route::get('/google/auth', [GoogleAuthController::class, 'redirect'])->name('google.auth');
     Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect');
+    Route::get('/google/calendars', [GoogleAuthController::class, 'calendars'])->name('google.calendars');
+    Route::put('/google/calendar', [GoogleAuthController::class, 'updateCalendar'])->name('google.calendar.update');
 });

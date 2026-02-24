@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\SystemSetting;
+use App\Services\GoogleCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -120,6 +121,33 @@ class GoogleAuthController extends Controller
 
         return redirect()->route('consultant.profile.edit')
             ->with('success', 'Googleアカウント（' . ($email ?? '不明') . '）を連携しました。');
+    }
+
+    public function calendars()
+    {
+        $refreshToken = SystemSetting::get('google_refresh_token');
+        if (!$refreshToken) {
+            return response()->json(['calendars' => [], 'error' => 'Google未連携'], 400);
+        }
+
+        $googleService = app(GoogleCalendarService::class);
+        $calendars = $googleService->listCalendars($refreshToken);
+
+        return response()->json([
+            'calendars' => $calendars,
+            'selected' => SystemSetting::get('google_calendar_id', 'primary'),
+        ]);
+    }
+
+    public function updateCalendar(Request $request)
+    {
+        $request->validate([
+            'google_calendar_id' => ['required', 'string', 'max:255'],
+        ]);
+
+        SystemSetting::set('google_calendar_id', $request->google_calendar_id, '管理者Googleカレンダー同期先');
+
+        return response()->json(['success' => true]);
     }
 
     public function disconnect()
