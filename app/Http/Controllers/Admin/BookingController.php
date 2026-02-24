@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Booking;
+use App\Models\ConsultantSchedule;
 use App\Models\GuestMessageTemplate;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -104,6 +105,134 @@ class BookingController extends Controller
             ])->toArray();
 
         return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'consultation_result', 'emailTemplates'));
+    }
+
+    public function create()
+    {
+        $consultants = User::where('role', 'consultant')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        $users = User::where('role', 'user')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.bookings.create', compact('consultants', 'users'));
+    }
+
+    public function getSchedules(Request $request)
+    {
+        $request->validate([
+            'consultant_id' => ['required', 'exists:users,id'],
+        ]);
+
+        $schedules = ConsultantSchedule::where('user_id', $request->consultant_id)
+            ->where('is_available', true)
+            ->upcoming()
+            ->whereDoesntHave('bookings', function ($q) {
+                $q->whereIn('status', ['pending', 'approved']);
+            })
+            ->withinDailyLimit()
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'date' => $s->date->format('Y-m-d'),
+                'date_display' => $s->date->isoFormat('Y年M月D日 (ddd)'),
+                'start_time' => substr($s->start_time, 0, 5),
+                'end_time' => substr($s->end_time, 0, 5),
+            ]);
+
+        return response()->json($schedules);
+    }
+
+    public function store(Request $request)
+    {
+        $bookingType = $request->input('booking_type', 'guest');
+
+        $rules = [
+            'booking_type' => ['required', 'in:member,guest'],
+            'schedule_id' => ['required', 'exists:consultant_schedules,id'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'admin_notes' => ['nullable', 'string', 'max:1000'],
+        ];
+
+        if ($bookingType === 'member') {
+            $rules['user_id'] = ['required', 'exists:users,id'];
+        } else {
+            $rules['guest_name'] = ['required', 'string', 'max:255'];
+            $rules['guest_email'] = ['required', 'email', 'max:255'];
+            $rules['guest_phone'] = ['required', 'string', 'max:20'];
+            $rules['guest_referrer'] = ['nullable', 'string', 'max:255'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $schedule = ConsultantSchedule::findOrFail($validated['schedule_id']);
+
+        if (!$schedule->is_available || $schedule->isBooked()) {
+            return back()->withInput()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
+        $dailyCount = Booking::where('consultant_id', $schedule->user_id)
+            ->where('booking_date', $schedule->date)
+            ->whereIn('status', ['pending', 'approved'])
+            ->count();
+
+        if ($dailyCount >= $maxPerDay) {
+            return back()->withInput()->with('error', 'このコンサルタントの予約枠は上限に達しています。');
+        }
+
+        $bookingData = [
+            'consultant_id' => $schedule->user_id,
+            'schedule_id' => $schedule->id,
+            'booking_date' => $schedule->date,
+            'start_time' => $schedule->start_time,
+            'end_time' => $schedule->end_time,
+            'status' => 'approved',
+            'notes' => $validated['notes'] ?? null,
+            'admin_notes' => $validated['admin_notes'] ?? null,
+        ];
+
+        if ($bookingType === 'member') {
+            $bookingData['user_id'] = $validated['user_id'];
+            $bookingData['is_guest'] = false;
+            $profile = $schedule->consultant?->consultantProfile;
+            $bookingData['amount'] = $profile ? $profile->hourly_rate : 0;
+        } else {
+            $bookingData['user_id'] = null;
+            $bookingData['is_guest'] = true;
+            $bookingData['amount'] = 0;
+            $bookingData['guest_name'] = $validated['guest_name'];
+            $bookingData['guest_email'] = $validated['guest_email'];
+            $bookingData['guest_phone'] = $validated['guest_phone'];
+            $bookingData['guest_referrer'] = $validated['guest_referrer'] ?? null;
+        }
+
+        $booking = Booking::create($bookingData);
+
+        try {
+            $googleService = app(GoogleCalendarService::class);
+            [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+            $booking->update([
+                'google_event_id' => $adminEventId,
+                'consultant_google_event_id' => $consultantEventId,
+            ]);
+        } catch (\Exception $e) {
+            // Google Calendar integration is optional
+        }
+
+        AuditLog::log('booking_created_by_admin', $booking);
+
+        $notificationService = app(NotificationService::class);
+        $notificationService->sendBookingConfirmation($booking);
+
+        return redirect()->route('admin.bookings.index')
+            ->with('success', '予約を作成しました。');
     }
 
     public function cancel(Request $request, Booking $booking)

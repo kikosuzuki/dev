@@ -82,13 +82,13 @@ class GoogleAuthController extends Controller
         $profile = $user->consultantProfile;
 
         if (!$profile || !$profile->isGoogleConnected()) {
-            return back()->with('error', 'Googleアカウントが連携されていません。');
+            return response()->json(['error' => 'Googleアカウントが連携されていません。'], 400);
         }
 
         $profile->update([
             'google_calendar_id' => $request->google_calendar_id,
         ]);
 
-        return back()->with('success', 'カレンダーを変更しました。');
+        return response()->json(['success' => true]);
     }
 }

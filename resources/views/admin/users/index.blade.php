@@ -186,10 +186,14 @@
                                     @endswitch
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($user->user_type === 'consultation')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                    @if($user->role === 'user')
+                                        @if($user->user_type === 'consultation')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">会員</span>
+                                        @endif
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">会員</span>
+                                        <span class="text-sm text-gray-400">-</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -200,13 +204,32 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->created_at->format('Y/m/d') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" x-data="{ chatOpen: false }">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                                    x-data="{
+                                        chatOpen: false,
+                                        cwName: '',
+                                        cwLoading: false,
+                                        openChat() {
+                                            this.chatOpen = true;
+                                            if (!this.cwName && '{{ $user->chatwork_room_id }}') {
+                                                this.cwLoading = true;
+                                                fetch('/api/chatwork/members/{{ $user->chatwork_room_id }}')
+                                                    .then(r => r.json())
+                                                    .then(members => {
+                                                        const target = members.find(m => String(m.account_id) === '{{ $user->chatwork_id }}');
+                                                        this.cwName = target ? target.name : '';
+                                                        this.cwLoading = false;
+                                                    })
+                                                    .catch(() => { this.cwLoading = false; });
+                                            }
+                                        }
+                                    }">
                                     <div class="flex items-center space-x-2">
                                         <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition">
                                             編集
                                         </a>
                                         @if($user->chatwork_room_id)
-                                            <button @click="chatOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition">
+                                            <button @click="openChat()" type="button" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition">
                                                 CW
                                             </button>
                                         @endif
@@ -240,6 +263,11 @@
                                                             <option value="お知らせがございます。詳細につきましては下記をご確認ください。">お知らせ</option>
                                                         </select>
                                                     </div>
+                                                    <p class="mb-4 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2">
+                                                        <span>メッセージはこのユーザーに設定されたChatworkルーム（Room ID: {{ $user->chatwork_room_id }}）に送信されます。</span>
+                                                        <span x-show="cwLoading" class="block mt-1 text-gray-400">Chatwork名を取得中...</span>
+                                                        <span x-show="!cwLoading && cwName" class="block mt-1 font-medium text-gray-700" x-text="'送信先: ' + cwName"></span>
+                                                    </p>
                                                     <div class="mb-4">
                                                         <label for="cw_msg_{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">メッセージ</label>
                                                         <textarea id="cw_msg_{{ $user->id }}" name="message" rows="5" required

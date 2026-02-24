@@ -70,15 +70,8 @@ class ConsultationController extends Controller
             ->get()
             ->groupBy(fn ($s) => $s->date->format('Y-m-d'));
 
-        // コンサルタントIDを匿名ラベル（A, B, C...）にマッピング
-        $allConsultantIds = (clone $query)->distinct()->pluck('user_id')->sort()->values();
-        $consultantLabels = [];
-        foreach ($allConsultantIds as $i => $id) {
-            $consultantLabels[$id] = 'コンサルタント' . chr(65 + $i); // A, B, C...
-        }
-
         return response()
-            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels', 'intro'))
+            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'intro'))
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
