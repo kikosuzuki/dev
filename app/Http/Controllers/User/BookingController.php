@@ -38,6 +38,13 @@ class BookingController extends Controller
         }
 
         $schedule->load('consultant.consultantProfile');
+
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
+        }
+
         return view('user.bookings.create', compact('schedule'));
     }
 
@@ -52,6 +59,12 @@ class BookingController extends Controller
 
         if (!$schedule->is_available || $schedule->isBooked()) {
             return back()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
         }
 
         $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);

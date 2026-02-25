@@ -28,6 +28,7 @@ class DashboardController extends Controller
 
         $availableSchedules = ConsultantSchedule::where('is_available', true)
             ->upcoming()
+            ->acceptingBookings()
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })

@@ -22,6 +22,7 @@ class ConsultantProfile extends Model
         'google_calendar_email',
         'google_calendar_id',
         'is_featured',
+        'booking_acceptance_enabled',
         'average_rating',
         'total_reviews',
         'total_bookings',
@@ -37,6 +38,7 @@ class ConsultantProfile extends Model
             'qualifications' => 'array',
             'languages' => 'array',
             'is_featured' => 'boolean',
+            'booking_acceptance_enabled' => 'boolean',
             'average_rating' => 'decimal:2',
         ];
     }

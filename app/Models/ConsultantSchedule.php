@@ -57,6 +57,16 @@ class ConsultantSchedule extends Model
     }
 
     /**
+     * 予約受付中のコンサルタントのスケジュールのみに絞り込む
+     */
+    public function scopeAcceptingBookings(Builder $query): Builder
+    {
+        return $query->whereHas('consultant.consultantProfile', function ($q) {
+            $q->where('booking_acceptance_enabled', true);
+        });
+    }
+
+    /**
      * 1日あたりの予約上限に達していないスケジュールのみに絞り込む
      */
     public function scopeWithinDailyLimit(Builder $query): Builder
