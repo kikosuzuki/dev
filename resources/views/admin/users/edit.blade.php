@@ -131,7 +131,7 @@
                                 this.errorMessage = '';
                                 this.members = [];
                                 try {
-                                    const res = await fetch(`/api/chatwork/members/${this.roomId}`);
+                                    const res = await fetch(`{{ url('/api/chatwork/members') }}/${this.roomId}`);
                                     if (res.ok) {
                                         this.members = await res.json();
                                     } else {

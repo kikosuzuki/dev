@@ -213,7 +213,7 @@
                                             this.chatOpen = true;
                                             if (!this.cwName && '{{ $user->chatwork_room_id }}') {
                                                 this.cwLoading = true;
-                                                fetch('/api/chatwork/members/{{ $user->chatwork_room_id }}')
+                                                fetch('{{ url("/api/chatwork/members/" . $user->chatwork_room_id) }}')
                                                     .then(r => r.json())
                                                     .then(members => {
                                                         const target = members.find(m => String(m.account_id) === '{{ $user->chatwork_id }}');
