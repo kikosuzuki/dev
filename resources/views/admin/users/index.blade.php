@@ -213,7 +213,7 @@
                                             this.chatOpen = true;
                                             if (!this.cwName && '{{ $user->chatwork_room_id }}') {
                                                 this.cwLoading = true;
-                                                fetch('/api/chatwork/members/{{ $user->chatwork_room_id }}')
+                                                fetch('{{ url("/api/chatwork/members/" . $user->chatwork_room_id) }}')
                                                     .then(r => r.json())
                                                     .then(members => {
                                                         const target = members.find(m => String(m.account_id) === '{{ $user->chatwork_id }}');
@@ -235,7 +235,6 @@
                                         @endif
                                         <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}" class="inline">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit"
                                                     class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded transition {{ $user->is_active ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-green-500 text-white hover:bg-green-600' }}"
                                                     onclick="return confirm('{{ $user->is_active ? 'このユーザーを無効にしますか？' : 'このユーザーを有効にしますか？' }}')">

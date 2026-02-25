@@ -175,7 +175,6 @@
                                     @php
                                         $currentNotes = $booking->admin_notes;
                                     @endphp
-                                    @if($booking->status !== 'completed')
                                     @if($currentNotes)
                                         <button type="button" @click="showNotesModal = true"
                                             class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
@@ -188,7 +187,6 @@
                                             <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                             未記入
                                         </button>
-                                    @endif
                                     @endif
 
                                     {{-- Notes Edit Modal --}}
@@ -280,8 +278,7 @@
                                             </div>
                                         @endif
 
-                                        {{-- Email Send Button (approved only) --}}
-                                        @if($booking->isApproved())
+                                        {{-- Email Send Button --}}
                                             <div x-data="{ showEmailModal: false }">
                                                 <button type="button" @click="showEmailModal = true"
                                                     class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -328,7 +325,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endif
 
                                         {{-- Consultation Record Button (approved or completed) --}}
                                         @if($booking->isApproved() || $booking->status === 'completed')
