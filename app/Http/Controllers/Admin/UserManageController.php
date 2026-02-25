@@ -140,6 +140,13 @@ class UserManageController extends Controller
             $user->update(['password' => Hash::make($request->password)]);
         }
 
+        // コンサルタントの予約受付設定を更新
+        if ($validated['role'] === 'consultant' && $user->consultantProfile) {
+            $user->consultantProfile->update([
+                'booking_acceptance_enabled' => $request->boolean('booking_acceptance_enabled'),
+            ]);
+        }
+
         AuditLog::log('user_updated', $user, $oldValues, $user->toArray());
 
         return redirect()->route('admin.users.index')->with('success', 'ユーザー情報を更新しました。');

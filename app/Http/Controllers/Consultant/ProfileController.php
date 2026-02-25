@@ -27,6 +27,7 @@ class ProfileController extends Controller
             'meeting_url' => ['nullable', 'url', 'max:500'],
             'important_document_url' => ['nullable', 'url', 'max:500'],
             'chatwork_account_id' => ['nullable', 'string', 'max:50'],
+            'booking_acceptance_enabled' => ['boolean'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -41,6 +42,7 @@ class ProfileController extends Controller
             'meeting_url' => $validated['meeting_url'],
             'important_document_url' => $validated['important_document_url'],
             'chatwork_account_id' => $validated['chatwork_account_id'],
+            'booking_acceptance_enabled' => $request->boolean('booking_acceptance_enabled'),
         ];
 
         if ($request->hasFile('photo')) {

@@ -153,6 +153,26 @@
             <div class="p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">設定</h2>
                 <div class="space-y-6">
+                    {{-- Booking Acceptance Toggle --}}
+                    <div x-data="{ acceptingBookings: {{ old('booking_acceptance_enabled', $profile->booking_acceptance_enabled ?? true) ? 'true' : 'false' }} }">
+                        <span class="block text-sm font-medium text-gray-700 mb-1">予約受付</span>
+                        <p class="text-xs text-gray-500 mb-2">OFFにすると、あなたの予約枠がゲスト・会員の予約一覧から非表示になります。</p>
+                        <div class="flex items-center">
+                            <button type="button"
+                                    @click="acceptingBookings = !acceptingBookings"
+                                    :class="acceptingBookings ? 'bg-indigo-600' : 'bg-gray-200'"
+                                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                    role="switch"
+                                    :aria-checked="acceptingBookings">
+                                <span :class="acceptingBookings ? 'translate-x-5' : 'translate-x-0'"
+                                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                            </button>
+                            <input type="hidden" name="booking_acceptance_enabled" :value="acceptingBookings ? 1 : 0">
+                            <span class="ml-3 text-sm" :class="acceptingBookings ? 'text-green-600 font-medium' : 'text-gray-500'" x-text="acceptingBookings ? '受付中' : '受付停止中'"></span>
+                        </div>
+                    </div>
+
+                    {{-- Email Notification --}}
                     <div>
                         <span class="block text-sm font-medium text-gray-700 mb-1">メール通知</span>
                         <p class="text-xs text-gray-500 mb-2">予約の確定・キャンセル・リマインド等の通知を受け取りたい場合はチェックを入れてください。</p>

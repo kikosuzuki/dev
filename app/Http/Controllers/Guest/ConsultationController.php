@@ -41,7 +41,8 @@ class ConsultationController extends Controller
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })
-            ->withinDailyLimit();
+            ->withinDailyLimit()
+            ->acceptingBookings();
 
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->date_from);
@@ -108,6 +109,12 @@ class ConsultationController extends Controller
 
         if (!$schedule->is_available || $schedule->isBooked()) {
             return back()->with('error', 'この時間枠は既に予約済みです。');
+        }
+
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
         }
 
         $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
