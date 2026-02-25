@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
@@ -29,6 +30,15 @@ use App\Http\Controllers\Api\ChatworkMemberController;
 
 // Public routes
 Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->isConsultant()) {
+            return redirect()->route('consultant.dashboard');
+        }
+        return redirect()->route('user.dashboard');
+    }
     return redirect()->route('login');
 });
 
