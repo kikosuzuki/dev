@@ -22,6 +22,7 @@ class BookingController extends Controller
         $status = $request->get('status');
         $booking_type = $request->get('booking_type', 'all');
         $consultation_result = $request->get('consultation_result');
+        $search = $request->get('search');
 
         $now = now();
         $endDate = match ($period) {
@@ -76,6 +77,18 @@ class BookingController extends Controller
             }
         }
 
+        // Search by name or email
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('guest_name', 'like', "%{$search}%")
+                  ->orWhere('guest_email', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         $bookings = $query->orderBy('booking_date')
             ->orderBy('start_time')
             ->paginate(20)
@@ -104,7 +117,7 @@ class BookingController extends Controller
                 'body' => $t->body ?? '',
             ])->toArray();
 
-        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'consultation_result', 'emailTemplates'));
+        return view('admin.bookings.index', compact('bookings', 'consultants', 'periods', 'period', 'consultant_id', 'status', 'booking_type', 'consultation_result', 'search', 'emailTemplates'));
     }
 
     public function exportCsv(Request $request)
@@ -114,6 +127,7 @@ class BookingController extends Controller
         $status = $request->get('status');
         $booking_type = $request->get('booking_type', 'all');
         $consultation_result = $request->get('consultation_result');
+        $search = $request->get('search');
 
         $now = now();
         $endDate = match ($period) {
@@ -162,6 +176,18 @@ class BookingController extends Controller
             } else {
                 $query->where('consultation_result', $consultation_result);
             }
+        }
+
+        // Search by name or email
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('guest_name', 'like', "%{$search}%")
+                  ->orWhere('guest_email', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('name', 'like', "%{$search}%")
+                          ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
         }
 
         $bookings = $query->orderBy('booking_date')->orderBy('start_time')->get();
