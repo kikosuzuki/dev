@@ -278,8 +278,7 @@
                                             </div>
                                         @endif
 
-                                        {{-- Email Send Button (approved only) --}}
-                                        @if($booking->isApproved())
+                                        {{-- Email Send Button --}}
                                             <div x-data="{ showEmailModal: false }">
                                                 <button type="button" @click="showEmailModal = true"
                                                     class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -326,7 +325,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endif
 
                                         {{-- Consultation Record Button (approved or completed) --}}
                                         @if($booking->isApproved() || $booking->status === 'completed')
