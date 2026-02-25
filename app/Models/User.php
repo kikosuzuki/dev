@@ -5,10 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    public function sendPasswordResetNotification($token)
+    {
+        $url = url(route('password.reset', ['token' => $token, 'email' => $this->email], false));
+
+        Mail::raw(
+            "{$this->name}様\n\n"
+            . "パスワードリセットのリクエストを受け付けました。\n\n"
+            . "以下のリンクからパスワードを再設定してください：\n"
+            . "{$url}\n\n"
+            . "このリンクは60分間有効です。\n"
+            . "リクエストした覚えがない場合は、このメールを無視してください。",
+            function ($message) {
+                $message->to($this->email)
+                    ->subject('【パスワードリセット】YCSコンサルタント予約システム');
+            }
+        );
+    }
 
     protected $fillable = [
         'name',
