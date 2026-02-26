@@ -32,6 +32,7 @@ class Booking extends Model
         'reminder_day_before_sent',
         'reminder_day_of_sent',
         'reminder_10min_sent',
+        'morning_chatwork_sent',
     ];
 
     protected function casts(): array
@@ -43,6 +44,7 @@ class Booking extends Model
             'reminder_day_before_sent' => 'boolean',
             'reminder_day_of_sent' => 'boolean',
             'reminder_10min_sent' => 'boolean',
+            'morning_chatwork_sent' => 'boolean',
         ];
     }
 

@@ -111,6 +111,7 @@ class UserManageController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'chatwork_id' => ['nullable', 'string', 'max:100'],
             'chatwork_room_id' => ['nullable', 'string', 'max:100'],
+            'chatwork_account_id' => ['nullable', 'string', 'max:50'],
             'notify_chatwork' => ['boolean'],
             'is_active' => ['boolean'],
             'admin_notes' => ['nullable', 'string'],
@@ -120,30 +121,42 @@ class UserManageController extends Controller
         ]);
 
         $oldValues = $user->toArray();
-        $user->update([
+
+        $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'phone' => $validated['phone'] ?? null,
-            'chatwork_id' => $validated['chatwork_id'] ?? null,
-            'chatwork_room_id' => $validated['chatwork_room_id'] ?? null,
-            'notify_chatwork' => $request->boolean('notify_chatwork'),
             'is_active' => $request->boolean('is_active'),
             'admin_notes' => $validated['admin_notes'] ?? null,
             'user_type' => $validated['role'] === 'user'
                 ? ($validated['user_type'] ?? 'member')
                 : 'member',
-        ]);
+        ];
+
+        // ロール別のChatwork設定
+        if ($validated['role'] === 'user') {
+            // ユーザー: Room + To指定 + 通知トグル → usersテーブルに保存
+            $userData['chatwork_id'] = $validated['chatwork_id'] ?? null;
+            $userData['chatwork_room_id'] = $validated['chatwork_room_id'] ?? null;
+            $userData['notify_chatwork'] = $request->boolean('notify_chatwork');
+        } elseif ($validated['role'] === 'admin') {
+            // 管理者: アカウントIDのみ → users.chatwork_idに保存
+            $userData['chatwork_id'] = $validated['chatwork_account_id'] ?? null;
+        }
+
+        $user->update($userData);
 
         if ($request->filled('password')) {
             $request->validate(['password' => ['string', 'min:8']]);
             $user->update(['password' => Hash::make($request->password)]);
         }
 
-        // コンサルタントの予約受付設定を更新
+        // コンサルタントプロフィールの更新
         if ($validated['role'] === 'consultant' && $user->consultantProfile) {
             $user->consultantProfile->update([
                 'booking_acceptance_enabled' => $request->boolean('booking_acceptance_enabled'),
+                'chatwork_account_id' => $validated['chatwork_account_id'] ?? null,
             ]);
         }
 
