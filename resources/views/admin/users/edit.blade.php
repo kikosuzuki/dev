@@ -56,8 +56,8 @@
                 @enderror
             </div>
 
-            {{-- Chatwork Settings --}}
-            <div class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200" x-data="adminChatworkMembers()">
+            {{-- Chatwork Settings: ユーザー向け（Room + To指定 + 通知トグル） --}}
+            <div x-show="role === 'user'" x-transition class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200" x-data="adminChatworkMembers()">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
                 <div class="space-y-4">
                     <div>
@@ -147,6 +147,22 @@
                         }
                     }
                 </script>
+            </div>
+
+            {{-- Chatwork Settings: コンサルタント・管理者向け（アカウントIDのみ） --}}
+            <div x-show="role === 'consultant' || role === 'admin'" x-transition class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
+                <div>
+                    <label for="chatwork_account_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork アカウントID</label>
+                    <input type="text" name="chatwork_account_id" id="chatwork_account_id"
+                           value="{{ old('chatwork_account_id', $user->role === 'consultant' ? $user->consultantProfile?->chatwork_account_id : $user->chatwork_id) }}"
+                           placeholder="例: 1234567"
+                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_account_id') border-red-500 @enderror">
+                    <p class="mt-1 text-xs text-gray-500">全体通知のTO指定プレースホルダー <code class="bg-gray-200 px-1 rounded text-xs">{chatwork_id}</code> に使用されます。Chatworkのプロフィールから確認できます。</p>
+                    @error('chatwork_account_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
             {{-- User Type (会員ロールのみ表示) --}}
