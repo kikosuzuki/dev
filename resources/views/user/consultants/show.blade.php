@@ -19,7 +19,7 @@
                     {{-- Photo --}}
                     @if($consultant->consultantProfile && $consultant->consultantProfile->photo)
                         <img
-                            src="{{ Storage::url($consultant->consultantProfile->photo) }}"
+                            src="{{ Storage::disk('public')->url($consultant->consultantProfile->photo) }}"
                             alt="{{ $consultant->name }}"
                             class="w-24 h-24 rounded-full object-cover flex-shrink-0"
                         >

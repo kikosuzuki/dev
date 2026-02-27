@@ -31,7 +31,7 @@
                     <div class="flex items-center gap-4">
                         @if($user->avatar)
                             <img
-                                src="{{ Storage::url($user->avatar) }}"
+                                src="{{ Storage::disk('public')->url($user->avatar) }}"
                                 alt="{{ $user->name }}"
                                 class="w-16 h-16 rounded-full object-cover"
                             >
