@@ -3,13 +3,15 @@
 /**
  * Xserver用 index.php
  *
- * このファイルを public_html/ に設置してください。
- * Laravelアプリ本体は ../laravel/ に配置する前提です。
+ * このファイルを public_html/consul/ に設置してください。
  *
- * ディレクトリ構成:
- *   /home/ctwasia2/ドメイン名/
- *     ├── public_html/     ← このファイル + public/ の中身
- *     └── laravel/          ← Laravelアプリ本体（public/以外の全て）
+ * 推奨ディレクトリ構成:
+ *   /home/ctwasia2/ycscampaign.com/
+ *     ├── public_html/
+ *     │   └── consul/          ← このファイル + public/ の中身(.htaccessなど)
+ *     └── consul-app/          ← Laravelアプリ本体（public/以外の全て）
+ *
+ * ※ consul-app の名前は $laravelPath を変更すれば自由に変えられます。
  */
 
 use Illuminate\Foundation\Application;
@@ -17,8 +19,8 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Laravel本体のパス（public_htmlの一つ上の laravel/ ディレクトリ）
-$laravelPath = dirname(__DIR__) . '/laravel';
+// Laravel本体のパス（public_html の一つ上 → ドメインルート → consul-app/）
+$laravelPath = dirname(__DIR__, 2) . '/consul-app';
 
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = $laravelPath . '/storage/framework/maintenance.php')) {
