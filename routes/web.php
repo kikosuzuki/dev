@@ -29,6 +29,17 @@ use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
+// Public storage file serving (for shared hosting without symlink support)
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    return response()->file($fullPath);
+})->where('path', '.*');
+
 // Public routes
 Route::get('/', function () {
     if (Auth::check()) {
