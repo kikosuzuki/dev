@@ -48,7 +48,7 @@
                 <div class="flex items-center space-x-6">
                     @if($profile && $profile->photo)
                         <div class="shrink-0">
-                            <img class="h-20 w-20 object-cover rounded-full" src="{{ asset('storage/' . $profile->photo) }}" alt="プロフィール写真">
+                            <img class="h-20 w-20 object-cover rounded-full" src="{{ url('storage/' . $profile->photo) }}" alt="プロフィール写真">
                         </div>
                     @else
                         <div class="shrink-0 h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center">
@@ -64,6 +64,18 @@
                         <p class="mt-1 text-xs text-gray-500">JPG, PNG形式。最大2MB。</p>
                     </div>
                 </div>
+                @if($profile && $profile->photo)
+                    <div class="mt-3">
+                        <button type="button"
+                                onclick="if(confirm('プロフィール写真を削除しますか？')) document.getElementById('delete-photo-form').submit()"
+                                class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 transition">
+                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            写真を削除
+                        </button>
+                    </div>
+                @endif
             </div>
 
             {{-- Professional Information --}}
@@ -185,66 +197,12 @@
         </div>
     </form>
 
-    {{-- Password Change Form --}}
-    <div class="bg-white rounded-lg shadow p-6 mt-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6">パスワード変更</h2>
-
-        <form method="POST" action="{{ route('consultant.profile.password') }}">
+    @if($profile && $profile->photo)
+        <form id="delete-photo-form" action="{{ route('consultant.profile.photo.delete') }}" method="POST" class="hidden">
             @csrf
-            @method('PUT')
-
-            <div class="space-y-6">
-                {{-- Current Password --}}
-                <div>
-                    <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">現在のパスワード</label>
-                    <input
-                        type="password"
-                        id="current_password"
-                        name="current_password"
-                        required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('current_password') border-red-300 @enderror"
-                    >
-                    @error('current_password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- New Password --}}
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('password') border-red-300 @enderror"
-                    >
-                    @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                {{-- Password Confirmation --}}
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード（確認）</label>
-                    <input
-                        type="password"
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                </div>
-            </div>
-
-            {{-- Submit Button --}}
-            <div class="mt-6 flex justify-end">
-                <button type="submit" class="inline-flex items-center px-6 py-2 bg-gray-800 text-white text-sm font-medium rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition">
-                    パスワードを変更
-                </button>
-            </div>
+            @method('DELETE')
         </form>
-    </div>
+    @endif
 
     {{-- Google Calendar Integration (separate from main profile form) --}}
     <div class="bg-white rounded-lg shadow mt-8">

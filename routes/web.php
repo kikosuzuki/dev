@@ -29,6 +29,21 @@ use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
+// Public storage file serving (always routed through Laravel on Xserver shared hosting)
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    $headers = [
+        'Cache-Control' => 'public, max-age=86400',
+    ];
+
+    return response()->file($fullPath, $headers);
+})->where('path', '.*');
+
 // Public routes
 Route::get('/', function () {
     if (Auth::check()) {
@@ -127,7 +142,7 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ConsultantProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ConsultantProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::delete('/profile/photo', [ConsultantProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
 
     // Google Calendar OAuth
     Route::get('/google/auth', [ConsultantGoogleAuthController::class, 'redirect'])->name('google.auth');

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Consultant;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantProfile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -46,6 +46,10 @@ class ProfileController extends Controller
         ];
 
         if ($request->hasFile('photo')) {
+            $existingProfile = $user->consultantProfile;
+            if ($existingProfile && $existingProfile->photo) {
+                Storage::disk('public')->delete($existingProfile->photo);
+            }
             $path = $request->file('photo')->store('consultant_photos', 'public');
             $profileData['photo'] = $path;
         }
@@ -66,21 +70,15 @@ class ProfileController extends Controller
         return back()->with('success', 'プロフィールを更新しました。');
     }
 
-    public function updatePassword(Request $request)
+    public function deletePhoto()
     {
-        $validated = $request->validate([
-            'current_password' => ['required'],
-            'password' => ['required', 'confirmed', 'min:8'],
-        ]);
+        $profile = auth()->user()->consultantProfile;
 
-        $user = auth()->user();
-
-        if (!Hash::check($validated['current_password'], $user->password)) {
-            return back()->withErrors(['current_password' => '現在のパスワードが正しくありません。']);
+        if ($profile && $profile->photo) {
+            Storage::disk('public')->delete($profile->photo);
+            $profile->update(['photo' => null]);
         }
 
-        $user->update(['password' => Hash::make($validated['password'])]);
-
-        return back()->with('success', 'パスワードを変更しました。');
+        return back()->with('success', 'プロフィール写真を削除しました。');
     }
 }
