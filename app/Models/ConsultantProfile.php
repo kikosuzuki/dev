@@ -52,7 +52,7 @@ class ConsultantProfile extends Model
             return null;
         }
 
-        $url = url('storage/' . $this->photo);
+        $url = url('media/' . $this->photo);
 
         // Add cache busting based on updated_at timestamp
         if ($this->updated_at) {

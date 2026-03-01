@@ -29,8 +29,9 @@ use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
-// Public storage file serving (always routed through Laravel on Xserver shared hosting)
-Route::get('/storage/{path}', function ($path) {
+// Public storage file serving via /media/ path to avoid symlink 403 on Xserver
+// (public/storage symlink causes Apache 403 regardless of .htaccess settings)
+Route::get('/media/{path}', function ($path) {
     // Prevent path traversal
     $path = str_replace('..', '', $path);
     $fullPath = storage_path('app/public/' . $path);

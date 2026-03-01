@@ -3,10 +3,6 @@
         Options -MultiViews -Indexes
     </IfModule>
 
-    # SymLinksIfOwnerMatch is required for mod_rewrite to work on Xserver
-    # (FollowSymLinks is disabled by Xserver for security)
-    Options +SymLinksIfOwnerMatch
-
     RewriteEngine On
 
     # Handle Authorization Header
@@ -25,9 +21,6 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
-
-    # Always serve storage files through Laravel (symlink causes 403 on Xserver)
-    RewriteRule ^storage/ index.php [L]
 
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d

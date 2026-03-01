@@ -70,7 +70,7 @@ class User extends Authenticatable
             return null;
         }
 
-        $url = url('storage/' . $this->avatar);
+        $url = url('media/' . $this->avatar);
 
         if ($this->updated_at) {
             $url .= '?v=' . $this->updated_at->timestamp;
