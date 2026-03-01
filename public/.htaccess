@@ -22,8 +22,7 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Serve public storage files through Laravel (for shared hosting without symlink)
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # Always serve storage files through Laravel (symlink causes 403 on Xserver)
     RewriteRule ^storage/ index.php [L]
 
     # Send Requests To Front Controller...

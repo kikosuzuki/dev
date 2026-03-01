@@ -29,7 +29,7 @@ use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
-// Public storage file serving (for shared hosting without symlink support)
+// Public storage file serving (always routed through Laravel on Xserver shared hosting)
 Route::get('/storage/{path}', function ($path) {
     $fullPath = storage_path('app/public/' . $path);
 
@@ -37,7 +37,11 @@ Route::get('/storage/{path}', function ($path) {
         abort(404);
     }
 
-    return response()->file($fullPath);
+    $headers = [
+        'Cache-Control' => 'public, max-age=86400',
+    ];
+
+    return response()->file($fullPath, $headers);
 })->where('path', '.*');
 
 // Public routes
