@@ -677,6 +677,7 @@ bookings ── notification_logs (1:N)
 |----------|------|
 | `upcoming()` | 現在以降のスケジュールのみ |
 | `withinDailyLimit()` | 1日上限に達していないスケジュールのみ |
+| `acceptingBookings()` | 予約受付が ON のコンサルタントのスケジュールのみ |
 
 ### 監査ログ
 全ての重要な操作は `audit_logs` テーブルに記録される。
