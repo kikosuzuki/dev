@@ -48,7 +48,7 @@
                 <div class="flex items-center space-x-6">
                     @if($profile && $profile->photo)
                         <div class="shrink-0">
-                            <img class="h-20 w-20 object-cover rounded-full" src="{{ Storage::disk('public')->url($profile->photo) }}" alt="プロフィール写真">
+                            <img class="h-20 w-20 object-cover rounded-full" src="{{ url('storage/' . $profile->photo) }}" alt="プロフィール写真">
                         </div>
                     @else
                         <div class="shrink-0 h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center">
