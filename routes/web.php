@@ -127,6 +127,7 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ConsultantProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ConsultantProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Google Calendar OAuth
     Route::get('/google/auth', [ConsultantGoogleAuthController::class, 'redirect'])->name('google.auth');

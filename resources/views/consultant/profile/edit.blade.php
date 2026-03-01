@@ -185,6 +185,67 @@
         </div>
     </form>
 
+    {{-- Password Change Form --}}
+    <div class="bg-white rounded-lg shadow p-6 mt-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">パスワード変更</h2>
+
+        <form method="POST" action="{{ route('consultant.profile.password') }}">
+            @csrf
+            @method('PUT')
+
+            <div class="space-y-6">
+                {{-- Current Password --}}
+                <div>
+                    <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">現在のパスワード</label>
+                    <input
+                        type="password"
+                        id="current_password"
+                        name="current_password"
+                        required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('current_password') border-red-300 @enderror"
+                    >
+                    @error('current_password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- New Password --}}
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 @error('password') border-red-300 @enderror"
+                    >
+                    @error('password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Password Confirmation --}}
+                <div>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">新しいパスワード（確認）</label>
+                    <input
+                        type="password"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+            </div>
+
+            {{-- Submit Button --}}
+            <div class="mt-6 flex justify-end">
+                <button type="submit" class="inline-flex items-center px-6 py-2 bg-gray-800 text-white text-sm font-medium rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 transition">
+                    パスワードを変更
+                </button>
+            </div>
+        </form>
+    </div>
+
     {{-- Google Calendar Integration (separate from main profile form) --}}
     <div class="bg-white rounded-lg shadow mt-8">
         <div class="p-6">
