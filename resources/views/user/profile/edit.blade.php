@@ -29,9 +29,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">プロフィール画像</label>
                     <div class="flex items-center gap-4">
-                        @if($user->avatar)
+                        @if($user->getAvatarUrl())
                             <img
-                                src="{{ url('storage/' . $user->avatar) }}"
+                                src="{{ $user->getAvatarUrl() }}"
                                 alt="{{ $user->name }}"
                                 class="w-16 h-16 rounded-full object-cover"
                             >

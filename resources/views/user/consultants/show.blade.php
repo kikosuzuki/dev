@@ -17,9 +17,9 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                     {{-- Photo --}}
-                    @if($consultant->consultantProfile && $consultant->consultantProfile->photo)
+                    @if($consultant->consultantProfile && $consultant->consultantProfile->getPhotoUrl())
                         <img
-                            src="{{ url('storage/' . $consultant->consultantProfile->photo) }}"
+                            src="{{ $consultant->consultantProfile->getPhotoUrl() }}"
                             alt="{{ $consultant->name }}"
                             class="w-24 h-24 rounded-full object-cover flex-shrink-0"
                         >

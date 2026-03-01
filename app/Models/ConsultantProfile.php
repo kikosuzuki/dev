@@ -43,6 +43,25 @@ class ConsultantProfile extends Model
         ];
     }
 
+    /**
+     * Get the full URL for the profile photo with cache busting.
+     */
+    public function getPhotoUrl(): ?string
+    {
+        if (!$this->photo) {
+            return null;
+        }
+
+        $url = url('storage/' . $this->photo);
+
+        // Add cache busting based on updated_at timestamp
+        if ($this->updated_at) {
+            $url .= '?v=' . $this->updated_at->timestamp;
+        }
+
+        return $url;
+    }
+
     public function isGoogleConnected(): bool
     {
         return !empty($this->google_refresh_token);

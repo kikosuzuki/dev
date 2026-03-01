@@ -46,9 +46,9 @@
             <div class="p-6">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">プロフィール写真</h2>
                 <div class="flex items-center space-x-6">
-                    @if($profile && $profile->photo)
+                    @if($profile && $profile->getPhotoUrl())
                         <div class="shrink-0">
-                            <img class="h-20 w-20 object-cover rounded-full" src="{{ url('storage/' . $profile->photo) }}" alt="プロフィール写真">
+                            <img class="h-20 w-20 object-cover rounded-full" src="{{ $profile->getPhotoUrl() }}" alt="プロフィール写真">
                         </div>
                     @else
                         <div class="shrink-0 h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center">

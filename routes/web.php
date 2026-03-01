@@ -31,15 +31,39 @@ use App\Http\Controllers\Api\ChatworkMemberController;
 
 // Public storage file serving (always routed through Laravel on Xserver shared hosting)
 Route::get('/storage/{path}', function ($path) {
+    // Prevent path traversal
+    $path = str_replace('..', '', $path);
     $fullPath = storage_path('app/public/' . $path);
 
     if (!file_exists($fullPath)) {
         abort(404);
     }
 
+    // Detect MIME type explicitly for reliable image serving
+    $mimeType = null;
+    $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+    $mimeMap = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'svg' => 'image/svg+xml',
+        'pdf' => 'application/pdf',
+    ];
+
+    if (isset($mimeMap[$extension])) {
+        $mimeType = $mimeMap[$extension];
+    } elseif (function_exists('mime_content_type')) {
+        $mimeType = mime_content_type($fullPath);
+    }
+
     $headers = [
         'Cache-Control' => 'public, max-age=86400',
     ];
+    if ($mimeType) {
+        $headers['Content-Type'] = $mimeType;
+    }
 
     return response()->file($fullPath, $headers);
 })->where('path', '.*');

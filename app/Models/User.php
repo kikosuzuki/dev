@@ -64,6 +64,21 @@ class User extends Authenticatable
         ];
     }
 
+    public function getAvatarUrl(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        $url = url('storage/' . $this->avatar);
+
+        if ($this->updated_at) {
+            $url .= '?v=' . $this->updated_at->timestamp;
+        }
+
+        return $url;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

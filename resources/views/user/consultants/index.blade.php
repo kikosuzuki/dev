@@ -73,9 +73,9 @@
                     <div class="p-6">
                         {{-- Photo / Avatar --}}
                         <div class="flex items-center mb-4">
-                            @if($consultant->consultantProfile && $consultant->consultantProfile->photo)
+                            @if($consultant->consultantProfile && $consultant->consultantProfile->getPhotoUrl())
                                 <img
-                                    src="{{ url('storage/' . $consultant->consultantProfile->photo) }}"
+                                    src="{{ $consultant->consultantProfile->getPhotoUrl() }}"
                                     alt="{{ $consultant->name }}"
                                     class="w-16 h-16 rounded-full object-cover"
                                 >

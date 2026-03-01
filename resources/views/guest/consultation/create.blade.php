@@ -21,8 +21,8 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">担当コンサルタント</h2>
             <div class="flex items-center space-x-4">
-                @if($schedule->consultant->consultantProfile?->photo)
-                    <img src="{{ url('storage/' . $schedule->consultant->consultantProfile->photo) }}"
+                @if($schedule->consultant->consultantProfile?->getPhotoUrl())
+                    <img src="{{ $schedule->consultant->consultantProfile->getPhotoUrl() }}"
                         alt="{{ $schedule->consultant->name }}"
                         class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
                 @else

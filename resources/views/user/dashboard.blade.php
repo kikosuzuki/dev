@@ -192,8 +192,8 @@
                     <a href="{{ route('user.consultants.show', $consultant) }}" class="block bg-white rounded-lg shadow-md hover:shadow-lg transition overflow-hidden">
                         <div class="p-6">
                             <div class="flex items-center space-x-4 mb-4">
-                                @if ($consultant->consultantProfile && $consultant->consultantProfile->photo)
-                                    <img src="{{ url('storage/' . $consultant->consultantProfile->photo) }}" alt="{{ $consultant->name }}" class="w-12 h-12 rounded-full object-cover">
+                                @if ($consultant->consultantProfile && $consultant->consultantProfile->getPhotoUrl())
+                                    <img src="{{ $consultant->consultantProfile->getPhotoUrl() }}" alt="{{ $consultant->name }}" class="w-12 h-12 rounded-full object-cover">
                                 @else
                                     <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
                                         <span class="text-indigo-600 font-semibold text-lg">{{ mb_substr($consultant->name, 0, 1) }}</span>

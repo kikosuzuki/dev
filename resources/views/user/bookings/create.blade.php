@@ -34,8 +34,8 @@
         <h2 class="text-lg font-semibold text-gray-900 mb-4">予約詳細</h2>
 
         <div class="flex items-center space-x-4 mb-6">
-            @if ($schedule->consultant->consultantProfile && $schedule->consultant->consultantProfile->photo)
-                <img src="{{ url('storage/' . $schedule->consultant->consultantProfile->photo) }}" alt="{{ $schedule->consultant->name }}" class="w-16 h-16 rounded-full object-cover">
+            @if ($schedule->consultant->consultantProfile && $schedule->consultant->consultantProfile->getPhotoUrl())
+                <img src="{{ $schedule->consultant->consultantProfile->getPhotoUrl() }}" alt="{{ $schedule->consultant->name }}" class="w-16 h-16 rounded-full object-cover">
             @else
                 <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
                     <span class="text-indigo-600 font-semibold text-xl">{{ mb_substr($schedule->consultant->name, 0, 1) }}</span>
