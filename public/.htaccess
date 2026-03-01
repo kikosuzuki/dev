@@ -3,6 +3,10 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # SymLinksIfOwnerMatch is required for mod_rewrite to work on Xserver
+    # (FollowSymLinks is disabled by Xserver for security)
+    Options +SymLinksIfOwnerMatch
+
     RewriteEngine On
 
     # Handle Authorization Header
