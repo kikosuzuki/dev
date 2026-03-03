@@ -13,7 +13,7 @@ class GoogleCalendarService
     // Admin calendar methods (existing behavior)
     // ========================================
 
-    public function createEvent(Booking $booking): ?string
+    public function createEvent(Booking $booking, bool $excludeConsultantFromAttendees = false): ?string
     {
         if (!$this->isEnabled()) {
             return null;
@@ -24,7 +24,7 @@ class GoogleCalendarService
             return null;
         }
 
-        $event = $this->buildEventPayload($booking);
+        $event = $this->buildEventPayload($booking, $excludeConsultantFromAttendees);
         $calendarId = SystemSetting::get('google_calendar_id', 'primary');
 
         $response = Http::withHeaders([
@@ -154,18 +154,22 @@ class GoogleCalendarService
         $adminEventId = null;
         $consultantEventId = null;
 
-        // 1. Admin calendar (existing behavior)
+        // Check if consultant has their own Google Calendar connected
+        $consultant = $booking->consultant;
+        $profile = $consultant->consultantProfile;
+        $consultantHasOwnCalendar = $profile && $profile->isGoogleConnected();
+
+        // 1. Admin calendar
+        // If consultant has own calendar, exclude them from attendees to avoid duplicate
         try {
-            $adminEventId = $this->createEvent($booking);
+            $adminEventId = $this->createEvent($booking, $consultantHasOwnCalendar);
         } catch (\Exception $e) {
             // Admin calendar is optional
         }
 
         // 2. Consultant's own calendar
         try {
-            $consultant = $booking->consultant;
-            $profile = $consultant->consultantProfile;
-            if ($profile && $profile->isGoogleConnected()) {
+            if ($consultantHasOwnCalendar) {
                 $calendarId = $profile->google_calendar_id ?: 'primary';
                 $consultantEventId = $this->createEventForConsultant(
                     $booking,
@@ -217,7 +221,7 @@ class GoogleCalendarService
     // Private helpers
     // ========================================
 
-    private function buildEventPayload(Booking $booking): array
+    private function buildEventPayload(Booking $booking, bool $excludeConsultantFromAttendees = false): array
     {
         $consultant = $booking->consultant;
         $bookerName = $booking->bookerName();
@@ -229,7 +233,9 @@ class GoogleCalendarService
         if ($bookerEmail) {
             $attendees[] = ['email' => $bookerEmail];
         }
-        $attendees[] = ['email' => $consultant->email];
+        if (!$excludeConsultantFromAttendees) {
+            $attendees[] = ['email' => $consultant->email];
+        }
 
         return [
             'summary' => "コンサルティング: {$bookerName}様 × {$consultant->name}",
