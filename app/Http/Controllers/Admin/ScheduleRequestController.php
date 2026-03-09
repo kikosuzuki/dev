@@ -152,7 +152,8 @@ class ScheduleRequestController extends Controller
             'admin_notes' => '日程リクエスト #' . $scheduleRequest->id . ' から作成',
         ]);
 
-        // Google Calendar同期
+        // Google Calendar同期（リレーションを明示的にロード）
+        $booking->load('consultant.consultantProfile');
         try {
             $googleService = app(GoogleCalendarService::class);
             [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
@@ -161,7 +162,11 @@ class ScheduleRequestController extends Controller
                 'consultant_google_event_id' => $consultantEventId,
             ]);
         } catch (\Exception $e) {
-            // Google Calendar連携はオプション
+            Log::error('Google Calendar sync failed for schedule request booking', [
+                'schedule_request_id' => $scheduleRequest->id,
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         // 監査ログ
