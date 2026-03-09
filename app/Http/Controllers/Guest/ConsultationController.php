@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\ConsultantSchedule;
 use App\Models\SystemSetting;
+use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -44,6 +45,10 @@ class ConsultationController extends Controller
             ->withinDailyLimit()
             ->acceptingBookings();
 
+        if ($request->filled('consultant')) {
+            $query->where('user_id', $request->consultant);
+        }
+
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->date_from);
         }
@@ -54,6 +59,12 @@ class ConsultationController extends Controller
 
         $view = $request->get('view', 'list');
         $intro = $request->get('intro');
+
+        $consultants = User::where('role', 'consultant')
+            ->where('is_active', true)
+            ->whereHas('consultantProfile', fn ($q) => $q->where('booking_acceptance_enabled', true))
+            ->orderBy('name')
+            ->get();
 
         // List view: paginated
         $schedules = (clone $query)->orderBy('date')
@@ -72,7 +83,7 @@ class ConsultationController extends Controller
             ->groupBy(fn ($s) => $s->date->format('Y-m-d'));
 
         return response()
-            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'intro'))
+            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'intro', 'consultants'))
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
