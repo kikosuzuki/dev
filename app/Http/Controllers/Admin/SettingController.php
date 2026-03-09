@@ -131,6 +131,7 @@ class SettingController extends Controller
             'chatwork_booking_confirm_message' => ['nullable', 'string', 'max:2000'],
             'chatwork_cancel_notification_message' => ['nullable', 'string', 'max:2000'],
             'chatwork_morning_notification_message' => ['nullable', 'string', 'max:2000'],
+            'chatwork_schedule_request_message' => ['nullable', 'string', 'max:2000'],
             'google_calendar_enabled' => ['boolean'],
         ]);
 

@@ -55,16 +55,35 @@ class ScheduleRequestController extends Controller
             return;
         }
 
-        $message = "[info][title]日程調整リクエスト[/title]"
-            . "{$scheduleRequest->guest_name}様より日程調整のリクエストがありました。\n\n"
-            . "■ メール: {$scheduleRequest->guest_email}\n"
-            . ($scheduleRequest->guest_phone ? "■ 電話番号: {$scheduleRequest->guest_phone}\n" : '')
-            . "\n【候補日時】\n"
-            . "候補1: {$scheduleRequest->candidate_1}\n"
-            . ($scheduleRequest->candidate_2 ? "候補2: {$scheduleRequest->candidate_2}\n" : '')
-            . ($scheduleRequest->candidate_3 ? "候補3: {$scheduleRequest->candidate_3}\n" : '')
-            . ($scheduleRequest->message ? "\n【ご相談内容】\n{$scheduleRequest->message}" : '')
-            . "[/info]";
+        // カスタムメッセージがあればプレースホルダーを置換して使用
+        $customMessage = SystemSetting::get('chatwork_schedule_request_message', '');
+        if ($customMessage) {
+            $message = str_replace(
+                ['{name}', '{email}', '{phone}', '{candidate_1}', '{candidate_2}', '{candidate_3}', '{message}'],
+                [
+                    $scheduleRequest->guest_name,
+                    $scheduleRequest->guest_email,
+                    $scheduleRequest->guest_phone ?? '',
+                    $scheduleRequest->candidate_1,
+                    $scheduleRequest->candidate_2 ?? '',
+                    $scheduleRequest->candidate_3 ?? '',
+                    $scheduleRequest->message ?? '',
+                ],
+                $customMessage
+            );
+        } else {
+            // デフォルトメッセージ
+            $message = "[info][title]日程調整リクエスト[/title]"
+                . "{$scheduleRequest->guest_name}様より日程調整のリクエストがありました。\n\n"
+                . "■ メール: {$scheduleRequest->guest_email}\n"
+                . ($scheduleRequest->guest_phone ? "■ 電話番号: {$scheduleRequest->guest_phone}\n" : '')
+                . "\n【候補日時】\n"
+                . "候補1: {$scheduleRequest->candidate_1}\n"
+                . ($scheduleRequest->candidate_2 ? "候補2: {$scheduleRequest->candidate_2}\n" : '')
+                . ($scheduleRequest->candidate_3 ? "候補3: {$scheduleRequest->candidate_3}\n" : '')
+                . ($scheduleRequest->message ? "\n【ご相談内容】\n{$scheduleRequest->message}" : '')
+                . "[/info]";
+        }
 
         try {
             $chatworkService = new ChatworkService();
