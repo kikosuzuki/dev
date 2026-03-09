@@ -36,6 +36,15 @@
             @if($intro)
                 <input type="hidden" name="intro" value="{{ $intro }}">
             @endif
+            <div class="flex-1 min-w-[140px]">
+                <label for="consultant" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">コンサルタント</label>
+                <select name="consultant" id="consultant" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm">
+                    <option value="">全て</option>
+                    @foreach($consultants as $consultant)
+                        <option value="{{ $consultant->id }}" {{ request('consultant') == $consultant->id ? 'selected' : '' }}>{{ $consultant->name }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="flex-1 min-w-[120px]">
                 <label for="date_from" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">開始日</label>
                 <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}"
@@ -151,6 +160,35 @@
         $nextMonth = $month == 12 ? 1 : $month + 1;
         $nextYear = $month == 12 ? $year + 1 : $year;
     @endphp
+
+    {{-- コンサルタントフィルター --}}
+    <div class="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 sm:mb-6">
+        <form method="GET" action="{{ route('consultation.index') }}" class="flex flex-wrap items-end gap-2 sm:gap-4">
+            <input type="hidden" name="view" value="calendar">
+            <input type="hidden" name="year" value="{{ $year }}">
+            <input type="hidden" name="month" value="{{ $month }}">
+            @if($intro)
+                <input type="hidden" name="intro" value="{{ $intro }}">
+            @endif
+            <div class="flex-1 min-w-[140px]">
+                <label for="consultant_calendar" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">コンサルタント</label>
+                <select name="consultant" id="consultant_calendar" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm">
+                    <option value="">全て</option>
+                    @foreach($consultants as $consultant)
+                        <option value="{{ $consultant->id }}" {{ request('consultant') == $consultant->id ? 'selected' : '' }}>{{ $consultant->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="inline-flex items-center px-3 sm:px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-emerald-700 transition">
+                    検索
+                </button>
+                <a href="{{ route('consultation.index', array_merge(['view' => 'calendar', 'year' => $year, 'month' => $month], $intro ? ['intro' => $intro] : [])) }}" class="inline-flex items-center px-3 sm:px-4 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition">
+                    リセット
+                </a>
+            </div>
+        </form>
+    </div>
 
     {{-- 月ナビゲーション --}}
     <div class="bg-white rounded-lg shadow mb-4 sm:mb-6">
@@ -273,4 +311,16 @@
         @endif
     </div>
 @endif
+
+{{-- 日程調整リクエスト --}}
+<div class="mt-6 text-center">
+    <p class="text-sm text-gray-600 mb-3">ご希望の日時が見つからない場合は、メールでご相談ください。</p>
+    <a href="mailto:marketing@cwa-gws.com?subject={{ rawurlencode('日程調整のご相談') }}&body={{ rawurlencode("お世話になっております。\n\n下記の日程で相談を希望しております。\nご調整いただけますと幸いです。\n\n【お名前】\n\n【候補1】　月／日（　）00:00〜\n【候補2】　月／日（　）00:00〜\n【候補3】　月／日（　）00:00〜\n\n【ご相談内容】\n\nよろしくお願いいたします。") }}"
+        class="inline-flex items-center px-5 py-2.5 bg-white border border-emerald-600 text-emerald-600 text-sm font-medium rounded-md hover:bg-emerald-50 transition">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        ご希望の日時が見つからない場合はこちら
+    </a>
+</div>
 @endsection
