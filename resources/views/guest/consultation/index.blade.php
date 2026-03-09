@@ -314,11 +314,11 @@
 
 {{-- 日程調整リクエスト --}}
 <div class="mt-6 text-center">
-    <p class="text-sm text-gray-600 mb-3">ご希望の日時が見つからない場合は、メールでご相談ください。</p>
-    <a href="mailto:marketing@cwa-ycs.com?subject={{ rawurlencode('日程調整のご相談') }}&body={{ rawurlencode("お世話になっております。\n\n下記の日程で相談を希望しております。\nご調整いただけますと幸いです。\n\n【お名前】\n\n【候補1】　月／日（　）00:00〜\n【候補2】　月／日（　）00:00〜\n【候補3】　月／日（　）00:00〜\n\n【ご相談内容】\n\nよろしくお願いいたします。") }}"
+    <p class="text-sm text-gray-600 mb-3">ご希望の日時が見つからない場合は、リクエストをお送りください。</p>
+    <a href="{{ route('consultation.schedule-request.create', $intro ? ['intro' => $intro] : []) }}"
         class="inline-flex items-center px-5 py-2.5 bg-white border border-emerald-600 text-emerald-600 text-sm font-medium rounded-md hover:bg-emerald-50 transition">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
         ご希望の日時が見つからない場合はこちら
     </a>
