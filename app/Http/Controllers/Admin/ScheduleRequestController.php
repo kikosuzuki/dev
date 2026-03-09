@@ -118,10 +118,12 @@ class ScheduleRequestController extends Controller
             $schedule = ConsultantSchedule::create([
                 'user_id' => $consultant->id,
                 'date' => $validated['date'],
-                'start_time' => $validated['start_time'],
-                'end_time' => $validated['end_time'],
+                'start_time' => $validated['start_time'] . ':00',
+                'end_time' => $validated['end_time'] . ':00',
                 'is_available' => true,
             ]);
+            // DBのH:i:s形式を取得（Google Calendar APIがRFC3339形式を要求）
+            $schedule->refresh();
         }
 
         // 1日の予約上限チェック
