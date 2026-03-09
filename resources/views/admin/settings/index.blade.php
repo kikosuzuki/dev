@@ -645,6 +645,16 @@
                                                               placeholder="当日朝8:00にChatworkへ送信されるメッセージ">{{ old('chatwork_morning_notification_message', optional($settings['chatwork_morning_notification_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">当日の予約があるコンサルタントへ朝8:00に配信されます。空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
+                                                <div>
+                                                    <label for="chatwork_schedule_request_message" class="block text-xs font-medium text-gray-600 mb-1">日程リクエスト通知メッセージ</label>
+                                                    <div class="p-2 bg-amber-50 border border-amber-100 rounded-lg mb-2">
+                                                        <p class="text-xs text-amber-700">利用可能なプレースホルダー: <code class="bg-amber-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-amber-100 px-1 rounded">{email}</code>（メール）、<code class="bg-amber-100 px-1 rounded">{phone}</code>（電話番号）、<code class="bg-amber-100 px-1 rounded">{candidate_1}</code>（候補1）、<code class="bg-amber-100 px-1 rounded">{candidate_2}</code>（候補2）、<code class="bg-amber-100 px-1 rounded">{candidate_3}</code>（候補3）、<code class="bg-amber-100 px-1 rounded">{message}</code>（ご相談内容）</p>
+                                                    </div>
+                                                    <textarea name="chatwork_schedule_request_message" id="chatwork_schedule_request_message" rows="4"
+                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                                              placeholder="日程リクエスト受信時にChatworkへ送信されるメッセージ">{{ old('chatwork_schedule_request_message', optional($settings['chatwork_schedule_request_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">ゲストから日程リクエストを受信した時に配信されます。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

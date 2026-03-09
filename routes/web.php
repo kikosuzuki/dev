@@ -27,6 +27,8 @@ use App\Http\Controllers\Admin\GuestEmailController as AdminGuestEmailController
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
+use App\Http\Controllers\Guest\ScheduleRequestController;
+use App\Http\Controllers\Admin\ScheduleRequestController as AdminScheduleRequestController;
 use App\Http\Controllers\Api\ChatworkMemberController;
 
 // Public storage file serving via /media/ path to avoid symlink 403 on Xserver
@@ -89,6 +91,9 @@ Route::prefix('consultation')->name('consultation.')->group(function () {
     Route::get('/book/{schedule}', [ConsultationController::class, 'create'])->name('create');
     Route::post('/book', [ConsultationController::class, 'store'])->name('store');
     Route::get('/complete/{booking}', [ConsultationController::class, 'complete'])->name('complete');
+    Route::get('/schedule-request', [ScheduleRequestController::class, 'create'])->name('schedule-request.create');
+    Route::post('/schedule-request', [ScheduleRequestController::class, 'store'])->name('schedule-request.store');
+    Route::get('/schedule-request/complete', [ScheduleRequestController::class, 'complete'])->name('schedule-request.complete');
 });
 
 // Auth routes
@@ -202,6 +207,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/bookings/{booking}/consultation-record', [AdminBookingController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
     Route::put('/bookings/{booking}/notes', [AdminBookingController::class, 'updateNotes'])->name('bookings.notes.update');
     Route::post('/bookings/{booking}/guest-email', [AdminGuestEmailController::class, 'send'])->name('bookings.guest-email.send');
+
+    // Schedule requests
+    Route::get('/schedule-requests', [AdminScheduleRequestController::class, 'index'])->name('schedule-requests.index');
+    Route::put('/schedule-requests/{scheduleRequest}/status', [AdminScheduleRequestController::class, 'updateStatus'])->name('schedule-requests.update-status');
+    Route::post('/schedule-requests/{scheduleRequest}/reply', [AdminScheduleRequestController::class, 'sendReply'])->name('schedule-requests.reply');
+    Route::post('/schedule-requests/{scheduleRequest}/create-booking', [AdminScheduleRequestController::class, 'createBooking'])->name('schedule-requests.create-booking');
 
     // Available schedules
     Route::get('/schedules', [AdminScheduleController::class, 'index'])->name('schedules.index');
