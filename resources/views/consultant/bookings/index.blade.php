@@ -250,7 +250,7 @@
                                                         <div class="fixed inset-0 bg-gray-500 bg-opacity-75" @click="showCancelModal = false"></div>
                                                         <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6 z-10">
                                                             <h3 class="text-lg font-medium text-gray-900 mb-2">予約をキャンセル</h3>
-                                                            <p class="text-sm text-gray-500 mb-4">予約者に理由を含めたキャンセル通知が送信されます。</p>
+                                                            <p class="text-sm text-gray-500 mb-4">この操作は取り消せません。</p>
                                                             <form action="{{ route('consultant.bookings.cancel', $booking) }}" method="POST">
                                                                 @csrf
                                                                 <div class="mb-4">
@@ -260,6 +260,13 @@
                                                                     <textarea id="cancel_reason_cancel_{{ $booking->id }}" name="cancel_reason" rows="3" required
                                                                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
                                                                         placeholder="キャンセル理由を入力してください（必須）"></textarea>
+                                                                </div>
+                                                                <div class="mb-4">
+                                                                    <label class="inline-flex items-center cursor-pointer">
+                                                                        <input type="checkbox" name="skip_notification" value="1"
+                                                                               class="rounded border-gray-300 text-orange-600 shadow-sm focus:ring-orange-500">
+                                                                        <span class="ml-2 text-sm text-gray-600">通知を送信しない</span>
+                                                                    </label>
                                                                 </div>
                                                                 <div class="flex justify-end space-x-3">
                                                                     <button type="button" @click="showCancelModal = false"

@@ -335,7 +335,7 @@
                                                 <p><span class="font-medium">コンサルタント:</span> {{ $booking->consultant->name }}</p>
                                                 <p><span class="font-medium">日時:</span> {{ $booking->booking_date->format('Y/m/d') }} {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</p>
                                             </div>
-                                            <p class="text-sm text-red-600 mb-4">この操作は取り消せません。予約者に通知が送信されます。</p>
+                                            <p class="text-sm text-red-600 mb-4">この操作は取り消せません。</p>
                                             <form method="POST" action="{{ route('admin.bookings.cancel', $booking) }}">
                                                 @csrf
                                                 <div class="mb-4">
@@ -343,6 +343,13 @@
                                                     <textarea name="cancel_reason" rows="3" required maxlength="500"
                                                               class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-red-500 focus:border-red-500"
                                                               placeholder="キャンセル理由を入力してください..."></textarea>
+                                                </div>
+                                                <div class="mb-4">
+                                                    <label class="inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="skip_notification" value="1"
+                                                               class="rounded border-gray-300 text-red-600 shadow-sm focus:ring-red-500">
+                                                        <span class="ml-2 text-sm text-gray-600">通知を送信しない</span>
+                                                    </label>
                                                 </div>
                                                 <div class="flex justify-end space-x-3">
                                                     <button type="button" @click="cancelOpen = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">戻る</button>
