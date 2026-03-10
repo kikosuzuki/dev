@@ -207,7 +207,7 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-3 whitespace-nowrap text-right text-sm">
-                                    @if(!$isBooked)
+                                    @if(!$isBooked && !$isBlocked)
                                         <form action="{{ route('consultant.schedules.destroy', $slot) }}" method="POST"
                                             onsubmit="return confirm('このスケジュール枠を削除しますか？');" class="inline">
                                             @csrf

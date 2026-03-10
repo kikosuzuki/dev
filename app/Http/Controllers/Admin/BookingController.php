@@ -303,8 +303,8 @@ class BookingController extends Controller
 
         $schedule = ConsultantSchedule::findOrFail($validated['schedule_id']);
 
-        if (!$schedule->is_available || $schedule->isBooked()) {
-            return back()->withInput()->with('error', 'この時間枠は既に予約済みです。');
+        if (!$schedule->is_available || $schedule->calendar_blocked || $schedule->isBooked()) {
+            return back()->withInput()->with('error', 'この時間枠は既に予約済みまたはブロックされています。');
         }
 
         $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);

@@ -92,8 +92,8 @@ class ConsultationController extends Controller
 
     public function create(Request $request, ConsultantSchedule $schedule)
     {
-        if (!$schedule->is_available || $schedule->isBooked()) {
-            return back()->with('error', 'この時間枠は既に予約済みです。');
+        if (!$schedule->is_available || $schedule->calendar_blocked || $schedule->isBooked()) {
+            return back()->with('error', 'この時間枠は既に予約済みまたはブロックされています。');
         }
 
         $intro = $request->get('intro');
@@ -119,8 +119,8 @@ class ConsultationController extends Controller
 
         $schedule = ConsultantSchedule::findOrFail($validated['schedule_id']);
 
-        if (!$schedule->is_available || $schedule->isBooked()) {
-            return back()->with('error', 'この時間枠は既に予約済みです。');
+        if (!$schedule->is_available || $schedule->calendar_blocked || $schedule->isBooked()) {
+            return back()->with('error', 'この時間枠は既に予約済みまたはブロックされています。');
         }
 
         // コンサルタントの予約受付チェック

@@ -52,6 +52,11 @@ class ConsultantSchedule extends Model
         return $query->where('calendar_blocked', false);
     }
 
+    public function isEffectivelyAvailable(): bool
+    {
+        return $this->is_available && !$this->calendar_blocked;
+    }
+
     /**
      * 現在時刻より未来のスケジュールのみに絞り込む（当日の過去時間帯を除外）
      */
