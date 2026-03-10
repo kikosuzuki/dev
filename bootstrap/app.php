@@ -1,8 +1,10 @@
 <?php
 
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        RedirectIfAuthenticated::redirectUsing(function () {
+            $user = Auth::user();
+            if ($user?->isAdmin()) {
+                return route('admin.dashboard');
+            } elseif ($user?->isConsultant()) {
+                return route('consultant.dashboard');
+            }
+            return route('user.dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

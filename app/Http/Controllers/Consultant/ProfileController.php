@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Consultant;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultantProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -23,9 +24,10 @@ class ProfileController extends Controller
             'experience_years' => ['required', 'integer', 'min:0'],
             'qualifications' => ['nullable', 'string'],
             'languages' => ['nullable', 'string'],
-            'auto_approve' => ['boolean'],
             'meeting_url' => ['nullable', 'url', 'max:500'],
-            'reminder_message' => ['nullable', 'string', 'max:2000'],
+            'important_document_url' => ['nullable', 'url', 'max:500'],
+            'chatwork_account_id' => ['nullable', 'string', 'max:50'],
+            'booking_acceptance_enabled' => ['boolean'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -37,12 +39,17 @@ class ProfileController extends Controller
             'experience_years' => $validated['experience_years'],
             'qualifications' => $validated['qualifications'] ? array_map('trim', explode(',', $validated['qualifications'])) : [],
             'languages' => $validated['languages'] ? array_map('trim', explode(',', $validated['languages'])) : [],
-            'auto_approve' => $request->boolean('auto_approve'),
             'meeting_url' => $validated['meeting_url'],
-            'reminder_message' => $validated['reminder_message'],
+            'important_document_url' => $validated['important_document_url'],
+            'chatwork_account_id' => $validated['chatwork_account_id'],
+            'booking_acceptance_enabled' => $request->boolean('booking_acceptance_enabled'),
         ];
 
         if ($request->hasFile('photo')) {
+            $existingProfile = $user->consultantProfile;
+            if ($existingProfile && $existingProfile->photo) {
+                Storage::disk('public')->delete($existingProfile->photo);
+            }
             $path = $request->file('photo')->store('consultant_photos', 'public');
             $profileData['photo'] = $path;
         }
@@ -61,5 +68,17 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('success', 'プロフィールを更新しました。');
+    }
+
+    public function deletePhoto()
+    {
+        $profile = auth()->user()->consultantProfile;
+
+        if ($profile && $profile->photo) {
+            Storage::disk('public')->delete($profile->photo);
+            $profile->update(['photo' => null]);
+        }
+
+        return back()->with('success', 'プロフィール写真を削除しました。');
     }
 }

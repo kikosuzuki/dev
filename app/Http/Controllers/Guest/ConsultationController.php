@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\ConsultantSchedule;
 use App\Models\SystemSetting;
+use App\Models\User;
 use App\Services\GoogleCalendarService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
@@ -15,16 +16,38 @@ class ConsultationController extends Controller
 {
     public function index(Request $request)
     {
-        $disclosureDays = (int) SystemSetting::get('guest_schedule_disclosure_days', 30);
+        // Check if booking acceptance is enabled
+        if (SystemSetting::get('booking_acceptance_enabled', '1') !== '1') {
+            return view('guest.consultation.closed');
+        }
+
+        $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
+        $hoursFromNow = (int) SystemSetting::get('hours_from_now', 2);
+        $minDateTime = now()->addHours($hoursFromNow);
 
         $query = ConsultantSchedule::where('is_available', true)
+            ->whereHas('consultant', function ($q) {
+                $q->where('is_active', true);
+            })
             ->upcoming()
             ->where('date', '<=', $maxDate)
+            ->where(function ($q) use ($minDateTime) {
+                $q->where('date', '>', $minDateTime->toDateString())
+                  ->orWhere(function ($q2) use ($minDateTime) {
+                      $q2->where('date', $minDateTime->toDateString())
+                         ->where('start_time', '>=', $minDateTime->format('H:i:s'));
+                  });
+            })
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })
-            ->withinDailyLimit();
+            ->withinDailyLimit()
+            ->acceptingBookings();
+
+        if ($request->filled('consultant')) {
+            $query->where('user_id', $request->consultant);
+        }
 
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->date_from);
@@ -37,11 +60,16 @@ class ConsultationController extends Controller
         $view = $request->get('view', 'list');
         $intro = $request->get('intro');
 
+        $consultants = User::where('role', 'consultant')
+            ->where('is_active', true)
+            ->whereHas('consultantProfile', fn ($q) => $q->where('booking_acceptance_enabled', true))
+            ->orderBy('name')
+            ->get();
+
         // List view: paginated
-        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = (clone $query)->orderBy('date')
             ->orderBy('start_time')
-            ->paginate($perPage);
+            ->paginate(30);
 
         // Calendar view: grouped by date
         $year = (int) $request->get('year', now()->year);
@@ -54,15 +82,8 @@ class ConsultationController extends Controller
             ->get()
             ->groupBy(fn ($s) => $s->date->format('Y-m-d'));
 
-        // コンサルタントIDを匿名ラベル（A, B, C...）にマッピング
-        $allConsultantIds = (clone $query)->distinct()->pluck('user_id')->sort()->values();
-        $consultantLabels = [];
-        foreach ($allConsultantIds as $i => $id) {
-            $consultantLabels[$id] = 'コンサルタント' . chr(65 + $i); // A, B, C...
-        }
-
         return response()
-            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'consultantLabels', 'intro'))
+            ->view('guest.consultation.index', compact('schedules', 'calendarSchedules', 'view', 'year', 'month', 'intro', 'consultants'))
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
@@ -75,12 +96,17 @@ class ConsultationController extends Controller
         }
 
         $intro = $request->get('intro');
+        $schedule->load('consultant.consultantProfile');
 
         return view('guest.consultation.create', compact('schedule', 'intro'));
     }
 
     public function store(Request $request)
     {
+        if (SystemSetting::get('booking_acceptance_enabled', '1') !== '1') {
+            return redirect()->route('consultation.index')->with('error', '現在予約の受付を停止しております。');
+        }
+
         $validated = $request->validate([
             'schedule_id' => ['required', 'exists:consultant_schedules,id'],
             'guest_name' => ['required', 'string', 'max:255'],
@@ -96,6 +122,12 @@ class ConsultationController extends Controller
             return back()->with('error', 'この時間枠は既に予約済みです。');
         }
 
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
+        }
+
         $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
         $dailyCount = Booking::where('consultant_id', $schedule->user_id)
             ->where('booking_date', $schedule->date)
@@ -106,10 +138,6 @@ class ConsultationController extends Controller
             return back()->with('error', 'このコンサルタントの予約枠は上限に達しています。別の日時をお選びください。');
         }
 
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-        $autoApprove = $profile ? $profile->auto_approve : true;
-
         $booking = Booking::create([
             'user_id' => null,
             'consultant_id' => $schedule->user_id,
@@ -117,7 +145,7 @@ class ConsultationController extends Controller
             'booking_date' => $schedule->date,
             'start_time' => $schedule->start_time,
             'end_time' => $schedule->end_time,
-            'status' => $autoApprove ? 'approved' : 'pending',
+            'status' => 'approved',
             'notes' => $validated['notes'] ?? null,
             'amount' => 0,
             'is_guest' => true,
@@ -127,25 +155,23 @@ class ConsultationController extends Controller
             'guest_referrer' => $validated['guest_referrer'] ?? null,
         ]);
 
-        if ($autoApprove) {
-            try {
-                $googleService = app(GoogleCalendarService::class);
-                $eventId = $googleService->createEvent($booking);
-                if ($eventId) {
-                    $booking->update(['google_event_id' => $eventId]);
-                }
-            } catch (\Exception $e) {
-                // Google Calendar integration is optional
-            }
+        try {
+            $googleService = app(GoogleCalendarService::class);
+            [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+            $booking->update([
+                'google_event_id' => $adminEventId,
+                'consultant_google_event_id' => $consultantEventId,
+            ]);
+        } catch (\Exception $e) {
+            // Google Calendar integration is optional
         }
 
         AuditLog::log('guest_booking_created', $booking);
 
         $notificationService = app(NotificationService::class);
-        $notificationService->sendGuestBookingConfirmation($booking);
+        $notificationService->sendBookingConfirmation($booking);
 
-        $statusMsg = $autoApprove ? '個別相談の予約が確定しました。' : '個別相談の予約を受け付けました。コンサルタントの承認をお待ちください。';
-        return redirect()->route('consultation.complete', $booking)->with('success', $statusMsg);
+        return redirect()->route('consultation.complete', $booking)->with('success', '個別相談の予約が確定しました。');
     }
 
     public function complete(Booking $booking)

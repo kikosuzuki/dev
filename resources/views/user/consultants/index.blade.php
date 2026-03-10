@@ -75,7 +75,7 @@
                         <div class="flex items-center mb-4">
                             @if($consultant->consultantProfile && $consultant->consultantProfile->photo)
                                 <img
-                                    src="{{ Storage::url($consultant->consultantProfile->photo) }}"
+                                    src="{{ url('storage/' . $consultant->consultantProfile->photo) }}"
                                     alt="{{ $consultant->name }}"
                                     class="w-16 h-16 rounded-full object-cover"
                                 >

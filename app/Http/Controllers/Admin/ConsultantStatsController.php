@@ -26,6 +26,9 @@ class ConsultantStatsController extends Controller
                     'total_bookings' => (clone $bookings)->count(),
                     'completed' => (clone $bookings)->where('status', 'completed')->count(),
                     'cancelled' => (clone $bookings)->where('status', 'cancelled')->count(),
+                    'consultation_success' => (clone $bookings)->where('consultation_result', 'success')->count(),
+                    'consultation_failure' => (clone $bookings)->where('consultation_result', 'failure')->count(),
+                    'consultation_pending' => (clone $bookings)->where('consultation_result', 'pending')->count(),
                     'revenue' => (clone $bookings)->whereIn('status', ['approved', 'completed'])->sum('amount'),
                     'working_hours' => $this->calculateWorkingHours($consultant->id, $month, $year),
                 ];
@@ -54,6 +57,9 @@ class ConsultantStatsController extends Controller
                 'total' => (clone $bookings)->count(),
                 'completed' => (clone $bookings)->where('status', 'completed')->count(),
                 'cancelled' => (clone $bookings)->where('status', 'cancelled')->count(),
+                'consultation_success' => (clone $bookings)->where('consultation_result', 'success')->count(),
+                'consultation_failure' => (clone $bookings)->where('consultation_result', 'failure')->count(),
+                'consultation_pending' => (clone $bookings)->where('consultation_result', 'pending')->count(),
                 'revenue' => (clone $bookings)->whereIn('status', ['approved', 'completed'])->sum('amount'),
                 'hours' => $this->calculateWorkingHours($consultant->id, $month, $year),
             ];

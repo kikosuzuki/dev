@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\ConsultantProfile;
 use App\Models\ConsultantSchedule;
 use App\Models\Review;
+use App\Models\GuestMessageTemplate;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Carbon\Carbon;
@@ -17,10 +18,23 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // System Settings
+        SystemSetting::set('booking_acceptance_enabled', '1', '予約受付ON/OFF');
         SystemSetting::set('cancel_policy_hours', '24', 'キャンセルポリシー（時間前）');
-        SystemSetting::set('booking_slot_duration', '60', 'デフォルトスロット時間（分）');
+        SystemSetting::set('hours_from_now', '2', '何時間後から日程候補を提示');
+        SystemSetting::set('schedule_disclosure_days', '30', '何日間分の日程候補を提示');
         SystemSetting::set('max_bookings_per_day', '8', '1日あたり最大予約数');
+        SystemSetting::set('reminder_day_before_enabled', '1', '前日リマインダON/OFF');
+        SystemSetting::set('reminder_day_of_enabled', '1', '当日リマインダON/OFF');
+        SystemSetting::set('reminder_minutes_before_enabled', '1', '分前リマインダON/OFF');
+        SystemSetting::set('line_enabled', '0', 'LINE連携ON/OFF');
+        SystemSetting::set('chatwork_enabled', '0', 'Chatwork連携ON/OFF');
         SystemSetting::set('google_calendar_enabled', '0', 'Googleカレンダー連携');
+
+        // Default guest message templates
+        GuestMessageTemplate::create(['name' => '予約確認', 'subject' => '【予約確認】個別相談のご予約について', 'body' => "{name}様\n\nご予約の確認をお願いいたします。\n\n■ 日時: {date}\n\nご不明な点がございましたらお気軽にご連絡ください。", 'sort_order' => 0]);
+        GuestMessageTemplate::create(['name' => 'リマインド', 'subject' => '【リマインド】個別相談のご予約について', 'body' => "{name}様\n\n個別相談の予約日時が近づいてまいりました。\n\n■ 日時: {date}\n\nご準備のほどよろしくお願いいたします。", 'sort_order' => 1]);
+        GuestMessageTemplate::create(['name' => 'フォローアップ', 'subject' => '【フォローアップ】個別相談について', 'body' => "{name}様\n\n先日の個別相談はいかがでしたでしょうか。\nご不明な点やご質問がございましたらお気軽にお問い合わせください。", 'sort_order' => 2]);
+        GuestMessageTemplate::create(['name' => 'お知らせ', 'subject' => '【お知らせ】', 'body' => "{name}様\n\nお知らせがございます。\n詳細につきましては下記をご確認ください。\n\n", 'sort_order' => 3]);
 
         // Admin user
         User::create([
@@ -103,7 +117,6 @@ class DatabaseSeeder extends Seeder
                 'experience_years' => $data['experience_years'],
                 'qualifications' => $data['qualifications'],
                 'languages' => $data['languages'],
-                'auto_approve' => true,
                 'is_featured' => true,
             ]);
 

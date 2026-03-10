@@ -15,7 +15,7 @@ class UserManageController extends Controller
 {
     public function index(Request $request)
     {
-        $role = $request->get('role', 'all');
+        $role = $request->get('role');
 
         if ($role === 'guest') {
             return $this->guestIndex($request);
@@ -23,7 +23,7 @@ class UserManageController extends Controller
 
         $query = User::query();
 
-        if ($role !== 'all') {
+        if ($role) {
             $query->where('role', $role);
         }
 
@@ -111,23 +111,53 @@ class UserManageController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'chatwork_id' => ['nullable', 'string', 'max:100'],
             'chatwork_room_id' => ['nullable', 'string', 'max:100'],
+            'chatwork_account_id' => ['nullable', 'string', 'max:50'],
+            'notify_chatwork' => ['boolean'],
             'is_active' => ['boolean'],
+            'admin_notes' => ['nullable', 'string'],
+            'user_type' => $request->role === 'user'
+                ? ['required', Rule::in(['member', 'consultation'])]
+                : ['nullable'],
         ]);
 
         $oldValues = $user->toArray();
-        $user->update([
+
+        $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'phone' => $validated['phone'] ?? null,
-            'chatwork_id' => $validated['chatwork_id'] ?? null,
-            'chatwork_room_id' => $validated['chatwork_room_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
-        ]);
+            'admin_notes' => $validated['admin_notes'] ?? null,
+            'user_type' => $validated['role'] === 'user'
+                ? ($validated['user_type'] ?? 'member')
+                : 'member',
+        ];
+
+        // ロール別のChatwork設定
+        if ($validated['role'] === 'user') {
+            // ユーザー: Room + To指定 + 通知トグル → usersテーブルに保存
+            $userData['chatwork_id'] = $validated['chatwork_id'] ?? null;
+            $userData['chatwork_room_id'] = $validated['chatwork_room_id'] ?? null;
+            $userData['notify_chatwork'] = $request->boolean('notify_chatwork');
+        } elseif ($validated['role'] === 'admin') {
+            // 管理者: アカウントIDのみ → users.chatwork_idに保存
+            $userData['chatwork_id'] = $validated['chatwork_account_id'] ?? null;
+        }
+
+        $user->update($userData);
 
         if ($request->filled('password')) {
             $request->validate(['password' => ['string', 'min:8']]);
             $user->update(['password' => Hash::make($request->password)]);
+        }
+
+        // コンサルタントプロフィールの更新
+        if ($validated['role'] === 'consultant' && $user->consultantProfile) {
+            $user->consultantProfile->update([
+                'booking_acceptance_enabled' => $request->boolean('booking_acceptance_enabled'),
+                'chatwork_account_id' => $validated['chatwork_account_id'] ?? null,
+            ]);
         }
 
         AuditLog::log('user_updated', $user, $oldValues, $user->toArray());
@@ -166,12 +196,13 @@ class UserManageController extends Controller
             'guest_email' => ['required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:20'],
             'guest_referrer' => ['nullable', 'string', 'max:255'],
+            'admin_notes' => ['nullable', 'string'],
         ]);
 
-        $oldValues = $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']);
+        $oldValues = $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer', 'admin_notes']);
         $booking->update($validated);
 
-        AuditLog::log('guest_booking_updated', $booking, $oldValues, $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer']));
+        AuditLog::log('guest_booking_updated', $booking, $oldValues, $booking->only(['guest_name', 'guest_email', 'guest_phone', 'guest_referrer', 'admin_notes']));
 
         return redirect()->route('admin.users.index', ['role' => 'guest'])->with('success', 'ゲスト相談者情報を更新しました。');
     }

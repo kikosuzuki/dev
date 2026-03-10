@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers\Consultant;
+
+use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Services\GoogleCalendarService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class GoogleAuthController extends Controller
+{
+    public function redirect(Request $request)
+    {
+        $clientId = config('services.google.client_id');
+        $redirectUri = config('services.google.redirect_uri');
+
+        if (!$clientId || !$redirectUri) {
+            return back()->with('error', 'Google API認証情報が設定されていません。管理者にお問い合わせください。');
+        }
+
+        $state = Str::random(40);
+        $request->session()->put('google_oauth_state', $state);
+        $request->session()->put('google_oauth_type', 'consultant');
+
+        $params = http_build_query([
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'response_type' => 'code',
+            'scope' => 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email',
+            'access_type' => 'offline',
+            'prompt' => 'consent',
+            'state' => $state,
+        ]);
+
+        return redirect("https://accounts.google.com/o/oauth2/v2/auth?{$params}");
+    }
+
+    public function disconnect()
+    {
+        $user = auth()->user();
+        $profile = $user->consultantProfile;
+
+        if ($profile) {
+            $profile->update([
+                'google_refresh_token' => null,
+                'google_calendar_email' => null,
+                'google_calendar_id' => null,
+            ]);
+        }
+
+        AuditLog::log('consultant_google_calendar_disconnected');
+
+        return back()->with('success', 'Googleアカウントの連携を解除しました。');
+    }
+
+    public function calendars()
+    {
+        $user = auth()->user();
+        $profile = $user->consultantProfile;
+
+        if (!$profile || !$profile->isGoogleConnected()) {
+            return response()->json(['calendars' => [], 'error' => 'Google未連携'], 400);
+        }
+
+        $googleService = app(GoogleCalendarService::class);
+        $calendars = $googleService->listCalendars($profile->google_refresh_token);
+
+        return response()->json([
+            'calendars' => $calendars,
+            'selected' => $profile->google_calendar_id ?: 'primary',
+        ]);
+    }
+
+    public function updateCalendar(Request $request)
+    {
+        $request->validate([
+            'google_calendar_id' => ['required', 'string', 'max:255'],
+        ]);
+
+        $user = auth()->user();
+        $profile = $user->consultantProfile;
+
+        if (!$profile || !$profile->isGoogleConnected()) {
+            return response()->json(['error' => 'Googleアカウントが連携されていません。'], 400);
+        }
+
+        $profile->update([
+            'google_calendar_id' => $request->google_calendar_id,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+}

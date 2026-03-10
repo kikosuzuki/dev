@@ -51,7 +51,7 @@
         {{-- コンサルタント情報 --}}
         <div class="flex items-center space-x-4 mb-6 pb-6 border-b">
             @if ($booking->consultant->consultantProfile && $booking->consultant->consultantProfile->photo)
-                <img src="{{ Storage::url($booking->consultant->consultantProfile->photo) }}" alt="{{ $booking->consultant->name }}" class="w-16 h-16 rounded-full object-cover">
+                <img src="{{ url('storage/' . $booking->consultant->consultantProfile->photo) }}" alt="{{ $booking->consultant->name }}" class="w-16 h-16 rounded-full object-cover">
             @else
                 <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
                     <span class="text-indigo-600 font-semibold text-xl">{{ mb_substr($booking->consultant->name, 0, 1) }}</span>

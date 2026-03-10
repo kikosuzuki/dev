@@ -161,6 +161,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名前</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メール</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ロール</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種別</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">登録日</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -185,6 +186,17 @@
                                     @endswitch
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($user->role === 'user')
+                                        @if($user->user_type === 'consultation')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800">会員</span>
+                                        @endif
+                                    @else
+                                        <span class="text-sm text-gray-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     @if($user->is_active)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">有効</span>
                                     @else
@@ -192,19 +204,37 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->created_at->format('Y/m/d') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" x-data="{ chatOpen: false }">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                                    x-data="{
+                                        chatOpen: false,
+                                        cwName: '',
+                                        cwLoading: false,
+                                        openChat() {
+                                            this.chatOpen = true;
+                                            if (!this.cwName && '{{ $user->chatwork_room_id }}') {
+                                                this.cwLoading = true;
+                                                fetch('{{ url("/api/chatwork/members/" . $user->chatwork_room_id) }}')
+                                                    .then(r => r.json())
+                                                    .then(members => {
+                                                        const target = members.find(m => String(m.account_id) === '{{ $user->chatwork_id }}');
+                                                        this.cwName = target ? target.name : '';
+                                                        this.cwLoading = false;
+                                                    })
+                                                    .catch(() => { this.cwLoading = false; });
+                                            }
+                                        }
+                                    }">
                                     <div class="flex items-center space-x-2">
                                         <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded hover:bg-indigo-700 transition">
                                             編集
                                         </a>
                                         @if($user->chatwork_room_id)
-                                            <button @click="chatOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition">
+                                            <button @click="openChat()" type="button" class="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition">
                                                 CW
                                             </button>
                                         @endif
                                         <form method="POST" action="{{ route('admin.users.toggle-active', $user) }}" class="inline">
                                             @csrf
-                                            @method('PATCH')
                                             <button type="submit"
                                                     class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded transition {{ $user->is_active ? 'bg-yellow-500 text-white hover:bg-yellow-600' : 'bg-green-500 text-white hover:bg-green-600' }}"
                                                     onclick="return confirm('{{ $user->is_active ? 'このユーザーを無効にしますか？' : 'このユーザーを有効にしますか？' }}')">
@@ -232,6 +262,12 @@
                                                             <option value="お知らせがございます。詳細につきましては下記をご確認ください。">お知らせ</option>
                                                         </select>
                                                     </div>
+                                                    <div class="mb-4 text-xs text-gray-500 bg-gray-50 rounded-md px-3 py-2 break-words">
+                                                        <p>メッセージはこのユーザーに設定された<br>Chatworkルームに送信されます。</p>
+                                                        <p class="mt-1 text-gray-400">Room ID: {{ $user->chatwork_room_id }}</p>
+                                                        <p x-show="cwLoading" class="mt-1 text-gray-400">Chatwork名を取得中...</p>
+                                                        <p x-show="!cwLoading && cwName" class="mt-1 font-medium text-gray-700" x-text="'送信先: ' + cwName"></p>
+                                                    </div>
                                                     <div class="mb-4">
                                                         <label for="cw_msg_{{ $user->id }}" class="block text-sm font-medium text-gray-700 mb-2">メッセージ</label>
                                                         <textarea id="cw_msg_{{ $user->id }}" name="message" rows="5" required
@@ -251,7 +287,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">ユーザーが見つかりません</td>
+                                <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">ユーザーが見つかりません</td>
                             </tr>
                         @endforelse
                     </tbody>

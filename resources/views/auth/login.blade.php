@@ -3,6 +3,12 @@
 @section('content')
 <h2 class="text-center text-2xl font-bold text-gray-900 mb-10">ログイン</h2>
 
+@if(session('status'))
+    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+        <p class="text-sm text-green-700">{{ session('status') }}</p>
+    </div>
+@endif
+
 <form method="POST" action="{{ route('login') }}">
     @csrf
 
@@ -33,8 +39,11 @@
         </button>
     </div>
 
-    <div class="text-center">
-        <a href="{{ route('register') }}" class="text-base text-indigo-600 hover:text-indigo-500">
+    <div class="text-center space-y-3">
+        <a href="{{ route('password.request') }}" class="block text-base text-gray-500 hover:text-gray-700">
+            パスワードをお忘れですか？
+        </a>
+        <a href="{{ route('register') }}" class="block text-base text-indigo-600 hover:text-indigo-500">
             アカウント登録はこちら
         </a>
     </div>

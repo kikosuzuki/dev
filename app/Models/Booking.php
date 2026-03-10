@@ -17,6 +17,7 @@ class Booking extends Model
         'notes',
         'cancel_reason',
         'google_event_id',
+        'consultant_google_event_id',
         'meeting_url',
         'amount',
         'is_guest',
@@ -26,9 +27,12 @@ class Booking extends Model
         'guest_referrer',
         'consultation_result',
         'consultation_notes',
+        'important_document_issued',
+        'admin_notes',
         'reminder_day_before_sent',
         'reminder_day_of_sent',
         'reminder_10min_sent',
+        'morning_chatwork_sent',
     ];
 
     protected function casts(): array
@@ -36,9 +40,11 @@ class Booking extends Model
         return [
             'booking_date' => 'date',
             'is_guest' => 'boolean',
+            'important_document_issued' => 'boolean',
             'reminder_day_before_sent' => 'boolean',
             'reminder_day_of_sent' => 'boolean',
             'reminder_10min_sent' => 'boolean',
+            'morning_chatwork_sent' => 'boolean',
         ];
     }
 
@@ -64,12 +70,7 @@ class Booking extends Model
 
     public function canCancel(): bool
     {
-        return in_array($this->status, ['pending', 'approved']);
-    }
-
-    public function isPending(): bool
-    {
-        return $this->status === 'pending';
+        return $this->status === 'approved';
     }
 
     public function isApproved(): bool

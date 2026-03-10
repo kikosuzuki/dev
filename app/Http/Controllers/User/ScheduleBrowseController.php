@@ -12,17 +12,32 @@ class ScheduleBrowseController extends Controller
 {
     public function index(Request $request)
     {
+        // Check if booking acceptance is enabled
+        if (SystemSetting::get('booking_acceptance_enabled', '1') !== '1') {
+            return view('user.schedules.index', ['schedules' => collect(), 'consultants' => collect(), 'acceptanceClosed' => true]);
+        }
+
         $disclosureDays = (int) SystemSetting::get('schedule_disclosure_days', 30);
         $maxDate = now()->addDays($disclosureDays)->toDateString();
+        $hoursFromNow = (int) SystemSetting::get('hours_from_now', 2);
+        $minDateTime = now()->addHours($hoursFromNow);
 
         $query = ConsultantSchedule::with(['consultant.consultantProfile'])
             ->where('is_available', true)
             ->upcoming()
             ->where('date', '<=', $maxDate)
+            ->where(function ($q) use ($minDateTime) {
+                $q->where('date', '>', $minDateTime->toDateString())
+                  ->orWhere(function ($q2) use ($minDateTime) {
+                      $q2->where('date', $minDateTime->toDateString())
+                         ->where('start_time', '>=', $minDateTime->format('H:i:s'));
+                  });
+            })
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })
-            ->withinDailyLimit();
+            ->withinDailyLimit()
+            ->acceptingBookings();
 
         if ($request->filled('consultant')) {
             $query->where('user_id', $request->consultant);
@@ -36,10 +51,9 @@ class ScheduleBrowseController extends Controller
             $query->where('date', '<=', $request->date_to);
         }
 
-        $perPage = (int) SystemSetting::get('schedule_per_page', 30);
         $schedules = $query->orderBy('date')
             ->orderBy('start_time')
-            ->paginate($perPage);
+            ->paginate(30);
 
         $consultants = User::where('role', 'consultant')
             ->where('is_active', true)

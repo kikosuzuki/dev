@@ -38,6 +38,13 @@ class BookingController extends Controller
         }
 
         $schedule->load('consultant.consultantProfile');
+
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
+        }
+
         return view('user.bookings.create', compact('schedule'));
     }
 
@@ -54,6 +61,12 @@ class BookingController extends Controller
             return back()->with('error', 'この時間枠は既に予約済みです。');
         }
 
+        // コンサルタントの予約受付チェック
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && !$consultantProfile->booking_acceptance_enabled) {
+            return back()->with('error', 'このコンサルタントは現在予約を受け付けておりません。');
+        }
+
         $maxPerDay = (int) SystemSetting::get('max_bookings_per_day', 8);
         $dailyCount = Booking::where('consultant_id', $schedule->user_id)
             ->where('booking_date', $schedule->date)
@@ -64,9 +77,7 @@ class BookingController extends Controller
             return back()->with('error', 'このコンサルタントの本日の予約枠は上限に達しています。');
         }
 
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-        $autoApprove = $profile ? $profile->auto_approve : true;
+        $profile = $schedule->consultant->consultantProfile;
 
         $booking = Booking::create([
             'user_id' => auth()->id(),
@@ -75,21 +86,20 @@ class BookingController extends Controller
             'booking_date' => $schedule->date,
             'start_time' => $schedule->start_time,
             'end_time' => $schedule->end_time,
-            'status' => $autoApprove ? 'approved' : 'pending',
+            'status' => 'approved',
             'notes' => $validated['notes'] ?? null,
             'amount' => $profile ? $profile->hourly_rate : 0,
         ]);
 
-        if ($autoApprove) {
-            try {
-                $googleService = app(GoogleCalendarService::class);
-                $eventId = $googleService->createEvent($booking);
-                if ($eventId) {
-                    $booking->update(['google_event_id' => $eventId]);
-                }
-            } catch (\Exception $e) {
-                // Google Calendar integration is optional
-            }
+        try {
+            $googleService = app(GoogleCalendarService::class);
+            [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+            $booking->update([
+                'google_event_id' => $adminEventId,
+                'consultant_google_event_id' => $consultantEventId,
+            ]);
+        } catch (\Exception $e) {
+            // Google Calendar integration is optional
         }
 
         AuditLog::log('booking_created', $booking);
@@ -97,8 +107,7 @@ class BookingController extends Controller
         $notificationService = app(NotificationService::class);
         $notificationService->sendBookingConfirmation($booking);
 
-        $statusMsg = $autoApprove ? '予約が確定しました。' : '予約リクエストを送信しました。コンサルタントの承認をお待ちください。';
-        return redirect()->route('user.bookings.index')->with('success', $statusMsg);
+        return redirect()->route('user.bookings.index')->with('success', '予約が確定しました。');
     }
 
     public function show(Booking $booking)
@@ -131,11 +140,11 @@ class BookingController extends Controller
             'cancel_reason' => $request->cancel_reason,
         ]);
 
-        if ($booking->google_event_id) {
+        if ($booking->google_event_id || $booking->consultant_google_event_id) {
             try {
                 $googleService = app(GoogleCalendarService::class);
-                $googleService->deleteEvent($booking->google_event_id);
-                $booking->update(['google_event_id' => null]);
+                $googleService->syncDeleteEvent($booking);
+                $booking->update(['google_event_id' => null, 'consultant_google_event_id' => null]);
             } catch (\Exception $e) {
                 // Ignore Google Calendar errors
             }

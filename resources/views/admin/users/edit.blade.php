@@ -56,8 +56,8 @@
                 @enderror
             </div>
 
-            {{-- Chatwork Settings --}}
-            <div class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200" x-data="adminChatworkMembers()">
+            {{-- Chatwork Settings: ユーザー向け（Room + To指定 + 通知トグル） --}}
+            <div x-show="role === 'user'" x-transition class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200" x-data="adminChatworkMembers()">
                 <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
                 <div class="space-y-4">
                     <div>
@@ -102,6 +102,19 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chatwork通知</label>
+                        <div class="flex items-center">
+                            <input type="hidden" name="notify_chatwork" value="0">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="notify_chatwork" value="1"
+                                    {{ old('notify_chatwork', $user->notify_chatwork) ? 'checked' : '' }}
+                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-700">Chatwork通知を有効にする</span>
+                            </label>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">会員予約の通知をChatworkで受け取るかどうかを設定します。Room IDの設定も必要です。</p>
+                    </div>
                 </div>
 
                 <script>
@@ -118,7 +131,7 @@
                                 this.errorMessage = '';
                                 this.members = [];
                                 try {
-                                    const res = await fetch(`/api/chatwork/members/${this.roomId}`);
+                                    const res = await fetch(`{{ url('/api/chatwork/members') }}/${this.roomId}`);
                                     if (res.ok) {
                                         this.members = await res.json();
                                     } else {
@@ -134,6 +147,47 @@
                         }
                     }
                 </script>
+            </div>
+
+            {{-- Chatwork Settings: コンサルタント・管理者向け（アカウントIDのみ） --}}
+            <div x-show="role === 'consultant' || role === 'admin'" x-transition class="mb-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">Chatwork連携</h3>
+                <div>
+                    <label for="chatwork_account_id" class="block text-sm font-medium text-gray-700 mb-1">Chatwork アカウントID</label>
+                    <input type="text" name="chatwork_account_id" id="chatwork_account_id"
+                           value="{{ old('chatwork_account_id', $user->role === 'consultant' ? $user->consultantProfile?->chatwork_account_id : $user->chatwork_id) }}"
+                           placeholder="例: 1234567"
+                           class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('chatwork_account_id') border-red-500 @enderror">
+                    <p class="mt-1 text-xs text-gray-500">全体通知のTO指定プレースホルダー <code class="bg-gray-200 px-1 rounded text-xs">{chatwork_id}</code> に使用されます。Chatworkのプロフィールから確認できます。</p>
+                    @error('chatwork_account_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            {{-- User Type (会員ロールのみ表示) --}}
+            <div x-show="role === 'user'" x-transition class="mb-6">
+                <label for="user_type" class="block text-sm font-medium text-gray-700 mb-1">種別</label>
+                <select name="user_type" id="user_type"
+                        class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('user_type') border-red-500 @enderror">
+                    <option value="member" {{ old('user_type', $user->user_type) === 'member' ? 'selected' : '' }}>会員</option>
+                    <option value="consultation" {{ old('user_type', $user->user_type) === 'consultation' ? 'selected' : '' }}>個別相談</option>
+                </select>
+                @error('user_type')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            {{-- Admin Notes --}}
+            <div class="mb-6">
+                <label for="admin_notes" class="block text-sm font-medium text-gray-700 mb-1">管理メモ</label>
+                <textarea name="admin_notes" id="admin_notes" rows="4"
+                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('admin_notes') border-red-500 @enderror"
+                          placeholder="社内用のメモを入力（コンサルタントからも閲覧・編集可能）">{{ old('admin_notes', $user->admin_notes) }}</textarea>
+                @error('admin_notes')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">社内記録用。</p>
             </div>
 
             {{-- Is Active Toggle --}}
@@ -168,6 +222,28 @@
                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm @error('specialty') border-red-500 @enderror"
                            placeholder="例: 経営戦略、IT、財務">
                     @error('specialty')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Booking Acceptance Toggle --}}
+                <div class="mb-4" x-data="{ acceptingBookings: {{ old('booking_acceptance_enabled', $user->consultantProfile?->booking_acceptance_enabled ?? true) ? 'true' : 'false' }} }">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">予約受付</label>
+                    <div class="flex items-center">
+                        <button type="button"
+                                @click="acceptingBookings = !acceptingBookings"
+                                :class="acceptingBookings ? 'bg-blue-600' : 'bg-gray-200'"
+                                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                role="switch"
+                                :aria-checked="acceptingBookings">
+                            <span :class="acceptingBookings ? 'translate-x-5' : 'translate-x-0'"
+                                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </button>
+                        <input type="hidden" name="booking_acceptance_enabled" :value="acceptingBookings ? 1 : 0">
+                        <span class="ml-3 text-sm" :class="acceptingBookings ? 'text-green-600 font-medium' : 'text-gray-500'" x-text="acceptingBookings ? '受付中' : '受付停止中'"></span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">OFFにすると、このコンサルタントの予約枠がゲスト・会員の予約一覧から非表示になります。</p>
+                    @error('booking_acceptance_enabled')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>

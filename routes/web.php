@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\User\BookingController;
 use App\Http\Controllers\User\ConsultantBrowseController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\Consultant\DashboardController as ConsultantDashboard;
 use App\Http\Controllers\Consultant\ScheduleController;
 use App\Http\Controllers\Consultant\BookingManageController;
 use App\Http\Controllers\Consultant\ProfileController as ConsultantProfileController;
+use App\Http\Controllers\Consultant\GoogleAuthController as ConsultantGoogleAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Admin\ConsultantStatsController;
@@ -24,10 +27,36 @@ use App\Http\Controllers\Admin\GuestEmailController as AdminGuestEmailController
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\GoogleAuthController;
 use App\Http\Controllers\Guest\ConsultationController;
+use App\Http\Controllers\Guest\ScheduleRequestController;
+use App\Http\Controllers\Admin\ScheduleRequestController as AdminScheduleRequestController;
 use App\Http\Controllers\Api\ChatworkMemberController;
+
+// Public storage file serving (always routed through Laravel on Xserver shared hosting)
+Route::get('/storage/{path}', function ($path) {
+    $fullPath = storage_path('app/public/' . $path);
+
+    if (!file_exists($fullPath)) {
+        abort(404);
+    }
+
+    $headers = [
+        'Cache-Control' => 'public, max-age=86400',
+    ];
+
+    return response()->file($fullPath, $headers);
+})->where('path', '.*');
 
 // Public routes
 Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        if ($user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        } elseif ($user->isConsultant()) {
+            return redirect()->route('consultant.dashboard');
+        }
+        return redirect()->route('user.dashboard');
+    }
     return redirect()->route('login');
 });
 
@@ -37,6 +66,9 @@ Route::prefix('consultation')->name('consultation.')->group(function () {
     Route::get('/book/{schedule}', [ConsultationController::class, 'create'])->name('create');
     Route::post('/book', [ConsultationController::class, 'store'])->name('store');
     Route::get('/complete/{booking}', [ConsultationController::class, 'complete'])->name('complete');
+    Route::get('/schedule-request', [ScheduleRequestController::class, 'create'])->name('schedule-request.create');
+    Route::post('/schedule-request', [ScheduleRequestController::class, 'store'])->name('schedule-request.store');
+    Route::get('/schedule-request/complete', [ScheduleRequestController::class, 'complete'])->name('schedule-request.complete');
 });
 
 // Auth routes
@@ -45,13 +77,18 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Google OAuth callback (needs auth + admin, but outside prefix since redirect_uri is fixed)
+// Google OAuth callback (shared by admin and consultant, outside prefix since redirect_uri is fixed)
 Route::get('/google/callback', [GoogleAuthController::class, 'callback'])
-    ->middleware(['auth', 'role:admin'])
+    ->middleware(['auth'])
     ->name('google.callback');
 
 // Chatwork API (authenticated users)
@@ -101,15 +138,22 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
 
     // Booking management
     Route::get('/bookings', [BookingManageController::class, 'index'])->name('bookings.index');
-    Route::post('/bookings/{booking}/approve', [BookingManageController::class, 'approve'])->name('bookings.approve');
-    Route::post('/bookings/{booking}/reject', [BookingManageController::class, 'reject'])->name('bookings.reject');
     Route::post('/bookings/{booking}/complete', [BookingManageController::class, 'complete'])->name('bookings.complete');
     Route::post('/bookings/{booking}/cancel', [BookingManageController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [BookingManageController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
+    Route::put('/bookings/{booking}/user-notes', [BookingManageController::class, 'updateUserNotes'])->name('bookings.user-notes.update');
+    Route::post('/bookings/{booking}/send-email', [BookingManageController::class, 'sendEmail'])->name('bookings.send-email');
 
     // Profile
     Route::get('/profile', [ConsultantProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ConsultantProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/photo', [ConsultantProfileController::class, 'deletePhoto'])->name('profile.photo.delete');
+
+    // Google Calendar OAuth
+    Route::get('/google/auth', [ConsultantGoogleAuthController::class, 'redirect'])->name('google.auth');
+    Route::post('/google/disconnect', [ConsultantGoogleAuthController::class, 'disconnect'])->name('google.disconnect');
+    Route::get('/google/calendars', [ConsultantGoogleAuthController::class, 'calendars'])->name('google.calendars');
+    Route::put('/google/calendar', [ConsultantGoogleAuthController::class, 'updateCalendar'])->name('google.calendar.update');
 });
 
 // Admin routes
@@ -129,14 +173,25 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
-    Route::post('/bookings/{booking}/approve', [AdminBookingController::class, 'approve'])->name('bookings.approve');
-    Route::post('/bookings/{booking}/reject', [AdminBookingController::class, 'reject'])->name('bookings.reject');
+    Route::get('/bookings/export-csv', [AdminBookingController::class, 'exportCsv'])->name('bookings.export-csv');
+    Route::get('/bookings/create', [AdminBookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [AdminBookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/schedules', [AdminBookingController::class, 'getSchedules'])->name('bookings.schedules');
     Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [AdminBookingController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
+    Route::put('/bookings/{booking}/notes', [AdminBookingController::class, 'updateNotes'])->name('bookings.notes.update');
     Route::post('/bookings/{booking}/guest-email', [AdminGuestEmailController::class, 'send'])->name('bookings.guest-email.send');
+
+    // Schedule requests
+    Route::get('/schedule-requests', [AdminScheduleRequestController::class, 'index'])->name('schedule-requests.index');
+    Route::put('/schedule-requests/{scheduleRequest}/status', [AdminScheduleRequestController::class, 'updateStatus'])->name('schedule-requests.update-status');
+    Route::post('/schedule-requests/{scheduleRequest}/reply', [AdminScheduleRequestController::class, 'sendReply'])->name('schedule-requests.reply');
+    Route::post('/schedule-requests/{scheduleRequest}/create-booking', [AdminScheduleRequestController::class, 'createBooking'])->name('schedule-requests.create-booking');
 
     // Available schedules
     Route::get('/schedules', [AdminScheduleController::class, 'index'])->name('schedules.index');
+    Route::get('/schedules/create', [AdminScheduleController::class, 'create'])->name('schedules.create');
+    Route::post('/schedules', [AdminScheduleController::class, 'store'])->name('schedules.store');
 
     // Consultant stats
     Route::get('/stats', [ConsultantStatsController::class, 'index'])->name('stats.index');
@@ -147,9 +202,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Settings
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    Route::put('/settings/booking', [SettingController::class, 'updateBooking'])->name('settings.update.booking');
+    Route::put('/settings/reminder', [SettingController::class, 'updateReminder'])->name('settings.update.reminder');
+    Route::put('/settings/templates', [SettingController::class, 'updateTemplates'])->name('settings.update.templates');
+    Route::put('/settings/integration', [SettingController::class, 'updateIntegration'])->name('settings.update.integration');
 
     // Google Calendar OAuth
     Route::get('/google/auth', [GoogleAuthController::class, 'redirect'])->name('google.auth');
     Route::post('/google/disconnect', [GoogleAuthController::class, 'disconnect'])->name('google.disconnect');
+    Route::get('/google/calendars', [GoogleAuthController::class, 'calendars'])->name('google.calendars');
+    Route::put('/google/calendar', [GoogleAuthController::class, 'updateCalendar'])->name('google.calendar.update');
 });
