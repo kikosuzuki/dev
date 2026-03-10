@@ -84,6 +84,7 @@ class ConsultantBrowseController extends Controller
         $upcomingSchedules = $consultant->schedules()
             ->upcoming()
             ->where('is_available', true)
+            ->notCalendarBlocked()
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
             })

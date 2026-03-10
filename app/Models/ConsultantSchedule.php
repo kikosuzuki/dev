@@ -14,6 +14,8 @@ class ConsultantSchedule extends Model
         'start_time',
         'end_time',
         'is_available',
+        'calendar_blocked',
+        'calendar_blocked_reason',
     ];
 
     protected function casts(): array
@@ -21,6 +23,7 @@ class ConsultantSchedule extends Model
         return [
             'date' => 'date',
             'is_available' => 'boolean',
+            'calendar_blocked' => 'boolean',
         ];
     }
 
@@ -37,6 +40,16 @@ class ConsultantSchedule extends Model
     public function isBooked(): bool
     {
         return $this->bookings()->whereIn('status', ['pending', 'approved'])->exists();
+    }
+
+    public function isCalendarBlocked(): bool
+    {
+        return (bool) $this->calendar_blocked;
+    }
+
+    public function scopeNotCalendarBlocked(Builder $query): Builder
+    {
+        return $query->where('calendar_blocked', false);
     }
 
     /**

@@ -91,4 +91,43 @@ class GoogleAuthController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function allCalendars()
+    {
+        $user = auth()->user();
+        $profile = $user->consultantProfile;
+
+        if (!$profile || !$profile->isGoogleConnected()) {
+            return response()->json(['calendars' => [], 'error' => 'Google未連携'], 400);
+        }
+
+        $googleService = app(GoogleCalendarService::class);
+        $calendars = $googleService->listAllCalendars($profile->google_refresh_token);
+
+        return response()->json([
+            'calendars' => $calendars,
+            'selected' => $profile->getConflictCalendarIds(),
+        ]);
+    }
+
+    public function updateConflictCalendars(Request $request)
+    {
+        $request->validate([
+            'google_conflict_calendar_ids' => ['required', 'array'],
+            'google_conflict_calendar_ids.*' => ['string', 'max:255'],
+        ]);
+
+        $user = auth()->user();
+        $profile = $user->consultantProfile;
+
+        if (!$profile || !$profile->isGoogleConnected()) {
+            return response()->json(['error' => 'Googleアカウントが連携されていません。'], 400);
+        }
+
+        $profile->update([
+            'google_conflict_calendar_ids' => $request->google_conflict_calendar_ids,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }

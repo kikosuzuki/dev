@@ -27,6 +27,7 @@ class ConsultationController extends Controller
         $minDateTime = now()->addHours($hoursFromNow);
 
         $query = ConsultantSchedule::where('is_available', true)
+            ->notCalendarBlocked()
             ->whereHas('consultant', function ($q) {
                 $q->where('is_active', true);
             })
@@ -136,6 +137,27 @@ class ConsultationController extends Controller
 
         if ($dailyCount >= $maxPerDay) {
             return back()->with('error', 'このコンサルタントの予約枠は上限に達しています。別の日時をお選びください。');
+        }
+
+        // Real-time calendar conflict check
+        if ($consultantProfile && $consultantProfile->isGoogleConnected()) {
+            $conflictCalendarIds = $consultantProfile->getConflictCalendarIds();
+            if (!empty($conflictCalendarIds)) {
+                try {
+                    $conflict = app(GoogleCalendarService::class)->checkSlotConflict(
+                        $consultantProfile->google_refresh_token,
+                        $conflictCalendarIds,
+                        $schedule->date->format('Y-m-d'),
+                        $schedule->start_time,
+                        $schedule->end_time
+                    );
+                    if ($conflict) {
+                        return back()->with('error', 'この時間枠はコンサルタントの予定と重複しています。');
+                    }
+                } catch (\Exception $e) {
+                    // API failure: allow booking (batch will catch conflicts later)
+                }
+            }
         }
 
         $booking = Booking::create([

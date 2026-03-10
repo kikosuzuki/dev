@@ -27,6 +27,7 @@ class DashboardController extends Controller
         $year = $request->get('year', now()->year);
 
         $availableSchedules = ConsultantSchedule::where('is_available', true)
+            ->notCalendarBlocked()
             ->upcoming()
             ->acceptingBookings()
             ->whereDoesntHave('bookings', function ($q) {

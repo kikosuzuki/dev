@@ -24,6 +24,7 @@ class ScheduleBrowseController extends Controller
 
         $query = ConsultantSchedule::with(['consultant.consultantProfile'])
             ->where('is_available', true)
+            ->notCalendarBlocked()
             ->upcoming()
             ->where('date', '<=', $maxDate)
             ->where(function ($q) use ($minDateTime) {

@@ -314,6 +314,101 @@
                         };
                     }
                 </script>
+
+                {{-- Conflict Check Calendars (Multiple Selection) --}}
+                <div class="mt-6 pt-4 border-t border-gray-200" x-data="conflictCalendarSelector()">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">重複チェック用カレンダー</label>
+                    <p class="text-xs text-gray-500 mb-3">選択したカレンダーに予定がある時間帯は、予約枠を自動的にブロックします。</p>
+
+                    <template x-if="loading">
+                        <p class="text-sm text-gray-400">読み込み中...</p>
+                    </template>
+
+                    <template x-if="!loading && calendars.length > 0">
+                        <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3">
+                            <template x-for="cal in calendars" :key="cal.id">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" :value="cal.id" x-model="selectedCalendars"
+                                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-sm text-gray-700" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')"></span>
+                                    <span x-show="cal.accessRole === 'reader' || cal.accessRole === 'freeBusyReader'"
+                                          class="text-xs text-gray-400">(読み取り専用)</span>
+                                </label>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="!loading && calendars.length === 0">
+                        <p class="text-sm text-gray-400">利用可能なカレンダーがありません。</p>
+                    </template>
+
+                    <div class="mt-2 flex items-center space-x-3">
+                        <button @click="saveConflictCalendars()"
+                                :disabled="saving || loading"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition">
+                            <span x-show="!saving">保存</span>
+                            <span x-show="saving">保存中...</span>
+                        </button>
+                    </div>
+                    <p x-show="error" x-text="error" class="mt-1 text-sm text-red-600"></p>
+                    <p x-show="successMsg" x-text="successMsg" class="mt-1 text-sm text-green-600"></p>
+                </div>
+
+                <script>
+                    function conflictCalendarSelector() {
+                        return {
+                            calendars: [],
+                            selectedCalendars: @json($profile->getConflictCalendarIds()),
+                            loading: true,
+                            saving: false,
+                            error: '',
+                            successMsg: '',
+                            init() {
+                                fetch('{{ route("consultant.google.calendars.all") }}', {
+                                    headers: { 'Accept': 'application/json' }
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    this.calendars = data.calendars || [];
+                                    if (data.selected && data.selected.length > 0) {
+                                        this.selectedCalendars = data.selected;
+                                    }
+                                    this.loading = false;
+                                })
+                                .catch(() => {
+                                    this.error = 'カレンダー一覧の取得に失敗しました。';
+                                    this.loading = false;
+                                });
+                            },
+                            saveConflictCalendars() {
+                                this.saving = true;
+                                this.error = '';
+                                this.successMsg = '';
+                                fetch('{{ route("consultant.google.conflict-calendars.update") }}', {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ google_conflict_calendar_ids: this.selectedCalendars })
+                                })
+                                .then(r => {
+                                    if (r.ok) {
+                                        this.successMsg = '重複チェック用カレンダーを保存しました。';
+                                    } else {
+                                        this.error = '保存に失敗しました。';
+                                    }
+                                    this.saving = false;
+                                })
+                                .catch(() => {
+                                    this.error = '保存に失敗しました。';
+                                    this.saving = false;
+                                });
+                            }
+                        };
+                    }
+                </script>
             @else
                 {{-- Disconnected State --}}
                 <div class="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-md">
