@@ -22,6 +22,17 @@
         </div>
     @endif
 
+    @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
+        <div class="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md p-4">
+            <p class="font-medium mb-2">カレンダー重複によりスキップされた枠:</p>
+            <ul class="list-disc list-inside text-sm space-y-1">
+                @foreach(session('skipped_slots') as $skipped)
+                    <li>{{ $skipped['date'] }} {{ $skipped['time'] }} - {{ $skipped['reason'] }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Month Navigation --}}
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="px-6 py-4 flex items-center justify-between">
@@ -104,14 +115,17 @@
                             @foreach($slots as $slot)
                                 @php
                                     $isBooked = $slot->isBooked();
+                                    $isBlocked = $slot->isCalendarBlocked();
                                 @endphp
                                 <div class="flex items-center justify-between text-xs p-1 rounded
-                                    {{ $isBooked ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
+                                    {{ $isBooked ? 'bg-red-100 text-red-700' : ($isBlocked ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700') }}">
                                     <span>
                                         {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
                                     </span>
                                     @if($isBooked)
                                         <span class="font-medium">予約済</span>
+                                    @elseif($isBlocked)
+                                        <span class="font-medium" title="{{ $slot->calendar_blocked_reason }}">重複</span>
                                     @else
                                         <form action="{{ route('consultant.schedules.destroy', $slot) }}" method="POST"
                                             onsubmit="return confirm('このスケジュール枠を削除しますか？');" class="inline">
@@ -170,6 +184,7 @@
                         @foreach($slots as $slotIndex => $slot)
                             @php
                                 $isBooked = $slot->isBooked();
+                                $isBlocked = $slot->isCalendarBlocked();
                             @endphp
                             <tr class="{{ $isToday ? 'bg-indigo-50' : '' }}">
                                 <td class="px-6 py-3 whitespace-nowrap text-sm">
@@ -185,6 +200,8 @@
                                 <td class="px-6 py-3 whitespace-nowrap">
                                     @if($isBooked)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">予約済</span>
+                                    @elseif($isBlocked)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800" title="{{ $slot->calendar_blocked_reason }}">カレンダー重複</span>
                                     @else
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">空き</span>
                                     @endif

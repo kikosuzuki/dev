@@ -180,6 +180,8 @@ Route::middleware(['auth', 'role:consultant'])->prefix('consultant')->name('cons
     Route::post('/google/disconnect', [ConsultantGoogleAuthController::class, 'disconnect'])->name('google.disconnect');
     Route::get('/google/calendars', [ConsultantGoogleAuthController::class, 'calendars'])->name('google.calendars');
     Route::put('/google/calendar', [ConsultantGoogleAuthController::class, 'updateCalendar'])->name('google.calendar.update');
+    Route::get('/google/calendars/all', [ConsultantGoogleAuthController::class, 'allCalendars'])->name('google.calendars.all');
+    Route::put('/google/conflict-calendars', [ConsultantGoogleAuthController::class, 'updateConflictCalendars'])->name('google.conflict-calendars.update');
 });
 
 // Admin routes

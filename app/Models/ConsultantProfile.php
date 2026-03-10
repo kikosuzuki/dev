@@ -21,6 +21,7 @@ class ConsultantProfile extends Model
         'google_refresh_token',
         'google_calendar_email',
         'google_calendar_id',
+        'google_conflict_calendar_ids',
         'is_featured',
         'booking_acceptance_enabled',
         'average_rating',
@@ -37,6 +38,7 @@ class ConsultantProfile extends Model
         return [
             'qualifications' => 'array',
             'languages' => 'array',
+            'google_conflict_calendar_ids' => 'array',
             'is_featured' => 'boolean',
             'booking_acceptance_enabled' => 'boolean',
             'average_rating' => 'decimal:2',
@@ -65,6 +67,11 @@ class ConsultantProfile extends Model
     public function isGoogleConnected(): bool
     {
         return !empty($this->google_refresh_token);
+    }
+
+    public function getConflictCalendarIds(): array
+    {
+        return $this->google_conflict_calendar_ids ?? [];
     }
 
     public function user()

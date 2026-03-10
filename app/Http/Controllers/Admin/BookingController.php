@@ -259,6 +259,7 @@ class BookingController extends Controller
 
         $schedules = ConsultantSchedule::where('user_id', $request->consultant_id)
             ->where('is_available', true)
+            ->notCalendarBlocked()
             ->upcoming()
             ->whereDoesntHave('bookings', function ($q) {
                 $q->whereIn('status', ['pending', 'approved']);
@@ -314,6 +315,28 @@ class BookingController extends Controller
 
         if ($dailyCount >= $maxPerDay) {
             return back()->withInput()->with('error', 'このコンサルタントの予約枠は上限に達しています。');
+        }
+
+        // Real-time calendar conflict check
+        $consultantProfile = $schedule->consultant->consultantProfile;
+        if ($consultantProfile && $consultantProfile->isGoogleConnected()) {
+            $conflictCalendarIds = $consultantProfile->getConflictCalendarIds();
+            if (!empty($conflictCalendarIds)) {
+                try {
+                    $conflict = app(GoogleCalendarService::class)->checkSlotConflict(
+                        $consultantProfile->google_refresh_token,
+                        $conflictCalendarIds,
+                        $schedule->date->format('Y-m-d'),
+                        $schedule->start_time,
+                        $schedule->end_time
+                    );
+                    if ($conflict) {
+                        return back()->withInput()->with('error', 'この時間枠はコンサルタントの予定と重複しています。');
+                    }
+                } catch (\Exception $e) {
+                    // API failure: allow booking (batch will catch conflicts later)
+                }
+            }
         }
 
         $bookingData = [

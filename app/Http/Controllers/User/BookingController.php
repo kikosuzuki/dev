@@ -77,7 +77,27 @@ class BookingController extends Controller
             return back()->with('error', 'このコンサルタントの本日の予約枠は上限に達しています。');
         }
 
+        // Real-time calendar conflict check
         $profile = $schedule->consultant->consultantProfile;
+        if ($profile && $profile->isGoogleConnected()) {
+            $conflictCalendarIds = $profile->getConflictCalendarIds();
+            if (!empty($conflictCalendarIds)) {
+                try {
+                    $conflict = app(GoogleCalendarService::class)->checkSlotConflict(
+                        $profile->google_refresh_token,
+                        $conflictCalendarIds,
+                        $schedule->date->format('Y-m-d'),
+                        $schedule->start_time,
+                        $schedule->end_time
+                    );
+                    if ($conflict) {
+                        return back()->with('error', 'この時間枠はコンサルタントの予定と重複しています。');
+                    }
+                } catch (\Exception $e) {
+                    // API failure: allow booking (batch will catch conflicts later)
+                }
+            }
+        }
 
         $booking = Booking::create([
             'user_id' => auth()->id(),

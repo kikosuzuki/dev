@@ -142,6 +142,199 @@ class GoogleCalendarService
     }
 
     // ========================================
+    // Calendar conflict checking methods
+    // ========================================
+
+    /**
+     * List all calendars including read-only ones (for conflict checking).
+     */
+    public function listAllCalendars(string $refreshToken): array
+    {
+        $accessToken = $this->getAccessTokenFromRefreshToken($refreshToken);
+        if (!$accessToken) {
+            return [];
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->get('https://www.googleapis.com/calendar/v3/users/me/calendarList');
+
+        if (!$response->successful()) {
+            return [];
+        }
+
+        $calendars = [];
+        foreach ($response->json('items', []) as $item) {
+            $calendars[] = [
+                'id' => $item['id'],
+                'summary' => $item['summary'] ?? $item['id'],
+                'primary' => $item['primary'] ?? false,
+                'accessRole' => $item['accessRole'] ?? 'reader',
+            ];
+        }
+
+        return $calendars;
+    }
+
+    /**
+     * List events from a single calendar within a date range.
+     */
+    public function listEvents(string $refreshToken, string $calendarId, string $timeMin, string $timeMax): array
+    {
+        $accessToken = $this->getAccessTokenFromRefreshToken($refreshToken);
+        if (!$accessToken) {
+            return [];
+        }
+
+        $events = [];
+        $pageToken = null;
+
+        do {
+            $params = [
+                'timeMin' => $timeMin,
+                'timeMax' => $timeMax,
+                'singleEvents' => 'true',
+                'orderBy' => 'startTime',
+                'timeZone' => 'Asia/Tokyo',
+                'maxResults' => 2500,
+                'fields' => 'items(id,summary,start,end,status),nextPageToken',
+            ];
+
+            if ($pageToken) {
+                $params['pageToken'] = $pageToken;
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $accessToken,
+            ])->get("https://www.googleapis.com/calendar/v3/calendars/" . urlencode($calendarId) . "/events", $params);
+
+            if (!$response->successful()) {
+                Log::warning('Failed to list calendar events', [
+                    'calendar_id' => $calendarId,
+                    'status' => $response->status(),
+                ]);
+                break;
+            }
+
+            foreach ($response->json('items', []) as $item) {
+                if (($item['status'] ?? '') === 'cancelled') {
+                    continue;
+                }
+
+                $start = $item['start']['dateTime'] ?? null;
+                $end = $item['end']['dateTime'] ?? null;
+
+                // Handle all-day events
+                if (!$start && isset($item['start']['date'])) {
+                    $start = $item['start']['date'] . 'T00:00:00+09:00';
+                    $end = $item['end']['date'] . 'T00:00:00+09:00';
+                }
+
+                if ($start && $end) {
+                    $events[] = [
+                        'summary' => $item['summary'] ?? '(予定)',
+                        'start' => $start,
+                        'end' => $end,
+                    ];
+                }
+            }
+
+            $pageToken = $response->json('nextPageToken');
+        } while ($pageToken);
+
+        return $events;
+    }
+
+    /**
+     * List events from multiple calendars and merge results.
+     */
+    public function listEventsFromMultipleCalendars(string $refreshToken, array $calendarIds, string $timeMin, string $timeMax): array
+    {
+        $allEvents = [];
+
+        foreach ($calendarIds as $calendarId) {
+            try {
+                $events = $this->listEvents($refreshToken, $calendarId, $timeMin, $timeMax);
+                $allEvents = array_merge($allEvents, $events);
+            } catch (\Exception $e) {
+                Log::warning('Failed to fetch events from calendar', [
+                    'calendar_id' => $calendarId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return $allEvents;
+    }
+
+    /**
+     * Check proposed slots against calendar events for conflicts.
+     * Each slot: ['date' => 'Y-m-d', 'start_time' => 'H:i:s', 'end_time' => 'H:i:s']
+     * Returns slots with has_conflict and conflicting_events added.
+     */
+    public function findConflicts(array $events, array $proposedSlots): array
+    {
+        $result = [];
+
+        foreach ($proposedSlots as $slot) {
+            $slotStart = \Carbon\Carbon::parse($slot['date'] . ' ' . $slot['start_time'], 'Asia/Tokyo');
+            $slotEnd = \Carbon\Carbon::parse($slot['date'] . ' ' . $slot['end_time'], 'Asia/Tokyo');
+
+            $conflicts = [];
+            foreach ($events as $event) {
+                $eventStart = \Carbon\Carbon::parse($event['start'])->setTimezone('Asia/Tokyo');
+                $eventEnd = \Carbon\Carbon::parse($event['end'])->setTimezone('Asia/Tokyo');
+
+                if ($eventStart->lt($slotEnd) && $eventEnd->gt($slotStart)) {
+                    $conflicts[] = [
+                        'summary' => $event['summary'],
+                        'start' => $eventStart->format('H:i'),
+                        'end' => $eventEnd->format('H:i'),
+                    ];
+                }
+            }
+
+            $slot['has_conflict'] = !empty($conflicts);
+            $slot['conflicting_events'] = $conflicts;
+            $result[] = $slot;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Check a single slot for conflicts (used at booking time).
+     * Returns conflicting event summary or null.
+     */
+    public function checkSlotConflict(string $refreshToken, array $calendarIds, string $date, string $startTime, string $endTime): ?string
+    {
+        if (empty($calendarIds)) {
+            return null;
+        }
+
+        try {
+            $timeMin = $date . 'T00:00:00+09:00';
+            $timeMax = $date . 'T23:59:59+09:00';
+
+            $events = $this->listEventsFromMultipleCalendars($refreshToken, $calendarIds, $timeMin, $timeMax);
+
+            $slots = [['date' => $date, 'start_time' => $startTime, 'end_time' => $endTime]];
+            $result = $this->findConflicts($events, $slots);
+
+            if (!empty($result[0]['has_conflict'])) {
+                return $result[0]['conflicting_events'][0]['summary'] ?? '(予定)';
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to check slot conflict', [
+                'date' => $date,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
+    }
+
+    // ========================================
     // Sync methods (admin + consultant)
     // ========================================
 
