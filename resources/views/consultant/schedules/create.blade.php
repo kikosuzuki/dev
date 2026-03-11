@@ -194,67 +194,23 @@
 
             {{-- Calendar Conflict Check --}}
             @if($profile && $profile->isGoogleConnected())
-                <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-md" x-data="bulkConflictCheck()">
-                    <div class="flex items-center justify-between mb-3">
+                @php $conflictIds = $profile->getConflictCalendarIds(); @endphp
+                <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
+                    <div class="flex items-center justify-between mb-2">
                         <label class="text-sm font-medium text-gray-700">Googleカレンダーと重複チェック</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="enable_conflict_check" value="1" x-model="enabled" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
+                        @if(!empty($conflictIds))
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">有効</span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">未設定</span>
+                        @endif
                     </div>
-
-                    <template x-if="enabled">
-                        <div>
-                            <template x-if="loading">
-                                <p class="text-sm text-gray-400">カレンダー読み込み中...</p>
-                            </template>
-                            <template x-if="!loading && calendars.length > 0">
-                                <div class="space-y-2 max-h-36 overflow-y-auto">
-                                    <template x-for="cal in calendars" :key="cal.id">
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="checkbox" name="conflict_calendar_ids[]" :value="cal.id" x-model="selectedCalendars"
-                                                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                            <span class="text-sm text-gray-700" x-text="cal.summary + (cal.primary ? ' (メイン)' : '')"></span>
-                                            <span x-show="cal.accessRole === 'reader' || cal.accessRole === 'freeBusyReader'"
-                                                  class="text-xs text-gray-400">(読み取り専用)</span>
-                                        </label>
-                                    </template>
-                                </div>
-                            </template>
-                            <template x-if="!loading && calendars.length === 0">
-                                <p class="text-sm text-gray-400">カレンダーがありません。プロフィール設定から重複チェック用カレンダーを設定してください。</p>
-                            </template>
-                            <p class="mt-2 text-xs text-gray-500">選択したカレンダーに予定がある枠は自動的にスキップされます。</p>
-                        </div>
-                    </template>
+                    @if(!empty($conflictIds))
+                        <p class="text-xs text-gray-500 mb-1">チェック対象: {{ count($conflictIds) }}件のカレンダー</p>
+                        <p class="text-xs text-gray-500">予定がある枠は自動的にスキップされます。</p>
+                    @else
+                        <p class="text-xs text-gray-400"><a href="{{ route('consultant.profile.edit') }}" class="text-indigo-600 hover:underline">プロフィール設定</a>から重複チェック用カレンダーを設定してください。</p>
+                    @endif
                 </div>
-
-                <script>
-                    function bulkConflictCheck() {
-                        return {
-                            enabled: true,
-                            calendars: [],
-                            selectedCalendars: @json($profile->getConflictCalendarIds()),
-                            loading: true,
-                            init() {
-                                fetch('{{ route("consultant.google.calendars.all") }}', {
-                                    headers: { 'Accept': 'application/json' }
-                                })
-                                .then(r => r.json())
-                                .then(data => {
-                                    this.calendars = data.calendars || [];
-                                    if (data.selected && data.selected.length > 0) {
-                                        this.selectedCalendars = data.selected;
-                                    }
-                                    this.loading = false;
-                                })
-                                .catch(() => {
-                                    this.loading = false;
-                                });
-                            }
-                        };
-                    }
-                </script>
             @endif
 
             <div>

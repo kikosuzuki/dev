@@ -151,8 +151,6 @@ class ScheduleController extends Controller
             'slot_duration' => ['required', 'integer', 'min:15', 'max:240'],
             'skip_holidays' => ['boolean'],
             'enable_conflict_check' => ['boolean'],
-            'conflict_calendar_ids' => ['nullable', 'array'],
-            'conflict_calendar_ids.*' => ['string', 'max:255'],
         ]);
 
         $dayMap = ['sun' => 0, 'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4, 'fri' => 5, 'sat' => 6];
@@ -164,10 +162,9 @@ class ScheduleController extends Controller
         $start = \Carbon\Carbon::parse($validated['start_date']);
         $end = \Carbon\Carbon::parse($validated['end_date']);
 
-        // Conflict checking setup
+        // Conflict checking setup (always use profile's conflict calendar settings)
         $enableConflictCheck = $validated['enable_conflict_check'] ?? true;
-        $conflictCalendarIds = $validated['conflict_calendar_ids']
-            ?? ($profile ? $profile->getConflictCalendarIds() : []);
+        $conflictCalendarIds = $profile ? $profile->getConflictCalendarIds() : [];
         $calendarEvents = [];
         $conflictCheckActive = false;
 
