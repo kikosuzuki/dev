@@ -205,7 +205,7 @@
     @endif
 
     {{-- Google Calendar Integration (separate from main profile form) --}}
-    <div class="bg-white rounded-lg shadow mt-8">
+    <div id="google-calendar" class="bg-white rounded-lg shadow mt-8">
         <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">Googleカレンダー連携</h2>
 
