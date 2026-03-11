@@ -72,6 +72,7 @@ class ScheduleController extends Controller
                     Log::warning('Calendar conflict check failed during individual creation', [
                         'error' => $e->getMessage(),
                     ]);
+                    session()->flash('warning', 'カレンダーの重複チェックに失敗しました: ' . $e->getMessage());
                 }
             }
         }
@@ -186,6 +187,7 @@ class ScheduleController extends Controller
                 Log::warning('Calendar conflict check failed during bulk creation', [
                     'error' => $e->getMessage(),
                 ]);
+                session()->flash('warning', 'カレンダーの重複チェックに失敗しました: ' . $e->getMessage());
             }
         }
 
