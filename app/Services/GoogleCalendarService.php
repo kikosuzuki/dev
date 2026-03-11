@@ -198,7 +198,7 @@ class GoogleCalendarService
                 'orderBy' => 'startTime',
                 'timeZone' => 'Asia/Tokyo',
                 'maxResults' => 2500,
-                'fields' => 'items(id,summary,start,end,status),nextPageToken',
+                'fields' => 'items(id,summary,start,end,status,transparency),nextPageToken',
             ];
 
             if ($pageToken) {
@@ -219,6 +219,11 @@ class GoogleCalendarService
 
             foreach ($response->json('items', []) as $item) {
                 if (($item['status'] ?? '') === 'cancelled') {
+                    continue;
+                }
+
+                // Skip transparent (free/available) events - they don't represent conflicts
+                if (($item['transparency'] ?? 'opaque') === 'transparent') {
                     continue;
                 }
 
@@ -362,7 +367,7 @@ class GoogleCalendarService
         $endTime = substr($schedule->end_time, 0, 5);
 
         $event = [
-            'summary' => "【空き枠】{$startTime}〜{$endTime}",
+            'summary' => "【個別相談空き枠】{$startTime}〜{$endTime}",
             'start' => [
                 'dateTime' => $schedule->date->format('Y-m-d') . 'T' . $schedule->start_time,
                 'timeZone' => 'Asia/Tokyo',
