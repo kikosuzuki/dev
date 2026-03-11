@@ -245,5 +245,14 @@
             </div>
         @endif
     </div>
+
+    {{-- Status Legend --}}
+    <div class="mt-4 px-1 text-xs text-gray-500">
+        <p>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">重複</span>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ml-1">カレンダー重複</span>
+            … 重複チェック用カレンダーに予定がある時間枠です。個別相談予約ページには表示されず、予約は入りません。
+        </p>
+    </div>
 </div>
 @endsection

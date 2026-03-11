@@ -59,6 +59,27 @@ class GoogleCalendarService
         return $response->successful();
     }
 
+    /**
+     * Delete an event from a specific admin calendar by calendar ID.
+     */
+    public function deleteEventFromCalendar(string $eventId, string $calendarId): bool
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return false;
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->delete("https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events/{$eventId}");
+
+        return $response->successful();
+    }
+
     // ========================================
     // Consultant calendar methods (new)
     // ========================================
@@ -340,12 +361,14 @@ class GoogleCalendarService
 
     /**
      * Create event on both admin and consultant calendars.
-     * Returns [$adminEventId, $consultantEventId].
+     * Returns [$adminEventId, $adminCalendarId, $consultantEventId, $consultantCalendarId].
      */
     public function syncCreateEvent(Booking $booking): array
     {
         $adminEventId = null;
+        $adminCalendarId = null;
         $consultantEventId = null;
+        $consultantCalendarId = null;
 
         // Check if consultant has their own Google Calendar connected
         $consultant = $booking->consultant;
@@ -355,6 +378,7 @@ class GoogleCalendarService
         // 1. Admin calendar
         // If consultant has own calendar, exclude them from attendees to avoid duplicate
         try {
+            $adminCalendarId = SystemSetting::get('google_calendar_id', 'primary');
             $adminEventId = $this->createEvent($booking, $consultantHasOwnCalendar);
         } catch (\Exception $e) {
             // Admin calendar is optional
@@ -363,18 +387,18 @@ class GoogleCalendarService
         // 2. Consultant's own calendar
         try {
             if ($consultantHasOwnCalendar) {
-                $calendarId = $profile->google_calendar_id ?: 'primary';
+                $consultantCalendarId = $profile->google_calendar_id ?: 'primary';
                 $consultantEventId = $this->createEventForConsultant(
                     $booking,
                     $profile->google_refresh_token,
-                    $calendarId
+                    $consultantCalendarId
                 );
             }
         } catch (\Exception $e) {
             // Consultant calendar is optional
         }
 
-        return [$adminEventId, $consultantEventId];
+        return [$adminEventId, $adminCalendarId, $consultantEventId, $consultantCalendarId];
     }
 
     /**
@@ -385,7 +409,9 @@ class GoogleCalendarService
         // 1. Admin calendar
         if ($booking->google_event_id) {
             try {
-                $this->deleteEvent($booking->google_event_id);
+                // Use the calendar ID stored at booking time (fallback to current system setting)
+                $calendarId = $booking->admin_google_calendar_id ?: SystemSetting::get('google_calendar_id', 'primary');
+                $this->deleteEventFromCalendar($booking->google_event_id, $calendarId);
             } catch (\Exception $e) {
                 // Ignore
             }
@@ -397,7 +423,8 @@ class GoogleCalendarService
                 $consultant = $booking->consultant;
                 $profile = $consultant->consultantProfile;
                 if ($profile && $profile->isGoogleConnected()) {
-                    $calendarId = $profile->google_calendar_id ?: 'primary';
+                    // Use the calendar ID stored at booking time (fallback to current profile setting)
+                    $calendarId = $booking->consultant_google_calendar_id ?: $profile->google_calendar_id ?: 'primary';
                     $this->deleteEventForConsultant(
                         $booking->consultant_google_event_id,
                         $profile->google_refresh_token,
