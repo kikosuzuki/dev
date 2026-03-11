@@ -160,6 +160,15 @@ class ConsultationController extends Controller
             }
         }
 
+        // Delete available slot event before creating booking
+        if ($schedule->google_event_id) {
+            try {
+                app(GoogleCalendarService::class)->deleteAvailableSlotEvent($schedule);
+            } catch (\Exception $e) {
+                // Non-critical: continue with booking
+            }
+        }
+
         $booking = Booking::create([
             'user_id' => null,
             'consultant_id' => $schedule->user_id,
