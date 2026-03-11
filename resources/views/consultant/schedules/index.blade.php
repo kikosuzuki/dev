@@ -19,6 +19,13 @@
     @if(session('error'))
         <div class="mb-6 bg-red-50 border border-red-300 text-red-700 rounded-md p-4">
             {{ session('error') }}
+            @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
+                <ul class="list-disc list-inside text-sm space-y-1 mt-2">
+                    @foreach(session('skipped_slots') as $skipped)
+                        <li>{{ $skipped['date'] }} {{ $skipped['time'] }} - {{ $skipped['reason'] }}</li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
     @endif
 
@@ -28,7 +35,7 @@
         </div>
     @endif
 
-    @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
+    @if(!session('error') && session('skipped_slots') && count(session('skipped_slots')) > 0)
         <div class="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md p-4">
             <p class="font-medium mb-2">カレンダー重複によりスキップされた枠:</p>
             <ul class="list-disc list-inside text-sm space-y-1">
@@ -237,6 +244,15 @@
                 <p class="text-sm">この月にはスケジュール枠がありません。</p>
             </div>
         @endif
+    </div>
+
+    {{-- Status Legend --}}
+    <div class="mt-4 px-1 text-xs text-gray-500">
+        <p>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700">重複</span>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 ml-1">カレンダー重複</span>
+            … 重複チェック用カレンダーに予定がある時間枠です。個別相談予約ページには表示されず、予約は入りません。
+        </p>
     </div>
 </div>
 @endsection

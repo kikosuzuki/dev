@@ -160,15 +160,6 @@ class ConsultationController extends Controller
             }
         }
 
-        // Delete available slot event before creating booking
-        if ($schedule->google_event_id) {
-            try {
-                app(GoogleCalendarService::class)->deleteAvailableSlotEvent($schedule);
-            } catch (\Exception $e) {
-                // Non-critical: continue with booking
-            }
-        }
-
         $booking = Booking::create([
             'user_id' => null,
             'consultant_id' => $schedule->user_id,
@@ -188,10 +179,12 @@ class ConsultationController extends Controller
 
         try {
             $googleService = app(GoogleCalendarService::class);
-            [$adminEventId, $consultantEventId] = $googleService->syncCreateEvent($booking);
+            [$adminEventId, $adminCalendarId, $consultantEventId, $consultantCalendarId] = $googleService->syncCreateEvent($booking);
             $booking->update([
                 'google_event_id' => $adminEventId,
+                'admin_google_calendar_id' => $adminCalendarId,
                 'consultant_google_event_id' => $consultantEventId,
+                'consultant_google_calendar_id' => $consultantCalendarId,
             ]);
         } catch (\Exception $e) {
             // Google Calendar integration is optional

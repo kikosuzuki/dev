@@ -247,7 +247,7 @@
     </div>
 
     {{-- Google Calendar Integration (separate from main profile form) --}}
-    <div class="bg-white rounded-lg shadow mt-8">
+    <div id="google-calendar" class="bg-white rounded-lg shadow mt-8">
         <div class="p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-6">Googleカレンダー連携</h2>
 
@@ -440,72 +440,6 @@
                                         this.successMsg = '重複チェック用カレンダーを保存しました。';
                                     } else {
                                         this.error = '保存に失敗しました。';
-                                    }
-                                    this.saving = false;
-                                })
-                                .catch(() => {
-                                    this.error = '保存に失敗しました。';
-                                    this.saving = false;
-                                });
-                            }
-                        };
-                    }
-                </script>
-
-                {{-- Available Slot Sync Toggle --}}
-                <div class="mt-6 pt-4 border-t border-gray-200" x-data="availableSlotSync()">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">空き枠をカレンダーに表示</label>
-                            <p class="text-xs text-gray-500 mt-1">ONにすると、予約が入っていない空き枠がGoogleカレンダーに「予定なし」として表示されます。予約が入ると自動的に削除されます。</p>
-                        </div>
-                        <div class="flex items-center ml-4">
-                            <button type="button"
-                                    @click="toggleSync()"
-                                    :class="enabled ? 'bg-indigo-600' : 'bg-gray-200'"
-                                    :disabled="saving"
-                                    class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                                    role="switch"
-                                    :aria-checked="enabled">
-                                <span :class="enabled ? 'translate-x-5' : 'translate-x-0'"
-                                      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                            </button>
-                            <span class="ml-3 text-sm" :class="enabled ? 'text-green-600 font-medium' : 'text-gray-500'" x-text="enabled ? 'ON' : 'OFF'"></span>
-                        </div>
-                    </div>
-                    <p x-show="saving" class="mt-2 text-sm text-gray-500">処理中...</p>
-                    <p x-show="error" x-text="error" class="mt-2 text-sm text-red-600"></p>
-                    <p x-show="successMsg" x-text="successMsg" class="mt-2 text-sm text-green-600"></p>
-                </div>
-
-                <script>
-                    function availableSlotSync() {
-                        return {
-                            enabled: {{ $profile->sync_available_slots ? 'true' : 'false' }},
-                            saving: false,
-                            error: '',
-                            successMsg: '',
-                            toggleSync() {
-                                this.saving = true;
-                                this.error = '';
-                                this.successMsg = '';
-                                const newValue = !this.enabled;
-                                fetch('{{ route("consultant.google.available-slot-sync.update") }}', {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                    },
-                                    body: JSON.stringify({ sync_available_slots: newValue })
-                                })
-                                .then(r => r.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        this.enabled = newValue;
-                                        this.successMsg = data.message || (newValue ? '空き枠同期をONにしました。' : '空き枠同期をOFFにしました。');
-                                    } else {
-                                        this.error = data.message || '保存に失敗しました。';
                                     }
                                     this.saving = false;
                                 })

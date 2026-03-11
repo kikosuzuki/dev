@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\ConsultantSchedule;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -52,6 +51,27 @@ class GoogleCalendarService
         }
 
         $calendarId = SystemSetting::get('google_calendar_id', 'primary');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->delete("https://www.googleapis.com/calendar/v3/calendars/{$calendarId}/events/{$eventId}");
+
+        return $response->successful();
+    }
+
+    /**
+     * Delete an event from a specific admin calendar by calendar ID.
+     */
+    public function deleteEventFromCalendar(string $eventId, string $calendarId): bool
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return false;
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accessToken,
@@ -198,7 +218,7 @@ class GoogleCalendarService
                 'orderBy' => 'startTime',
                 'timeZone' => 'Asia/Tokyo',
                 'maxResults' => 2500,
-                'fields' => 'items(id,summary,start,end,status,transparency),nextPageToken',
+                'fields' => 'items(id,summary,start,end,status),nextPageToken',
             ];
 
             if ($pageToken) {
@@ -219,11 +239,6 @@ class GoogleCalendarService
 
             foreach ($response->json('items', []) as $item) {
                 if (($item['status'] ?? '') === 'cancelled') {
-                    continue;
-                }
-
-                // Skip transparent (free/available) events - they don't represent conflicts
-                if (($item['transparency'] ?? 'opaque') === 'transparent') {
                     continue;
                 }
 
@@ -341,112 +356,19 @@ class GoogleCalendarService
     }
 
     // ========================================
-    // Available slot sync methods
-    // ========================================
-
-    /**
-     * Create a transparent (Free) event on consultant's calendar for an available slot.
-     * Returns the created event ID or null.
-     */
-    public function createAvailableSlotEvent(ConsultantSchedule $schedule): ?string
-    {
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-
-        if (!$profile || !$profile->isGoogleConnected() || !$profile->sync_available_slots) {
-            return null;
-        }
-
-        $accessToken = $this->getAccessTokenFromRefreshToken($profile->google_refresh_token);
-        if (!$accessToken) {
-            return null;
-        }
-
-        $calendarId = $profile->google_calendar_id ?: 'primary';
-        $startTime = substr($schedule->start_time, 0, 5);
-        $endTime = substr($schedule->end_time, 0, 5);
-
-        $event = [
-            'summary' => "【個別相談空き枠】{$startTime}〜{$endTime}",
-            'start' => [
-                'dateTime' => $schedule->date->format('Y-m-d') . 'T' . $schedule->start_time,
-                'timeZone' => 'Asia/Tokyo',
-            ],
-            'end' => [
-                'dateTime' => $schedule->date->format('Y-m-d') . 'T' . $schedule->end_time,
-                'timeZone' => 'Asia/Tokyo',
-            ],
-            'transparency' => 'transparent',
-            'description' => "予約システムの空き枠です。\n予約が入ると自動的に削除されます。",
-        ];
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $accessToken,
-            'Content-Type' => 'application/json',
-        ])->post("https://www.googleapis.com/calendar/v3/calendars/" . urlencode($calendarId) . "/events", $event);
-
-        if ($response->successful()) {
-            $eventId = $response->json('id');
-            $schedule->update(['google_event_id' => $eventId]);
-            return $eventId;
-        }
-
-        Log::warning('Failed to create available slot event', [
-            'schedule_id' => $schedule->id,
-            'status' => $response->status(),
-        ]);
-
-        return null;
-    }
-
-    /**
-     * Delete the available slot event from consultant's calendar.
-     */
-    public function deleteAvailableSlotEvent(ConsultantSchedule $schedule): void
-    {
-        if (!$schedule->google_event_id) {
-            return;
-        }
-
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-
-        if (!$profile || !$profile->isGoogleConnected()) {
-            $schedule->update(['google_event_id' => null]);
-            return;
-        }
-
-        $calendarId = $profile->google_calendar_id ?: 'primary';
-
-        try {
-            $this->deleteEventForConsultant(
-                $schedule->google_event_id,
-                $profile->google_refresh_token,
-                $calendarId
-            );
-        } catch (\Exception $e) {
-            Log::warning('Failed to delete available slot event', [
-                'schedule_id' => $schedule->id,
-                'event_id' => $schedule->google_event_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        $schedule->update(['google_event_id' => null]);
-    }
-
-    // ========================================
     // Sync methods (admin + consultant)
     // ========================================
 
     /**
      * Create event on both admin and consultant calendars.
-     * Returns [$adminEventId, $consultantEventId].
+     * Returns [$adminEventId, $adminCalendarId, $consultantEventId, $consultantCalendarId].
      */
     public function syncCreateEvent(Booking $booking): array
     {
         $adminEventId = null;
+        $adminCalendarId = null;
         $consultantEventId = null;
+        $consultantCalendarId = null;
 
         // Check if consultant has their own Google Calendar connected
         $consultant = $booking->consultant;
@@ -456,6 +378,7 @@ class GoogleCalendarService
         // 1. Admin calendar
         // If consultant has own calendar, exclude them from attendees to avoid duplicate
         try {
+            $adminCalendarId = SystemSetting::get('google_calendar_id', 'primary');
             $adminEventId = $this->createEvent($booking, $consultantHasOwnCalendar);
         } catch (\Exception $e) {
             // Admin calendar is optional
@@ -464,18 +387,18 @@ class GoogleCalendarService
         // 2. Consultant's own calendar
         try {
             if ($consultantHasOwnCalendar) {
-                $calendarId = $profile->google_calendar_id ?: 'primary';
+                $consultantCalendarId = $profile->google_calendar_id ?: 'primary';
                 $consultantEventId = $this->createEventForConsultant(
                     $booking,
                     $profile->google_refresh_token,
-                    $calendarId
+                    $consultantCalendarId
                 );
             }
         } catch (\Exception $e) {
             // Consultant calendar is optional
         }
 
-        return [$adminEventId, $consultantEventId];
+        return [$adminEventId, $adminCalendarId, $consultantEventId, $consultantCalendarId];
     }
 
     /**
@@ -486,7 +409,9 @@ class GoogleCalendarService
         // 1. Admin calendar
         if ($booking->google_event_id) {
             try {
-                $this->deleteEvent($booking->google_event_id);
+                // Use the calendar ID stored at booking time (fallback to current system setting)
+                $calendarId = $booking->admin_google_calendar_id ?: SystemSetting::get('google_calendar_id', 'primary');
+                $this->deleteEventFromCalendar($booking->google_event_id, $calendarId);
             } catch (\Exception $e) {
                 // Ignore
             }
@@ -498,7 +423,8 @@ class GoogleCalendarService
                 $consultant = $booking->consultant;
                 $profile = $consultant->consultantProfile;
                 if ($profile && $profile->isGoogleConnected()) {
-                    $calendarId = $profile->google_calendar_id ?: 'primary';
+                    // Use the calendar ID stored at booking time (fallback to current profile setting)
+                    $calendarId = $booking->consultant_google_calendar_id ?: $profile->google_calendar_id ?: 'primary';
                     $this->deleteEventForConsultant(
                         $booking->consultant_google_event_id,
                         $profile->google_refresh_token,

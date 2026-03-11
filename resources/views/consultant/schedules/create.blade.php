@@ -207,8 +207,9 @@
                     @if(!empty($conflictIds))
                         <p class="text-xs text-gray-500 mb-1">チェック対象: {{ count($conflictIds) }}件のカレンダー</p>
                         <p class="text-xs text-gray-500">予定がある枠は自動的にスキップされます。</p>
+                        <p class="text-xs text-gray-400 mt-1">チェック対象カレンダーは<a href="{{ route('consultant.profile.edit') }}#google-calendar" class="text-indigo-600 hover:underline">プロフィール設定</a>から変更できます。</p>
                     @else
-                        <p class="text-xs text-gray-400"><a href="{{ route('consultant.profile.edit') }}" class="text-indigo-600 hover:underline">プロフィール設定</a>から重複チェック用カレンダーを設定してください。</p>
+                        <p class="text-xs text-gray-400"><a href="{{ route('consultant.profile.edit') }}#google-calendar" class="text-indigo-600 hover:underline">プロフィール設定</a>から重複チェック用カレンダーを設定してください。</p>
                     @endif
                 </div>
             @endif
