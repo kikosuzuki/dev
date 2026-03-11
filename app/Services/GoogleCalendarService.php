@@ -198,7 +198,7 @@ class GoogleCalendarService
                 'orderBy' => 'startTime',
                 'timeZone' => 'Asia/Tokyo',
                 'maxResults' => 2500,
-                'fields' => 'items(id,summary,start,end,status),nextPageToken',
+                'fields' => 'items(id,summary,start,end,status,transparency),nextPageToken',
             ];
 
             if ($pageToken) {
@@ -219,6 +219,11 @@ class GoogleCalendarService
 
             foreach ($response->json('items', []) as $item) {
                 if (($item['status'] ?? '') === 'cancelled') {
+                    continue;
+                }
+
+                // Skip transparent (free/available) events - they don't represent conflicts
+                if (($item['transparency'] ?? 'opaque') === 'transparent') {
                     continue;
                 }
 
