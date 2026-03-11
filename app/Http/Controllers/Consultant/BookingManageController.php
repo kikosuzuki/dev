@@ -106,6 +106,19 @@ class BookingManageController extends Controller
             }
         }
 
+        // Restore available slot event on cancel
+        $schedule = $booking->schedule;
+        if ($schedule) {
+            $consultantProfile = $booking->consultant->consultantProfile;
+            if ($consultantProfile && $consultantProfile->sync_available_slots && !$schedule->google_event_id) {
+                try {
+                    app(GoogleCalendarService::class)->createAvailableSlotEvent($schedule);
+                } catch (\Exception $e) {
+                    // Non-critical
+                }
+            }
+        }
+
         AuditLog::log('booking_cancelled_by_consultant', $booking);
 
         if (!$request->boolean('skip_notification')) {

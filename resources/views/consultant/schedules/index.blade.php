@@ -22,6 +22,12 @@
         </div>
     @endif
 
+    @if(session('warning'))
+        <div class="mb-6 bg-orange-50 border border-orange-300 text-orange-700 rounded-md p-4">
+            {{ session('warning') }}
+        </div>
+    @endif
+
     @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
         <div class="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md p-4">
             <p class="font-medium mb-2">カレンダー重複によりスキップされた枠:</p>
