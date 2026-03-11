@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\ConsultantSchedule;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -198,7 +197,7 @@ class GoogleCalendarService
                 'orderBy' => 'startTime',
                 'timeZone' => 'Asia/Tokyo',
                 'maxResults' => 2500,
-                'fields' => 'items(id,summary,start,end,status,transparency),nextPageToken',
+                'fields' => 'items(id,summary,start,end,status),nextPageToken',
             ];
 
             if ($pageToken) {
@@ -219,11 +218,6 @@ class GoogleCalendarService
 
             foreach ($response->json('items', []) as $item) {
                 if (($item['status'] ?? '') === 'cancelled') {
-                    continue;
-                }
-
-                // Skip transparent (free/available) events - they don't represent conflicts
-                if (($item['transparency'] ?? 'opaque') === 'transparent') {
                     continue;
                 }
 
@@ -338,101 +332,6 @@ class GoogleCalendarService
         }
 
         return null;
-    }
-
-    // ========================================
-    // Available slot sync methods
-    // ========================================
-
-    /**
-     * Create a transparent (Free) event on consultant's calendar for an available slot.
-     * Returns the created event ID or null.
-     */
-    public function createAvailableSlotEvent(ConsultantSchedule $schedule): ?string
-    {
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-
-        if (!$profile || !$profile->isGoogleConnected() || !$profile->sync_available_slots) {
-            return null;
-        }
-
-        $accessToken = $this->getAccessTokenFromRefreshToken($profile->google_refresh_token);
-        if (!$accessToken) {
-            return null;
-        }
-
-        $calendarId = $profile->google_calendar_id ?: 'primary';
-        $startTime = substr($schedule->start_time, 0, 5);
-        $endTime = substr($schedule->end_time, 0, 5);
-
-        $event = [
-            'summary' => "【個別相談空き枠】{$startTime}〜{$endTime}",
-            'start' => [
-                'dateTime' => $schedule->date->format('Y-m-d') . 'T' . $schedule->start_time,
-                'timeZone' => 'Asia/Tokyo',
-            ],
-            'end' => [
-                'dateTime' => $schedule->date->format('Y-m-d') . 'T' . $schedule->end_time,
-                'timeZone' => 'Asia/Tokyo',
-            ],
-            'transparency' => 'transparent',
-            'description' => "予約システムの空き枠です。\n予約が入ると自動的に削除されます。",
-        ];
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $accessToken,
-            'Content-Type' => 'application/json',
-        ])->post("https://www.googleapis.com/calendar/v3/calendars/" . urlencode($calendarId) . "/events", $event);
-
-        if ($response->successful()) {
-            $eventId = $response->json('id');
-            $schedule->update(['google_event_id' => $eventId]);
-            return $eventId;
-        }
-
-        Log::warning('Failed to create available slot event', [
-            'schedule_id' => $schedule->id,
-            'status' => $response->status(),
-        ]);
-
-        return null;
-    }
-
-    /**
-     * Delete the available slot event from consultant's calendar.
-     */
-    public function deleteAvailableSlotEvent(ConsultantSchedule $schedule): void
-    {
-        if (!$schedule->google_event_id) {
-            return;
-        }
-
-        $consultant = $schedule->consultant;
-        $profile = $consultant->consultantProfile;
-
-        if (!$profile || !$profile->isGoogleConnected()) {
-            $schedule->update(['google_event_id' => null]);
-            return;
-        }
-
-        $calendarId = $profile->google_calendar_id ?: 'primary';
-
-        try {
-            $this->deleteEventForConsultant(
-                $schedule->google_event_id,
-                $profile->google_refresh_token,
-                $calendarId
-            );
-        } catch (\Exception $e) {
-            Log::warning('Failed to delete available slot event', [
-                'schedule_id' => $schedule->id,
-                'event_id' => $schedule->google_event_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-
-        $schedule->update(['google_event_id' => null]);
     }
 
     // ========================================

@@ -99,23 +99,13 @@ class ScheduleController extends Controller
                 }
             }
 
-            $schedule = ConsultantSchedule::create([
+            ConsultantSchedule::create([
                 'user_id' => $consultant->id,
                 'date' => $validated['date'],
                 'start_time' => $startTime,
                 'end_time' => $endTime,
                 'is_available' => true,
             ]);
-
-            // Sync available slot to Google Calendar
-            if ($profile && $profile->sync_available_slots) {
-                try {
-                    app(GoogleCalendarService::class)->createAvailableSlotEvent($schedule);
-                } catch (\Exception $e) {
-                    Log::warning('Failed to sync available slot event', ['schedule_id' => $schedule->id, 'error' => $e->getMessage()]);
-                }
-            }
-
             $created++;
         }
 
@@ -143,15 +133,6 @@ class ScheduleController extends Controller
 
         if ($schedule->isBooked()) {
             return back()->with('error', '予約が入っているスケジュールは削除できません。');
-        }
-
-        // Delete available slot event from Google Calendar
-        if ($schedule->google_event_id) {
-            try {
-                app(GoogleCalendarService::class)->deleteAvailableSlotEvent($schedule);
-            } catch (\Exception $e) {
-                Log::warning('Failed to delete available slot event', ['schedule_id' => $schedule->id, 'error' => $e->getMessage()]);
-            }
         }
 
         $schedule->delete();
@@ -240,7 +221,7 @@ class ScheduleController extends Controller
                             'reason' => $conflictEvent,
                         ];
                     } else {
-                        $schedule = ConsultantSchedule::firstOrCreate([
+                        ConsultantSchedule::firstOrCreate([
                             'user_id' => $consultant->id,
                             'date' => $dateStr,
                             'start_time' => $slotStartTime,
@@ -248,16 +229,6 @@ class ScheduleController extends Controller
                         ], [
                             'is_available' => true,
                         ]);
-
-                        // Sync available slot to Google Calendar (only for newly created)
-                        if ($schedule->wasRecentlyCreated && $profile && $profile->sync_available_slots) {
-                            try {
-                                app(GoogleCalendarService::class)->createAvailableSlotEvent($schedule);
-                            } catch (\Exception $e) {
-                                Log::warning('Failed to sync available slot event', ['schedule_id' => $schedule->id, 'error' => $e->getMessage()]);
-                            }
-                        }
-
                         $created++;
                     }
 

@@ -16,7 +16,6 @@ class ConsultantSchedule extends Model
         'is_available',
         'calendar_blocked',
         'calendar_blocked_reason',
-        'google_event_id',
     ];
 
     protected function casts(): array
