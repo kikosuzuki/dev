@@ -414,10 +414,13 @@ class BookingController extends Controller
 
         AuditLog::log('booking_cancelled_by_admin', $booking);
 
-        $notificationService = app(NotificationService::class);
-        $notificationService->sendBookingCancelled($booking);
+        if (!$request->boolean('skip_notification')) {
+            $notificationService = app(NotificationService::class);
+            $notificationService->sendBookingCancelled($booking);
+            return back()->with('success', '予約をキャンセルしました。予約者に通知が送信されました。');
+        }
 
-        return back()->with('success', '予約をキャンセルしました。予約者に通知が送信されました。');
+        return back()->with('success', '予約をキャンセルしました。（通知なし）');
     }
 
     public function updateConsultationRecord(Request $request, Booking $booking)
