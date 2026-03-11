@@ -19,6 +19,13 @@
     @if(session('error'))
         <div class="mb-6 bg-red-50 border border-red-300 text-red-700 rounded-md p-4">
             {{ session('error') }}
+            @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
+                <ul class="list-disc list-inside text-sm space-y-1 mt-2">
+                    @foreach(session('skipped_slots') as $skipped)
+                        <li>{{ $skipped['date'] }} {{ $skipped['time'] }} - {{ $skipped['reason'] }}</li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
     @endif
 
@@ -28,7 +35,7 @@
         </div>
     @endif
 
-    @if(session('skipped_slots') && count(session('skipped_slots')) > 0)
+    @if(!session('error') && session('skipped_slots') && count(session('skipped_slots')) > 0)
         <div class="mb-6 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-md p-4">
             <p class="font-medium mb-2">カレンダー重複によりスキップされた枠:</p>
             <ul class="list-disc list-inside text-sm space-y-1">
