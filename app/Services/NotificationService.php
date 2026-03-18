@@ -287,10 +287,9 @@ class NotificationService
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
 
-        // System Room ID Chatwork notification
+        // System Room ID Chatwork notification (当日はsendMorningChatworkNotificationが担当)
         $chatworkSettingKey = match ($type) {
             'reminder_day_before' => 'chatwork_reminder_day_before_message',
-            'reminder_day_of' => 'chatwork_reminder_day_of_message',
             'reminder_before_start' => 'chatwork_reminder_before_start_message',
             default => null,
         };
@@ -366,10 +365,9 @@ class NotificationService
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
 
-        // System Room ID Chatwork notification
+        // System Room ID Chatwork notification (当日はsendMorningChatworkNotificationが担当)
         $chatworkSettingKey = match ($type) {
             'reminder_day_before' => 'chatwork_reminder_day_before_message',
-            'reminder_day_of' => 'chatwork_reminder_day_of_message',
             'reminder_before_start' => 'chatwork_reminder_before_start_message',
             default => null,
         };
