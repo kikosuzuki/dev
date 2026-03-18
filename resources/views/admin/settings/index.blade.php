@@ -529,7 +529,6 @@
                              cwMorningEnabled: {{ (optional($settings['chatwork_morning_notification_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              cwScheduleRequestEnabled: {{ (optional($settings['chatwork_schedule_request_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              cwReminderDayBeforeEnabled: {{ (optional($settings['chatwork_reminder_day_before_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
-                             cwReminderDayOfEnabled: {{ (optional($settings['chatwork_reminder_day_of_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              cwReminderBeforeStartEnabled: {{ (optional($settings['chatwork_reminder_before_start_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              googleCalendarEnabled: {{ (optional($settings['google_calendar_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }}
                          }">
@@ -701,24 +700,6 @@
                                                     </div>
                                                     <textarea name="chatwork_reminder_day_before_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="前日リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_day_before_message', optional($settings['chatwork_reminder_day_before_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">予約前日のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
-                                                </div>
-
-                                                {{-- 当日リマインド --}}
-                                                <div class="p-4 border border-gray-200 rounded-lg">
-                                                    <div class="flex items-center justify-between mb-3">
-                                                        <label class="text-xs font-medium text-gray-700">当日リマインド通知</label>
-                                                        <div class="flex items-center">
-                                                            <button type="button" @click="cwReminderDayOfEnabled = !cwReminderDayOfEnabled"
-                                                                    :class="cwReminderDayOfEnabled ? 'bg-blue-600' : 'bg-gray-200'"
-                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
-                                                                <span :class="cwReminderDayOfEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
-                                                            </button>
-                                                            <input type="hidden" name="chatwork_reminder_day_of_enabled" :value="cwReminderDayOfEnabled ? '1' : '0'">
-                                                            <span class="ml-2 text-xs" :class="cwReminderDayOfEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwReminderDayOfEnabled ? 'ON' : 'OFF'"></span>
-                                                        </div>
-                                                    </div>
-                                                    <textarea name="chatwork_reminder_day_of_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="当日リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_day_of_message', optional($settings['chatwork_reminder_day_of_message'] ?? null)->value ?? '') }}</textarea>
-                                                    <p class="mt-1 text-xs text-gray-500">予約当日のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
 
                                                 {{-- 開始前リマインド --}}
