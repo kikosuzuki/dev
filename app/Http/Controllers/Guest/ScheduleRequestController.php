@@ -50,6 +50,10 @@ class ScheduleRequestController extends Controller
             return;
         }
 
+        if (SystemSetting::get('chatwork_schedule_request_enabled', '1') !== '1') {
+            return;
+        }
+
         $roomId = SystemSetting::get('chatwork_room_id', '');
         if (!$roomId) {
             return;

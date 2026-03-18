@@ -286,6 +286,19 @@ class NotificationService
             . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
+
+        // System Room ID Chatwork notification
+        $chatworkSettingKey = match ($type) {
+            'reminder_day_before' => 'chatwork_reminder_day_before_message',
+            'reminder_day_of' => 'chatwork_reminder_day_of_message',
+            'reminder_before_start' => 'chatwork_reminder_before_start_message',
+            default => null,
+        };
+        if ($chatworkSettingKey) {
+            $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
+                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+            $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
+        }
     }
 
     public function sendReminder(Booking $booking, string $type): void
@@ -352,6 +365,19 @@ class NotificationService
             . ($meetingUrl ? "■ ミーティングURL: {$meetingUrl}\n" : '');
 
         $this->send($consultant, $booking, $type, $subject, $consultantContent);
+
+        // System Room ID Chatwork notification
+        $chatworkSettingKey = match ($type) {
+            'reminder_day_before' => 'chatwork_reminder_day_before_message',
+            'reminder_day_of' => 'chatwork_reminder_day_of_message',
+            'reminder_before_start' => 'chatwork_reminder_before_start_message',
+            default => null,
+        };
+        if ($chatworkSettingKey) {
+            $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
+                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+            $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
+        }
     }
 
     private function send($user, Booking $booking, string $type, string $subject, string $content): void
@@ -365,7 +391,8 @@ class NotificationService
         }
 
         // Send to Chatwork if enabled and room ID is configured
-        if ($user->notify_chatwork && $user->chatwork_room_id) {
+        // コンサルタントはchatwork_room_idを持たない設計のためスキップ（システムルームはsendSystemChatworkで送信）
+        if ($user->notify_chatwork && $user->chatwork_room_id && $user->role !== 'consultant') {
             $this->sendChatwork($user, $booking, $type, $content);
         }
     }
@@ -459,17 +486,18 @@ class NotificationService
             return;
         }
 
+        // 通知項目ごとのオンオフチェック
+        $enabledKey = str_replace('_message', '_enabled', $settingKey);
+        if (SystemSetting::get($enabledKey, '1') !== '1') {
+            return;
+        }
+
         // 重複防止: 同一booking・同一typeで既に送信済みならスキップ
         if ($this->alreadySent($booking->id, 'chatwork_system', $settingKey)) {
             return;
         }
 
         $consultant = $booking->consultant;
-
-        // コンサルタントの個人ルームとシステムルームが同一の場合はスキップ（send()で既に送信済み）
-        if ($consultant->chatwork_room_id && (string) $consultant->chatwork_room_id === (string) $systemRoomId) {
-            return;
-        }
         $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
