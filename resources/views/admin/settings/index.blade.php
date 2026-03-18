@@ -524,6 +524,13 @@
                          x-data="{
                              lineEnabled: {{ (optional($settings['line_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }},
                              chatworkEnabled: {{ (optional($settings['chatwork_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }},
+                             cwBookingConfirmEnabled: {{ (optional($settings['chatwork_booking_confirm_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwCancelEnabled: {{ (optional($settings['chatwork_cancel_notification_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwMorningEnabled: {{ (optional($settings['chatwork_morning_notification_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwScheduleRequestEnabled: {{ (optional($settings['chatwork_schedule_request_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwReminderDayBeforeEnabled: {{ (optional($settings['chatwork_reminder_day_before_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwReminderDayOfEnabled: {{ (optional($settings['chatwork_reminder_day_of_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwReminderBeforeStartEnabled: {{ (optional($settings['chatwork_reminder_before_start_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              googleCalendarEnabled: {{ (optional($settings['google_calendar_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }}
                          }">
                         <div class="px-6 py-4 border-b border-gray-200">
@@ -619,40 +626,137 @@
                                         {{-- Chatwork Notification Message Templates --}}
                                         <div class="mt-6 pt-4 border-t border-gray-200">
                                             <h4 class="text-sm font-semibold text-gray-800 mb-3">Chatwork通知メッセージ設定</h4>
-                                            <p class="text-xs text-gray-500 mb-3">システム設定のRoom IDに送信されるメッセージをカスタマイズできます。</p>
+                                            <p class="text-xs text-gray-500 mb-3">通知項目ごとにオンオフとメッセージをカスタマイズできます。</p>
                                             <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-4">
                                                 <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）、<code class="bg-blue-100 px-1 rounded">{important_document_url}</code>（重要事項説明書URL）</p>
                                             </div>
-                                            <div class="space-y-4">
-                                                <div>
-                                                    <label for="chatwork_booking_confirm_message" class="block text-xs font-medium text-gray-600 mb-1">予約確定通知メッセージ</label>
-                                                    <textarea name="chatwork_booking_confirm_message" id="chatwork_booking_confirm_message" rows="4"
-                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                              placeholder="予約が入った時にChatworkへ送信されるメッセージ">{{ old('chatwork_booking_confirm_message', optional($settings['chatwork_booking_confirm_message'] ?? null)->value ?? '') }}</textarea>
+                                            <div class="space-y-5">
+                                                {{-- 予約確定通知 --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">予約確定通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwBookingConfirmEnabled = !cwBookingConfirmEnabled"
+                                                                    :class="cwBookingConfirmEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwBookingConfirmEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_booking_confirm_enabled" :value="cwBookingConfirmEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwBookingConfirmEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwBookingConfirmEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_booking_confirm_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="予約が入った時にChatworkへ送信されるメッセージ">{{ old('chatwork_booking_confirm_message', optional($settings['chatwork_booking_confirm_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
-                                                <div>
-                                                    <label for="chatwork_cancel_notification_message" class="block text-xs font-medium text-gray-600 mb-1">キャンセル通知メッセージ</label>
-                                                    <textarea name="chatwork_cancel_notification_message" id="chatwork_cancel_notification_message" rows="4"
-                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                              placeholder="キャンセル時にChatworkへ送信されるメッセージ">{{ old('chatwork_cancel_notification_message', optional($settings['chatwork_cancel_notification_message'] ?? null)->value ?? '') }}</textarea>
+
+                                                {{-- キャンセル通知 --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">キャンセル通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwCancelEnabled = !cwCancelEnabled"
+                                                                    :class="cwCancelEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwCancelEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_cancel_notification_enabled" :value="cwCancelEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwCancelEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwCancelEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_cancel_notification_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="キャンセル時にChatworkへ送信されるメッセージ">{{ old('chatwork_cancel_notification_message', optional($settings['chatwork_cancel_notification_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
-                                                <div>
-                                                    <label for="chatwork_morning_notification_message" class="block text-xs font-medium text-gray-600 mb-1">当日朝通知メッセージ（毎朝8:00配信）</label>
-                                                    <textarea name="chatwork_morning_notification_message" id="chatwork_morning_notification_message" rows="4"
-                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                              placeholder="当日朝8:00にChatworkへ送信されるメッセージ">{{ old('chatwork_morning_notification_message', optional($settings['chatwork_morning_notification_message'] ?? null)->value ?? '') }}</textarea>
+
+                                                {{-- 当日朝通知 --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">当日朝通知（毎朝8:00配信）</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwMorningEnabled = !cwMorningEnabled"
+                                                                    :class="cwMorningEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwMorningEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_morning_notification_enabled" :value="cwMorningEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwMorningEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwMorningEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_morning_notification_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="当日朝8:00にChatworkへ送信されるメッセージ">{{ old('chatwork_morning_notification_message', optional($settings['chatwork_morning_notification_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">当日の予約があるコンサルタントへ朝8:00に配信されます。空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
-                                                <div>
-                                                    <label for="chatwork_schedule_request_message" class="block text-xs font-medium text-gray-600 mb-1">日程リクエスト通知メッセージ</label>
+
+                                                {{-- 前日リマインド --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">前日リマインド通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwReminderDayBeforeEnabled = !cwReminderDayBeforeEnabled"
+                                                                    :class="cwReminderDayBeforeEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwReminderDayBeforeEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_reminder_day_before_enabled" :value="cwReminderDayBeforeEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwReminderDayBeforeEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwReminderDayBeforeEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_reminder_day_before_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="前日リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_day_before_message', optional($settings['chatwork_reminder_day_before_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">予約前日のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+
+                                                {{-- 当日リマインド --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">当日リマインド通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwReminderDayOfEnabled = !cwReminderDayOfEnabled"
+                                                                    :class="cwReminderDayOfEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwReminderDayOfEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_reminder_day_of_enabled" :value="cwReminderDayOfEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwReminderDayOfEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwReminderDayOfEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_reminder_day_of_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="当日リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_day_of_message', optional($settings['chatwork_reminder_day_of_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">予約当日のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+
+                                                {{-- 開始前リマインド --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">開始前リマインド通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwReminderBeforeStartEnabled = !cwReminderBeforeStartEnabled"
+                                                                    :class="cwReminderBeforeStartEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwReminderBeforeStartEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_reminder_before_start_enabled" :value="cwReminderBeforeStartEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwReminderBeforeStartEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwReminderBeforeStartEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
+                                                    <textarea name="chatwork_reminder_before_start_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="開始前リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_before_start_message', optional($settings['chatwork_reminder_before_start_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <p class="mt-1 text-xs text-gray-500">予約開始N分前のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+
+                                                {{-- 日程リクエスト通知 --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <label class="text-xs font-medium text-gray-700">日程リクエスト通知</label>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwScheduleRequestEnabled = !cwScheduleRequestEnabled"
+                                                                    :class="cwScheduleRequestEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwScheduleRequestEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_schedule_request_enabled" :value="cwScheduleRequestEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwScheduleRequestEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwScheduleRequestEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
                                                     <div class="p-2 bg-amber-50 border border-amber-100 rounded-lg mb-2">
                                                         <p class="text-xs text-amber-700">利用可能なプレースホルダー: <code class="bg-amber-100 px-1 rounded">{name}</code>（ゲスト名）、<code class="bg-amber-100 px-1 rounded">{email}</code>（メール）、<code class="bg-amber-100 px-1 rounded">{phone}</code>（電話番号）、<code class="bg-amber-100 px-1 rounded">{candidate_1}</code>（候補1）、<code class="bg-amber-100 px-1 rounded">{candidate_2}</code>（候補2）、<code class="bg-amber-100 px-1 rounded">{candidate_3}</code>（候補3）、<code class="bg-amber-100 px-1 rounded">{message}</code>（ご相談内容）</p>
                                                     </div>
-                                                    <textarea name="chatwork_schedule_request_message" id="chatwork_schedule_request_message" rows="4"
-                                                              class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                                              placeholder="日程リクエスト受信時にChatworkへ送信されるメッセージ">{{ old('chatwork_schedule_request_message', optional($settings['chatwork_schedule_request_message'] ?? null)->value ?? '') }}</textarea>
+                                                    <textarea name="chatwork_schedule_request_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="日程リクエスト受信時にChatworkへ送信されるメッセージ">{{ old('chatwork_schedule_request_message', optional($settings['chatwork_schedule_request_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">ゲストから日程リクエストを受信した時に配信されます。空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
                                             </div>
