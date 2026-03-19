@@ -87,7 +87,7 @@ class UserManageController extends Controller
         if ($validated['role'] === 'consultant') {
             ConsultantProfile::create([
                 'user_id' => $user->id,
-                'specialty' => $request->get('specialty', '未設定'),
+                'specialty' => $request->get('specialty') ?? '未設定',
             ]);
         }
 
