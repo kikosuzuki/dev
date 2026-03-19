@@ -501,6 +501,8 @@ class NotificationService
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
         $dateTime = "{$date} {$time}";
         $bookerName = $booking->bookerName();
+        $bookerEmail = $booking->bookerEmail();
+        $bookerPhone = $booking->is_guest ? ($booking->guest_phone ?? '') : ($booking->user->phone ?? '');
         $consultantName = $consultant->name;
         $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? '');
         $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
@@ -508,7 +510,7 @@ class NotificationService
 
         $customMessage = SystemSetting::get($settingKey, '');
         $message = $customMessage
-            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl)
+            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $bookerEmail, $bookerPhone)
             : $defaultMessage;
 
         try {
@@ -541,11 +543,11 @@ class NotificationService
         $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
     }
 
-    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = ''): string
+    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = ''): string
     {
         return str_replace(
-            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}'],
-            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl],
+            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}', '{email}', '{phone}'],
+            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $email, $phone],
             $text
         );
     }

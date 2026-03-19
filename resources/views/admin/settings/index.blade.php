@@ -627,7 +627,7 @@
                                             <h4 class="text-sm font-semibold text-gray-800 mb-3">Chatwork通知メッセージ設定</h4>
                                             <p class="text-xs text-gray-500 mb-3">通知項目ごとにオンオフとメッセージをカスタマイズできます。</p>
                                             <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-4">
-                                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）、<code class="bg-blue-100 px-1 rounded">{important_document_url}</code>（重要事項説明書URL）</p>
+                                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{email}</code>（メール）、<code class="bg-blue-100 px-1 rounded">{phone}</code>（電話番号）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）、<code class="bg-blue-100 px-1 rounded">{important_document_url}</code>（重要事項説明書URL）</p>
                                             </div>
                                             <div class="space-y-5">
                                                 {{-- 予約確定通知 --}}
