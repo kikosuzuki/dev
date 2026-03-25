@@ -548,8 +548,15 @@ class NotificationService
      */
     public function sendConsultationRecordNotification(Booking $booking): void
     {
+        $systemRoomId = SystemSetting::get('chatwork_room_id', '');
+        if (!$systemRoomId || SystemSetting::get('chatwork_enabled', '0') !== '1') {
+            return;
+        }
+        if (SystemSetting::get('chatwork_consultation_record_enabled', '1') !== '1') {
+            return;
+        }
+
         $consultant = $booking->consultant;
-        $consultantProfile = $consultant->consultantProfile;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
         $dateTime = "{$date} {$time}";
@@ -563,10 +570,23 @@ class NotificationService
             default => '不明',
         };
 
-        $defaultMessage = "相談記録が入力されました。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}\n■ 結果: {$resultLabel}"
-            . ($booking->consultation_notes ? "\n■ メモ: {$booking->consultation_notes}" : '');
+        $docIssued = $booking->important_document_issued ? '発行済み' : '未発行';
 
-        $this->sendSystemChatwork($booking, 'chatwork_consultation_record_message', $defaultMessage);
+        $message = "[toall]\n相談記録が入力されました。\n\n"
+            . "■ 予約者: {$bookerName}\n"
+            . "■ コンサルタント: {$consultantName}\n"
+            . "■ 日時: {$dateTime}\n"
+            . "■ 結果: {$resultLabel}\n"
+            . "■ 記録内容:\n{$booking->consultation_notes}\n"
+            . "■ 重要事項説明書: {$docIssued}";
+
+        try {
+            $chatworkService = new ChatworkService();
+            $chatworkService->sendMessage($systemRoomId, $message);
+            $this->logNotification(null, $booking->id, 'chatwork_system', 'consultation_record', null, $message, 'sent');
+        } catch (\Exception $e) {
+            $this->logNotification(null, $booking->id, 'chatwork_system', 'consultation_record', null, $message, 'failed', $e->getMessage());
+        }
     }
 
     private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = ''): string

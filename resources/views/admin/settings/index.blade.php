@@ -723,8 +723,11 @@
 
                                                 {{-- 相談記録通知 --}}
                                                 <div class="p-4 border border-gray-200 rounded-lg">
-                                                    <div class="flex items-center justify-between mb-3">
-                                                        <label class="text-xs font-medium text-gray-700">相談記録通知</label>
+                                                    <div class="flex items-center justify-between">
+                                                        <div>
+                                                            <label class="text-xs font-medium text-gray-700">相談記録通知</label>
+                                                            <p class="text-xs text-gray-500 mt-1">相談記録が入力された時にTOALLで配信されます。</p>
+                                                        </div>
                                                         <div class="flex items-center">
                                                             <button type="button" @click="cwConsultationRecordEnabled = !cwConsultationRecordEnabled"
                                                                     :class="cwConsultationRecordEnabled ? 'bg-blue-600' : 'bg-gray-200'"
@@ -735,8 +738,6 @@
                                                             <span class="ml-2 text-xs" :class="cwConsultationRecordEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwConsultationRecordEnabled ? 'ON' : 'OFF'"></span>
                                                         </div>
                                                     </div>
-                                                    <textarea name="chatwork_consultation_record_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="相談記録入力時にChatworkへ送信されるメッセージ">{{ old('chatwork_consultation_record_message', optional($settings['chatwork_consultation_record_message'] ?? null)->value ?? '') }}</textarea>
-                                                    <p class="mt-1 text-xs text-gray-500">相談記録が入力・更新された時に配信されます。空欄時はデフォルトの文面が使用されます。</p>
                                                 </div>
 
                                                 {{-- 日程リクエスト通知 --}}
