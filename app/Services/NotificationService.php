@@ -556,6 +556,16 @@ class NotificationService
             return;
         }
 
+        // 初回のみ通知（追記時は飛ばさない）
+        $alreadyNotified = NotificationLog::where('booking_id', $booking->id)
+            ->where('channel', 'chatwork_system')
+            ->where('type', 'consultation_record')
+            ->where('status', 'sent')
+            ->exists();
+        if ($alreadyNotified) {
+            return;
+        }
+
         $consultant = $booking->consultant;
         $date = $booking->booking_date->format('Y年m月d日');
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
