@@ -190,6 +190,9 @@
                                             <form method="POST" action="{{ route('admin.bookings.notes.update', $booking) }}">
                                                 @csrf
                                                 @method('PUT')
+                                                @if($booking->admin_notes)
+                                                <div class="mb-3 p-3 bg-gray-50 rounded-md text-sm text-gray-700 whitespace-pre-wrap break-words">{!! preg_replace('/(https?:\/\/[^\s<]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>', e($booking->admin_notes)) !!}</div>
+                                                @endif
                                                 <div class="mb-4">
                                                     <textarea name="admin_notes" rows="6"
                                                         class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500"
