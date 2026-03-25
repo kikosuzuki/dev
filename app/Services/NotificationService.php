@@ -543,6 +543,32 @@ class NotificationService
         $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
     }
 
+    /**
+     * 相談記録入力時のChatwork通知を送信
+     */
+    public function sendConsultationRecordNotification(Booking $booking): void
+    {
+        $consultant = $booking->consultant;
+        $consultantProfile = $consultant->consultantProfile;
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
+        $bookerName = $booking->bookerName();
+        $consultantName = $consultant->name;
+
+        $resultLabel = match ($booking->consultation_result) {
+            'success' => '成約',
+            'failure' => '不成約',
+            'pending' => '保留',
+            default => '不明',
+        };
+
+        $defaultMessage = "相談記録が入力されました。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}\n■ 結果: {$resultLabel}"
+            . ($booking->consultation_notes ? "\n■ メモ: {$booking->consultation_notes}" : '');
+
+        $this->sendSystemChatwork($booking, 'chatwork_consultation_record_message', $defaultMessage);
+    }
+
     private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = ''): string
     {
         return str_replace(
