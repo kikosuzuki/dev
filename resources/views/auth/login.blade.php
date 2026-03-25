@@ -9,6 +9,12 @@
     </div>
 @endif
 
+@if(session('error'))
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">{{ session('error') }}</p>
+    </div>
+@endif
+
 <form method="POST" action="{{ route('login') }}">
     @csrf
 
