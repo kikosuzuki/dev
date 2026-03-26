@@ -140,6 +140,7 @@ class SettingController extends Controller
             'chatwork_reminder_day_before_message' => ['nullable', 'string', 'max:2000'],
             'chatwork_reminder_before_start_enabled' => ['boolean'],
             'chatwork_reminder_before_start_message' => ['nullable', 'string', 'max:2000'],
+            'chatwork_consultation_record_enabled' => ['boolean'],
             'google_calendar_enabled' => ['boolean'],
         ]);
 

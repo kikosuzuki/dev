@@ -190,6 +190,9 @@
                                             <form method="POST" action="{{ route('admin.bookings.notes.update', $booking) }}">
                                                 @csrf
                                                 @method('PUT')
+                                                @if($booking->admin_notes)
+                                                <div class="mb-3 p-3 bg-gray-50 rounded-md text-sm text-gray-700 whitespace-pre-wrap break-words">{!! preg_replace('/(https?:\/\/[^\s<]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>', e($booking->admin_notes)) !!}</div>
+                                                @endif
                                                 <div class="mb-4">
                                                     <textarea name="admin_notes" rows="6"
                                                         class="block w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -242,7 +245,36 @@
                                 }">
                                 <div class="flex items-center gap-2">
                                     @if($booking->isApproved() || $booking->status === 'completed')
-                                        <div x-data="{ showRecordModal: false }">
+                                        <div x-data="{
+                                            showRecordModal: false,
+                                            saving: false,
+                                            async submitRecord($refs, bookingId) {
+                                                this.saving = true;
+                                                const form = $refs['recordForm' + bookingId];
+                                                const formData = new FormData(form);
+                                                try {
+                                                    const res = await fetch(form.action, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                                            'Accept': 'text/html',
+                                                        },
+                                                        body: formData,
+                                                    });
+                                                    if (res.redirected) {
+                                                        window.location.href = res.url;
+                                                    } else if (res.ok) {
+                                                        window.location.reload();
+                                                    } else {
+                                                        alert('保存に失敗しました。ページを再読み込みしてください。');
+                                                    }
+                                                } catch (e) {
+                                                    alert('通信エラーが発生しました。');
+                                                } finally {
+                                                    this.saving = false;
+                                                }
+                                            }
+                                        }">
                                             <button type="button" @click="showRecordModal = true"
                                                 class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                                                 <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -255,9 +287,8 @@
                                                     <div class="relative bg-white rounded-lg shadow-xl max-w-lg w-full p-6 z-10">
                                                         <h3 class="text-lg font-semibold text-gray-900 mb-2">相談記録</h3>
                                                         <p class="text-sm text-gray-500 mb-4">{{ $booking->bookerName() }} / {{ $booking->booking_date->format('Y/m/d') }}</p>
-                                                        <form method="POST" action="{{ route('admin.bookings.consultation-record.update', $booking) }}">
-                                                            @csrf
-                                                            @method('PUT')
+                                                        <form x-ref="recordForm{{ $booking->id }}" action="{{ route('admin.bookings.consultation-record.update', $booking) }}" @submit.prevent="submitRecord($refs, {{ $booking->id }})">
+                                                            <input type="hidden" name="_method" value="PUT">
                                                             <div class="mb-4">
                                                                 <label class="block text-sm font-medium text-gray-700 mb-2">相談結果 <span class="text-red-500">*</span></label>
                                                                 <div class="flex gap-4">
@@ -293,8 +324,11 @@
                                                             <div class="flex justify-end space-x-3">
                                                                 <button type="button" @click="showRecordModal = false"
                                                                     class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">閉じる</button>
-                                                                <button type="submit"
-                                                                    class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700">保存</button>
+                                                                <button type="submit" :disabled="saving"
+                                                                    class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50">
+                                                                    <span x-show="!saving">保存</span>
+                                                                    <span x-show="saving">保存中...</span>
+                                                                </button>
                                                             </div>
                                                         </form>
                                                     </div>

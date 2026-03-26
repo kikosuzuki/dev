@@ -501,6 +501,8 @@ class NotificationService
         $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
         $dateTime = "{$date} {$time}";
         $bookerName = $booking->bookerName();
+        $bookerEmail = $booking->bookerEmail();
+        $bookerPhone = $booking->is_guest ? ($booking->guest_phone ?? '') : ($booking->user->phone ?? '');
         $consultantName = $consultant->name;
         $meetingUrl = $booking->meeting_url ?: ($consultantProfile?->meeting_url ?? '');
         $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
@@ -508,7 +510,7 @@ class NotificationService
 
         $customMessage = SystemSetting::get($settingKey, '');
         $message = $customMessage
-            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl)
+            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $bookerEmail, $bookerPhone)
             : $defaultMessage;
 
         try {
@@ -541,11 +543,67 @@ class NotificationService
         $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
     }
 
-    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = ''): string
+    /**
+     * 相談記録入力時のChatwork通知を送信
+     */
+    public function sendConsultationRecordNotification(Booking $booking): void
+    {
+        $systemRoomId = SystemSetting::get('chatwork_room_id', '');
+        if (!$systemRoomId || SystemSetting::get('chatwork_enabled', '0') !== '1') {
+            return;
+        }
+        if (SystemSetting::get('chatwork_consultation_record_enabled', '1') !== '1') {
+            return;
+        }
+
+        // 初回のみ通知（追記時は飛ばさない）
+        $alreadyNotified = NotificationLog::where('booking_id', $booking->id)
+            ->where('channel', 'chatwork_system')
+            ->where('type', 'consultation_record')
+            ->where('status', 'sent')
+            ->exists();
+        if ($alreadyNotified) {
+            return;
+        }
+
+        $consultant = $booking->consultant;
+        $date = $booking->booking_date->format('Y年m月d日');
+        $time = substr($booking->start_time, 0, 5) . ' - ' . substr($booking->end_time, 0, 5);
+        $dateTime = "{$date} {$time}";
+        $bookerName = $booking->bookerName();
+        $consultantName = $consultant->name;
+
+        $resultLabel = match ($booking->consultation_result) {
+            'success' => '成約',
+            'failure' => '不成約',
+            'pending' => '保留',
+            default => '不明',
+        };
+
+        $docIssued = $booking->important_document_issued ? '発行済み' : '未発行';
+
+        $message = "[toall]\n相談記録が入力されました。\n\n"
+            . "■ 予約者: {$bookerName}\n"
+            . "■ コンサルタント: {$consultantName}\n"
+            . "■ 日時: {$dateTime}\n"
+            . "■ 結果: {$resultLabel}\n"
+            . "■ 記録内容:\n{$booking->consultation_notes}\n"
+            . "■ 重要事項説明書: {$docIssued}";
+
+        try {
+            $chatworkService = new ChatworkService();
+            $chatworkService->sendMessage($systemRoomId, $message);
+            $this->logNotification(null, $booking->id, 'chatwork_system', 'consultation_record', null, $message, 'sent');
+        } catch (\Exception $e) {
+            $this->logNotification(null, $booking->id, 'chatwork_system', 'consultation_record', null, $message, 'failed', $e->getMessage());
+        }
+    }
+
+    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = ''): string
     {
         return str_replace(
-            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}'],
-            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl],
+            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}', '{email}', '{phone}'],
+            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $email, $phone],
             $text
         );
     }

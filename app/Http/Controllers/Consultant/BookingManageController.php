@@ -153,6 +153,13 @@ class BookingManageController extends Controller
 
         AuditLog::log('consultation_record_updated', $booking);
 
+        // Chatworkシステムルームへ通知
+        try {
+            app(NotificationService::class)->sendConsultationRecordNotification($booking);
+        } catch (\Exception $e) {
+            \Log::warning('相談記録のChatwork通知に失敗: ' . $e->getMessage());
+        }
+
         return back()->with('success', '相談記録を保存しました。');
     }
 

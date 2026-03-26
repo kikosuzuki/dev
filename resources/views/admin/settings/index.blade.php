@@ -530,6 +530,7 @@
                              cwScheduleRequestEnabled: {{ (optional($settings['chatwork_schedule_request_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              cwReminderDayBeforeEnabled: {{ (optional($settings['chatwork_reminder_day_before_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              cwReminderBeforeStartEnabled: {{ (optional($settings['chatwork_reminder_before_start_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
+                             cwConsultationRecordEnabled: {{ (optional($settings['chatwork_consultation_record_enabled'] ?? null)->value ?? '1') === '1' ? 'true' : 'false' }},
                              googleCalendarEnabled: {{ (optional($settings['google_calendar_enabled'] ?? null)->value ?? '0') === '1' ? 'true' : 'false' }}
                          }">
                         <div class="px-6 py-4 border-b border-gray-200">
@@ -627,7 +628,7 @@
                                             <h4 class="text-sm font-semibold text-gray-800 mb-3">Chatwork通知メッセージ設定</h4>
                                             <p class="text-xs text-gray-500 mb-3">通知項目ごとにオンオフとメッセージをカスタマイズできます。</p>
                                             <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg mb-4">
-                                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）、<code class="bg-blue-100 px-1 rounded">{important_document_url}</code>（重要事項説明書URL）</p>
+                                                <p class="text-xs text-blue-700">利用可能なプレースホルダー: <code class="bg-blue-100 px-1 rounded">{name}</code>（予約者名）、<code class="bg-blue-100 px-1 rounded">{email}</code>（メール）、<code class="bg-blue-100 px-1 rounded">{phone}</code>（電話番号）、<code class="bg-blue-100 px-1 rounded">{date}</code>（日時）、<code class="bg-blue-100 px-1 rounded">{consultant}</code>（コンサルタント名）、<code class="bg-blue-100 px-1 rounded">{meeting_url}</code>（ミーティングURL）、<code class="bg-blue-100 px-1 rounded">{chatwork_id}</code>（コンサルタントChatwork ID ※TO指定用）、<code class="bg-blue-100 px-1 rounded">{important_document_url}</code>（重要事項説明書URL）</p>
                                             </div>
                                             <div class="space-y-5">
                                                 {{-- 予約確定通知 --}}
@@ -718,6 +719,25 @@
                                                     </div>
                                                     <textarea name="chatwork_reminder_before_start_message" rows="3" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="開始前リマインド時にChatworkへ送信されるメッセージ">{{ old('chatwork_reminder_before_start_message', optional($settings['chatwork_reminder_before_start_message'] ?? null)->value ?? '') }}</textarea>
                                                     <p class="mt-1 text-xs text-gray-500">予約開始N分前のリマインド通知。空欄時はデフォルトの文面が使用されます。</p>
+                                                </div>
+
+                                                {{-- 相談記録通知 --}}
+                                                <div class="p-4 border border-gray-200 rounded-lg">
+                                                    <div class="flex items-center justify-between">
+                                                        <div>
+                                                            <label class="text-xs font-medium text-gray-700">相談記録通知</label>
+                                                            <p class="text-xs text-gray-500 mt-1">相談記録が入力された時にTOALLで配信されます。</p>
+                                                        </div>
+                                                        <div class="flex items-center">
+                                                            <button type="button" @click="cwConsultationRecordEnabled = !cwConsultationRecordEnabled"
+                                                                    :class="cwConsultationRecordEnabled ? 'bg-blue-600' : 'bg-gray-200'"
+                                                                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none" role="switch">
+                                                                <span :class="cwConsultationRecordEnabled ? 'translate-x-4' : 'translate-x-0'" class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                                            </button>
+                                                            <input type="hidden" name="chatwork_consultation_record_enabled" :value="cwConsultationRecordEnabled ? '1' : '0'">
+                                                            <span class="ml-2 text-xs" :class="cwConsultationRecordEnabled ? 'text-green-600' : 'text-gray-400'" x-text="cwConsultationRecordEnabled ? 'ON' : 'OFF'"></span>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 {{-- 日程リクエスト通知 --}}
