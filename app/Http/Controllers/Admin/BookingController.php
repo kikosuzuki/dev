@@ -473,9 +473,13 @@ class BookingController extends Controller
             'admin_notes' => ['nullable', 'string'],
         ]);
 
-        $booking->update([
-            'admin_notes' => $request->admin_notes,
-        ]);
+        $newNotes = $request->admin_notes;
+        if ($newNotes) {
+            $existing = $booking->admin_notes;
+            $booking->update([
+                'admin_notes' => $existing ? $existing . "\n" . $newNotes : $newNotes,
+            ]);
+        }
 
         return back()->with('success', 'メモを保存しました。');
     }
