@@ -82,6 +82,25 @@ class Booking extends Model
         return $this->status === 'approved';
     }
 
+    /**
+     * 相談記録を入力可能か。
+     * - 完了状態：既存記録の編集のため可。
+     * - 確定済み：予約開始日時を過ぎたときのみ可（例：4/22 18:00の予約は 4/22 18:00 以降で入力可）。
+     */
+    public function canEnterConsultationRecord(): bool
+    {
+        if ($this->status === 'completed') {
+            return true;
+        }
+
+        if ($this->status === 'approved') {
+            $bookingStart = $this->booking_date->copy()->setTimeFromTimeString($this->start_time);
+            return now()->greaterThanOrEqualTo($bookingStart);
+        }
+
+        return false;
+    }
+
     public function isGuest(): bool
     {
         return (bool) $this->is_guest;

@@ -123,6 +123,10 @@ class BookingManageController extends Controller
             abort(403);
         }
 
+        if (!$booking->canEnterConsultationRecord()) {
+            return back()->with('error', '予約日前の相談には記録を入力できません。');
+        }
+
         $request->validate([
             'consultation_result' => ['required', 'in:success,failure,pending'],
             'consultation_notes' => ['required', 'string'],

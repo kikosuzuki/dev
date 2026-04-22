@@ -333,8 +333,8 @@
                                                 </div>
                                             </div>
 
-                                        {{-- Consultation Record Button (approved or completed) --}}
-                                        @if($booking->isApproved() || $booking->status === 'completed')
+                                        {{-- Consultation Record Button (approved:当日以降 / completed) --}}
+                                        @if($booking->canEnterConsultationRecord())
                                             <div x-data="{ showRecordModal: false }">
                                                 <button type="button" @click="showRecordModal = true"
                                                     class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
