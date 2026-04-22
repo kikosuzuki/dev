@@ -483,4 +483,47 @@ class BookingController extends Controller
 
         return back()->with('success', 'メモを保存しました。');
     }
+
+    /**
+     * 相談記録を初期化する（誤操作のリカバリー用）
+     * 相談結果・重要事項発行フラグをクリアし、完了なら確定済みへ戻す。
+     * 相談メモ（consultation_notes）は監査のため保持する。
+     * 予約日が今日以降の場合、リマインダ送信済みフラグもクリアして
+     * スケジュール通りに再度リマインダが発動するようにする。
+     */
+    public function resetConsultationRecord(Booking $booking)
+    {
+        $wasCompleted = $booking->status === 'completed';
+
+        $data = [
+            'consultation_result' => null,
+            'important_document_issued' => false,
+            'consultation_record_reset_at' => now(),
+        ];
+
+        if ($wasCompleted) {
+            $data['status'] = 'approved';
+        }
+
+        // 予約日が今日以降なら、リマインダ送信済みフラグをクリアして再発動可能にする
+        if ($booking->booking_date->toDateString() >= now()->toDateString()) {
+            $data['reminder_day_before_sent'] = false;
+            $data['reminder_day_of_sent'] = false;
+            $data['reminder_10min_sent'] = false;
+            $data['morning_chatwork_sent'] = false;
+        }
+
+        $booking->update($data);
+
+        if ($wasCompleted) {
+            $profile = $booking->consultant?->consultantProfile;
+            if ($profile && $profile->total_bookings > 0) {
+                $profile->decrement('total_bookings');
+            }
+        }
+
+        AuditLog::log('consultation_record_reset', $booking);
+
+        return back()->with('success', '相談記録を初期化しました。');
+    }
 }

@@ -181,6 +181,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/bookings/schedules', [AdminBookingController::class, 'getSchedules'])->name('bookings.schedules');
     Route::post('/bookings/{booking}/cancel', [AdminBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::put('/bookings/{booking}/consultation-record', [AdminBookingController::class, 'updateConsultationRecord'])->name('bookings.consultation-record.update');
+    Route::post('/bookings/{booking}/reset-consultation-record', [AdminBookingController::class, 'resetConsultationRecord'])->name('bookings.reset-consultation-record');
     Route::put('/bookings/{booking}/notes', [AdminBookingController::class, 'updateNotes'])->name('bookings.notes.update');
     Route::post('/bookings/{booking}/guest-email', [AdminGuestEmailController::class, 'send'])->name('bookings.guest-email.send');
 

@@ -556,12 +556,17 @@ class NotificationService
             return;
         }
 
-        // 初回のみ通知（追記時は飛ばさない）
-        $alreadyNotified = NotificationLog::where('booking_id', $booking->id)
+        // 初回のみ通知（追記時は飛ばさない）。
+        // ただし記録のリカバリー（初期化/確定への差戻し）が行われた後の再入力は
+        // 「初回入力」扱いで通知するため、リセット時刻以降のログのみを見る。
+        $query = NotificationLog::where('booking_id', $booking->id)
             ->where('channel', 'chatwork_system')
             ->where('type', 'consultation_record')
-            ->where('status', 'sent')
-            ->exists();
+            ->where('status', 'sent');
+        if ($booking->consultation_record_reset_at) {
+            $query->where('created_at', '>', $booking->consultation_record_reset_at);
+        }
+        $alreadyNotified = $query->exists();
         if ($alreadyNotified) {
             return;
         }
