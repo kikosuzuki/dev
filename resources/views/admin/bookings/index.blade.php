@@ -244,7 +244,7 @@
                                     }
                                 }">
                                 <div class="flex items-center gap-2">
-                                    @if($booking->isApproved() || $booking->status === 'completed')
+                                    @if($booking->canEnterConsultationRecord())
                                         <div x-data="{
                                             showRecordModal: false,
                                             saving: false,
