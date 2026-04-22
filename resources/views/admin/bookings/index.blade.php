@@ -331,6 +331,21 @@
                                                                 </button>
                                                             </div>
                                                         </form>
+
+                                                        {{-- 誤操作リカバリー用の操作 --}}
+                                                        @if($booking->status === 'completed' || $booking->consultation_result || $booking->important_document_issued)
+                                                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                                                <p class="text-xs font-semibold text-gray-500 mb-2">リカバリー操作（誤操作時のみ）</p>
+                                                                <form method="POST" action="{{ route('admin.bookings.reset-consultation-record', $booking) }}"
+                                                                    onsubmit="return confirm('相談結果と重要事項フラグを初期化します（相談メモは保持されます）。完了状態の場合は確定済みに戻ります。よろしいですか？');">
+                                                                    @csrf
+                                                                    <button type="submit"
+                                                                        class="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
+                                                                        記録を初期化し、確定済みに戻す
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
