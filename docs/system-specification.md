@@ -327,7 +327,15 @@ bookings ── notification_logs (1:N)
 | sendMorningChatworkNotification | Booking | 朝のChatwork通知 |
 | sendConsultationRecordNotification | Booking | 相談記録入力の通知 |
 
-**重複防止:** notification_logs テーブルで同一予約・チャネル・タイプの送信済みチェック。相談記録リセット後は `consultation_record_reset_at` 以降のログのみ参照。
+**重複送信防止の仕組み:**
+
+| 対策 | 説明 |
+|------|------|
+| NotificationLog チェック | 同一予約・同一チャネル・同一タイプの通知が直近1時間以内に送信済みの場合はスキップ |
+| システムルーム重複防止 | コンサルタントの個人 Chatwork ルームとシステム通知ルームが同一の場合、システム通知をスキップ |
+| 朝の通知フラグ | `morning_chatwork_sent` フラグにより、スケジューラーが複数回実行されても重複送信しない |
+| リマインダーフラグ | `reminder_day_before_sent` / `reminder_day_of_sent` / `reminder_10min_sent` フラグで各リマインダーの送信を1回に制限 |
+| 相談記録リセット後 | `consultation_record_reset_at` 以降の通知ログのみ参照し、リセット後の再入力を「初回」として通知 |
 
 ### 4.2 GoogleCalendarService
 
@@ -340,6 +348,28 @@ Google Calendar API との連携を管理するサービス。
 | checkSlotConflict(...) | 指定カレンダーと時間枠の重複チェック |
 | listCalendars(token) | カレンダー一覧取得 |
 | listAllCalendars(token) | 全カレンダー一覧（委任含む） |
+
+**イベント作成時の内容:**
+
+| 項目 | 内容 |
+|------|------|
+| タイトル | 予約者名 + コンサルタント名 |
+| 日時 | 予約の開始〜終了時間 |
+| 出席者 | 予約者メール + コンサルタントメール |
+| リマインダー | メール（1日前）+ ポップアップ（10分前） |
+| 説明 | 予約タイプ、備考等 |
+
+**エラー時の動作:** Google カレンダー連携はオプション扱い。API エラーが発生しても予約処理自体は継続する。
+
+**同期先カレンダー変更時の挙動:**
+
+| 操作 | 結果 |
+|------|------|
+| 旧カレンダーの既存イベント | そのまま残る（移動・削除されない） |
+| 変更後の新規予約 | 新しいカレンダーにイベント作成 |
+| 変更前の予約のキャンセル | 作成時のカレンダーIDが予約に記録されているため、正しいカレンダーからイベント削除 |
+
+※ 予約作成時に使用したカレンダーID（管理者・コンサルタント両方）を `bookings` テーブルの `admin_google_calendar_id` / `consultant_google_calendar_id` に保存し、キャンセル時にそのIDを参照して削除する。
 
 ### 4.3 ChatworkService
 
@@ -416,7 +446,29 @@ Google Calendar API との連携を管理するサービス。
 | morning_chatwork | - | CW | - |
 | consultation_record | - | - | CW |
 
-### 7.3 テンプレートプレースホルダー
+### 7.3 Chatwork 連携仕様
+
+**システム通知:** 予約確認・キャンセル時に、システム設定の `chatwork_room_id` で指定されたルームにメッセージが自動送信される。コンサルタントへのメンション（`[To:account_id]`）付き。
+
+**ユーザー個別通知:** 各ユーザーに以下が設定されている場合、そのユーザーの Chatwork ルームに個別通知が送られる。
+
+| ユーザー設定 | 説明 |
+|-------------|------|
+| `chatwork_id` | Chatwork のアカウント ID |
+| `chatwork_room_id` | 通知先のルーム ID |
+| `notify_chatwork` | 通知の ON/OFF |
+
+### 7.4 LINE 連携仕様
+
+以下の条件を全て満たす場合にプッシュメッセージを送信する。
+
+| 条件 | 説明 |
+|------|------|
+| `line_user_id` | ユーザーに LINE ユーザーID が設定されている |
+| `notify_line` | ユーザーの LINE 通知設定が ON |
+| `line_enabled` | システム設定で LINE 通知が有効 |
+
+### 7.5 テンプレートプレースホルダー
 
 | プレースホルダー | 置換内容 |
 |-----------------|----------|
@@ -449,17 +501,71 @@ Google Calendar API との連携を管理するサービス。
 | reminder_day_of_enabled / _hour | 当日リマインダー ON/OFF・時刻 |
 | reminder_minutes_before_enabled / _minutes | 直前リマインダー ON/OFF・分数 |
 
+### テンプレート設定
+
+| キー | 説明 |
+|------|------|
+| `booking_confirm_email_subject` | 予約確認メール件名 |
+| `booking_confirm_email_body` | 予約確認メール本文 |
+| `booking_confirm_line_message` | 予約確認 LINE メッセージ |
+| `cancel_notification_email_subject` | キャンセル通知メール件名 |
+| `cancel_notification_email_body` | キャンセル通知メール本文 |
+| `cancel_notification_line_message` | キャンセル通知 LINE メッセージ |
+| `reminder_*_email_subject` | リマインダーメール件名 |
+| `reminder_*_email_body` | リマインダーメール本文 |
+| `reminder_*_line_message` | リマインダー LINE メッセージ |
+
+### Chatwork テンプレート
+
+| キー | 説明 |
+|------|------|
+| `chatwork_booking_confirm_message` | 予約確認 Chatwork メッセージ |
+| `chatwork_cancel_notification_message` | キャンセル Chatwork メッセージ |
+| `chatwork_morning_notification_message` | 朝の通知 Chatwork メッセージ |
+
 ### 外部連携設定
 
 | キー | 説明 |
 |------|------|
-| line_channel_token / _secret / _enabled | LINE API 設定 |
-| chatwork_api_token / _room_id / _enabled | Chatwork API 設定 |
-| google_calendar_enabled / _refresh_token / _calendar_id | Google カレンダー設定 |
+| `line_channel_token` | LINE チャネルトークン |
+| `line_channel_secret` | LINE チャネルシークレット |
+| `line_enabled` | LINE 通知の有効/無効 |
+| `chatwork_api_token` | Chatwork API トークン |
+| `chatwork_room_id` | Chatwork システム通知ルーム ID |
+| `chatwork_enabled` | Chatwork 通知の有効/無効 |
+| `google_calendar_enabled` | Google カレンダーの有効/無効 |
+| `google_refresh_token` | 管理者 Google リフレッシュトークン |
+| `google_calendar_id` | 管理者カレンダー ID |
 
 ---
 
-## 9. 予約ステータス遷移
+## 9. ヘルパークラス・スコープ
+
+### 9.1 JapaneseHolidays ヘルパー
+
+スケジュール一括作成時の祝日スキップに使用する日本の祝日判定クラス。
+
+| 対応祝日 |
+|----------|
+| 元日、成人の日、建国記念日、天皇誕生日 |
+| 春分の日、秋分の日 |
+| 昭和の日、憲法記念日、みどりの日、こどもの日 |
+| 海の日、山の日、敬老の日、スポーツの日 |
+| 文化の日、勤労感謝の日 |
+| ハッピーマンデー、振替休日、国民の休日 |
+
+### 9.2 ConsultantSchedule 主要スコープ
+
+| スコープ | 説明 |
+|----------|------|
+| `upcoming()` | 現在以降のスケジュールのみ |
+| `withinDailyLimit()` | 1日上限（`max_bookings_per_day`）に達していないスケジュールのみ |
+| `acceptingBookings()` | 予約受付が ON（`booking_acceptance_enabled`）のコンサルタントのスケジュールのみ |
+| `notCalendarBlocked()` | カレンダー重複でブロックされていないスケジュールのみ |
+
+---
+
+## 10. 予約ステータス遷移
 
 ```
 作成 ──▶ [approved（承認済み）]
