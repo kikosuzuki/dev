@@ -25,16 +25,6 @@ class BookingController extends Controller
         $search = $request->get('search');
 
         $now = now();
-        $endDate = match ($period) {
-            '1week' => $now->copy()->addWeek(),
-            '2weeks' => $now->copy()->addWeeks(2),
-            '1month' => $now->copy()->addMonth(),
-            '2months' => $now->copy()->addMonths(2),
-            '3months' => $now->copy()->addMonths(3),
-            '6months' => $now->copy()->addMonths(6),
-            'all' => null,
-            default => $now->copy()->addMonth(),
-        };
 
         $query = Booking::with(['user', 'consultant', 'schedule']);
 
@@ -50,12 +40,11 @@ class BookingController extends Controller
             $query->whereIn('status', ['approved', 'completed', 'cancelled']);
         }
 
-        if ($endDate) {
-            $query->where('booking_date', '>=', $now->toDateString())
-                  ->where('booking_date', '<=', $endDate->toDateString());
-        } else {
-            $query->where('booking_date', '>=', $now->toDateString());
-        }
+        // ステータスに応じて期間フィルタの向きを切り替える
+        // - approved（既定）：未来方向（今日〜period後）これから実施される予約の確認用途
+        // - completed/cancelled：過去方向（period前〜今日）実施済み/中止予約の遡及確認用途
+        // - all：過去〜未来両方向
+        $this->applyDateRangeFilter($query, $now, $period, $status);
 
         if ($consultant_id) {
             $query->where('consultant_id', $consultant_id);
@@ -130,16 +119,6 @@ class BookingController extends Controller
         $search = $request->get('search');
 
         $now = now();
-        $endDate = match ($period) {
-            '1week' => $now->copy()->addWeek(),
-            '2weeks' => $now->copy()->addWeeks(2),
-            '1month' => $now->copy()->addMonth(),
-            '2months' => $now->copy()->addMonths(2),
-            '3months' => $now->copy()->addMonths(3),
-            '6months' => $now->copy()->addMonths(6),
-            'all' => null,
-            default => $now->copy()->addMonth(),
-        };
 
         $query = Booking::with(['user', 'consultant', 'schedule']);
 
@@ -153,12 +132,7 @@ class BookingController extends Controller
             $query->whereIn('status', ['approved', 'completed', 'cancelled']);
         }
 
-        if ($endDate) {
-            $query->where('booking_date', '>=', $now->toDateString())
-                  ->where('booking_date', '<=', $endDate->toDateString());
-        } else {
-            $query->where('booking_date', '>=', $now->toDateString());
-        }
+        $this->applyDateRangeFilter($query, $now, $period, $status);
 
         if ($consultant_id) {
             $query->where('consultant_id', $consultant_id);
@@ -529,5 +503,63 @@ class BookingController extends Controller
         AuditLog::log('consultation_record_reset', $booking);
 
         return back()->with('success', '相談記録を初期化しました。');
+    }
+
+    /**
+     * 予約日の期間フィルタをステータスに応じた向きで適用する。
+     * - approved（既定）：未来方向（今日〜period後）
+     * - completed/cancelled：過去方向（period前〜今日）
+     * - all：過去〜未来両方向
+     * - period が 'all' の場合は対応する側の境界を外す
+     */
+    private function applyDateRangeFilter($query, $now, string $period, ?string $status): void
+    {
+        $endDate = match ($period) {
+            '1week' => $now->copy()->addWeek(),
+            '2weeks' => $now->copy()->addWeeks(2),
+            '1month' => $now->copy()->addMonth(),
+            '2months' => $now->copy()->addMonths(2),
+            '3months' => $now->copy()->addMonths(3),
+            '6months' => $now->copy()->addMonths(6),
+            'all' => null,
+            default => $now->copy()->addMonth(),
+        };
+        $startDate = match ($period) {
+            '1week' => $now->copy()->subWeek(),
+            '2weeks' => $now->copy()->subWeeks(2),
+            '1month' => $now->copy()->subMonth(),
+            '2months' => $now->copy()->subMonths(2),
+            '3months' => $now->copy()->subMonths(3),
+            '6months' => $now->copy()->subMonths(6),
+            'all' => null,
+            default => $now->copy()->subMonth(),
+        };
+
+        $today = $now->toDateString();
+
+        if ($status === 'completed' || $status === 'cancelled') {
+            // 過去方向
+            if ($startDate) {
+                $query->where('booking_date', '>=', $startDate->toDateString())
+                      ->where('booking_date', '<=', $today);
+            } else {
+                $query->where('booking_date', '<=', $today);
+            }
+        } elseif ($status === 'all') {
+            // 過去〜未来両方向
+            if ($startDate && $endDate) {
+                $query->where('booking_date', '>=', $startDate->toDateString())
+                      ->where('booking_date', '<=', $endDate->toDateString());
+            }
+            // period=all のときは期間フィルタなし
+        } else {
+            // approved（既定）：未来方向
+            if ($endDate) {
+                $query->where('booking_date', '>=', $today)
+                      ->where('booking_date', '<=', $endDate->toDateString());
+            } else {
+                $query->where('booking_date', '>=', $today);
+            }
+        }
     }
 }
