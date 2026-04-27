@@ -12,7 +12,7 @@ PR #24で追加した「カレンダー重複チェックバッチ」が本番�
 ## 作業1: マイグレーション実行確認
 
 ```bash
-cd /home/ctwasia2/ycscampaign.com/consul-app
+cd ~/ycscampaign.com/public_html/consul
 php artisan migrate:status
 ```
 
@@ -39,7 +39,7 @@ Laravelスケジューラーを動かすために、cron設定が必要です。
    - **日**: `*`
    - **月**: `*`
    - **曜日**: `*`
-   - **コマンド**: `cd /home/ctwasia2/ycscampaign.com/consul-app && php artisan schedule:run >> /dev/null 2>&1`
+   - **コマンド**: `cd ~/ycscampaign.com/public_html/consul && php artisan schedule:run >> /dev/null 2>&1`
 
 ### SSHから設定する場合
 ```bash
@@ -47,7 +47,7 @@ crontab -e
 ```
 以下の行を追加：
 ```
-* * * * * cd /home/ctwasia2/ycscampaign.com/consul-app && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/ycscampaign.com/public_html/consul && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### 補足
@@ -65,7 +65,7 @@ crontab -e
 
 ### バッチ手動実行
 ```bash
-cd /home/ctwasia2/ycscampaign.com/consul-app
+cd ~/ycscampaign.com/public_html/consul
 php artisan calendar:sync-conflicts -v
 ```
 

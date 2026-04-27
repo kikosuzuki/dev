@@ -31,7 +31,7 @@
 | 項目 | 値 |
 |------|------|
 | ホスティング | Xserver |
-| アプリケーションパス | `/home/ctwasia2/ycscampaign.com/consul-app` |
+| アプリケーションパス | `~/ycscampaign.com/public_html/consul/` |
 | 公開URL | `https://ycscampaign.com/consul/consultation` |
 | タイムゾーン | Asia/Tokyo |
 | ロケール | ja |

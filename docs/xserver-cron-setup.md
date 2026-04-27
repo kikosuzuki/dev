@@ -5,7 +5,7 @@
 Xserverサーバーパネル → cron設定で以下を追加：
 
 ```
-* * * * * cd /home/ctwasia2/ycscampaign.com/consul-app && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd ~/ycscampaign.com/public_html/consul && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 これにより以下のバッチが自動実行されます：
@@ -20,7 +20,7 @@ Xserverサーバーパネル → cron設定で以下を追加：
 デプロイ後に以下を実行：
 
 ```bash
-cd /home/ctwasia2/ycscampaign.com/consul-app
+cd ~/ycscampaign.com/public_html/consul
 php artisan migrate --force
 ```
 
