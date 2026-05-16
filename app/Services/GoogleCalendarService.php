@@ -94,7 +94,10 @@ class GoogleCalendarService
             return null;
         }
 
-        $event = $this->buildEventPayload($booking);
+        // コンサルタント本人のカレンダーに書き込むため、attendees から本人を除外する。
+        // 本人を attendees に含めると Google 側で responseStatus が needsAction となり
+        // 仮表示（未応答）になるため、所有者を外して「自分が作成した予定」として確定表示にする。
+        $event = $this->buildEventPayload($booking, true);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $accessToken,
