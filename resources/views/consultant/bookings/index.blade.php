@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="w-full px-4 sm:px-6 py-6">
     <h1 class="text-2xl font-bold text-gray-900 mb-8">予約管理</h1>
 
     @if(session('success'))
@@ -112,20 +112,20 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談結果</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談結果</th>
+                            <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($bookings as $booking)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-2 py-3">
                                     <div class="flex items-center space-x-2">
                                         <div class="text-sm font-medium text-gray-900">{{ $booking->bookerName() }}</div>
                                         @if($booking->isGuest())
@@ -133,18 +133,18 @@
                                         @endif
                                     </div>
                                     @if($booking->isGuest())
-                                        <div class="text-sm text-gray-500">{{ $booking->guest_email }}</div>
-                                        <div class="text-sm text-gray-500">{{ $booking->guest_phone }}</div>
+                                        <div class="text-xs text-gray-500 break-all">{{ $booking->guest_email }}</div>
+                                        <div class="text-xs text-gray-500">{{ $booking->guest_phone }}</div>
                                     @else
-                                        <div class="text-sm text-gray-500">{{ $booking->user->email }}</div>
+                                        <div class="text-xs text-gray-500 break-all">{{ $booking->user->email }}</div>
                                     @endif
                                     @if($booking->notes)
-                                        <div class="text-sm text-gray-500 mt-1">
+                                        <div class="text-xs text-gray-500 mt-1">
                                             <span class="font-medium text-gray-600">備考:</span> {{ Str::limit($booking->notes, 50) }}
                                         </div>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
                                     @if($booking->isGuest() && $booking->guest_referrer)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                             {{ $booking->guest_referrer }}
@@ -153,14 +153,14 @@
                                         <span class="text-gray-400">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
                                     {{ $booking->booking_date->format('Y/m/d') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
+                                <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                <td class="px-2 py-3 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                                         @if($booking->status === 'approved') bg-green-100 text-green-800
                                         @elseif($booking->status === 'completed') bg-blue-100 text-blue-800
                                         @elseif($booking->status === 'cancelled') bg-gray-100 text-gray-800
@@ -171,7 +171,7 @@
                                         @endif
                                     </span>
                                 </td>
-                                <td class="px-6 py-4" x-data="{ showNotesModal: false }">
+                                <td class="px-2 py-3 whitespace-nowrap" x-data="{ showNotesModal: false }">
                                     @php
                                         $currentNotes = $booking->admin_notes;
                                     @endphp
@@ -216,24 +216,24 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-2 py-3 whitespace-nowrap">
                                     @if($booking->consultation_result === 'success')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">成約</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">成約</span>
                                     @elseif($booking->consultation_result === 'failure')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">不成約</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">不成約</span>
                                     @elseif($booking->consultation_result === 'pending')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">検討中</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">検討中</span>
                                     @else
                                         <span class="text-gray-400 text-xs">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-sm">
-                                    <div class="flex flex-wrap items-center gap-1.5">
+                                <td class="px-2 py-3 text-sm">
+                                    <div class="flex flex-wrap items-center gap-1">
                                         {{-- Cancel button (approved only) --}}
                                         @if($booking->isApproved())
                                             <div x-data="{ showCancelModal: false }">
                                                 <button type="button" @click="showCancelModal = true"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                                                    class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
                                                     キャンセル
                                                 </button>
 
@@ -288,8 +288,8 @@
                                         {{-- Email Send Button --}}
                                             <div x-data="{ showEmailModal: false }">
                                                 <button type="button" @click="showEmailModal = true"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                    class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                                     メール
                                                 </button>
 
@@ -337,8 +337,8 @@
                                         @if($booking->canEnterConsultationRecord())
                                             <div x-data="{ showRecordModal: false }">
                                                 <button type="button" @click="showRecordModal = true"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                                    <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                     記録
                                                 </button>
 
