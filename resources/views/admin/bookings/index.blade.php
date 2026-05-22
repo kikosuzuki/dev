@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="w-full px-4 sm:px-6 py-6">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">予約一覧</h1>
 
     {{-- Filters --}}
@@ -78,7 +78,7 @@
 
     {{-- Results --}}
     <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div class="px-4 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900">
                 予約一覧
                 <span class="ml-2 text-sm font-normal text-gray-500">（{{ $periods[$period] ?? '' }}）</span>
@@ -107,43 +107,43 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種別</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">コンサルタント</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約日</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談結果</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約ID</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">種別</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約者</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">コンサルタント</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">予約日</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">時間</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ステータス</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">相談結果</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">メモ</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">紹介者</th>
+                        <th class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($bookings as $booking)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ $booking->id }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">#{{ $booking->id }}</td>
+                            <td class="px-2 py-3 whitespace-nowrap">
                                 @if($booking->isGuest())
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">個別相談</span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">会員</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">会員</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-2 py-3 text-sm text-gray-900">
                                 <div>{{ $booking->bookerName() }}</div>
                                 @if($booking->isGuest())
-                                    <div class="text-xs text-gray-500">{{ $booking->guest_email }}</div>
+                                    <div class="text-xs text-gray-500 break-all">{{ $booking->guest_email }}</div>
                                     <div class="text-xs text-gray-500">{{ $booking->guest_phone }}</div>
                                 @else
-                                    <div class="text-xs text-gray-500">{{ $booking->user->email ?? '' }}</div>
+                                    <div class="text-xs text-gray-500 break-all">{{ $booking->user->email ?? '' }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->consultant->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">{{ $booking->consultant->name }}</td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
+                            <td class="px-2 py-3 whitespace-nowrap">
                                 @if($booking->status === 'approved')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">確定</span>
                                 @elseif($booking->status === 'completed')
@@ -153,19 +153,19 @@
                                 @endif
                             </td>
                             {{-- 相談結果 --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-3 whitespace-nowrap">
                                 @if($booking->consultation_result === 'success')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">成約</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">成約</span>
                                 @elseif($booking->consultation_result === 'failure')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">不成約</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">不成約</span>
                                 @elseif($booking->consultation_result === 'pending')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">検討中</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">検討中</span>
                                 @else
                                     <span class="text-gray-400 text-xs">-</span>
                                 @endif
                             </td>
                             {{-- メモ --}}
-                            <td class="px-6 py-4" x-data="{ showNotesModal: false }">
+                            <td class="px-2 py-3 whitespace-nowrap" x-data="{ showNotesModal: false }">
                                 @if($booking->admin_notes)
                                     <button type="button" @click="showNotesModal = true"
                                         class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
@@ -209,7 +209,7 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">
                                 @if($booking->isGuest() && $booking->guest_referrer)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                         {{ $booking->guest_referrer }}
@@ -229,7 +229,7 @@
                                     ];
                                 });
                             @endphp
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium"
+                            <td class="px-2 py-3 whitespace-nowrap text-sm font-medium"
                                 x-data="{
                                     emailOpen: false,
                                     cancelOpen: false,
@@ -243,7 +243,7 @@
                                         }
                                     }
                                 }">
-                                <div class="flex items-center gap-2">
+                                <div class="flex flex-wrap items-center gap-1">
                                     @if($booking->canEnterConsultationRecord())
                                         <div x-data="{
                                             showRecordModal: false,
@@ -276,8 +276,8 @@
                                             }
                                         }">
                                             <button type="button" @click="showRecordModal = true"
-                                                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                class="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                                <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 記録
                                             </button>
                                             <div x-show="showRecordModal" x-cloak @keydown.escape.window="showRecordModal = false"
@@ -353,15 +353,15 @@
                                     @endif
 
                                     @if($booking->isGuest() && $booking->guest_email)
-                                        <button @click="emailOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">
-                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        <button @click="emailOpen = true" type="button" class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition">
+                                            <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                             メール
                                         </button>
                                     @endif
 
                                     @if($booking->canCancel())
-                                        <button @click="cancelOpen = true" type="button" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition">
-                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        <button @click="cancelOpen = true" type="button" class="inline-flex items-center px-2 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 transition">
+                                            <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                             キャンセル
                                         </button>
                                     @endif
