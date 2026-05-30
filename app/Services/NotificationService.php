@@ -70,7 +70,8 @@ class NotificationService
 
         // System Room ID notification
         $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultant->name}\n■ 日時: {$date} {$time}"
-            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
+            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
         $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
@@ -136,7 +137,8 @@ class NotificationService
 
         // System Room ID notification
         $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
-            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
+            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
         $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
@@ -295,7 +297,8 @@ class NotificationService
         };
         if ($chatworkSettingKey) {
             $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
-                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
+                . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
             $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
         }
     }
@@ -373,7 +376,8 @@ class NotificationService
         };
         if ($chatworkSettingKey) {
             $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
-                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+                . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
+                . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
             $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
         }
     }
@@ -508,9 +512,11 @@ class NotificationService
         $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
         $importantDocumentUrl = $consultantProfile?->important_document_url ?? '';
 
+        $notes = $booking->notes ?? '';
+
         $customMessage = SystemSetting::get($settingKey, '');
         $message = $customMessage
-            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $bookerEmail, $bookerPhone)
+            ? $this->replacePlaceholders($customMessage, $bookerName, $dateTime, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $bookerEmail, $bookerPhone, $notes)
             : $defaultMessage;
 
         try {
@@ -538,7 +544,8 @@ class NotificationService
         $chatworkId = $consultantProfile?->chatwork_account_id ?? '';
 
         $defaultMessage = "本日の予約があります。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
-            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '');
+            . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
+            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
 
         $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
     }
@@ -604,11 +611,11 @@ class NotificationService
         }
     }
 
-    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = ''): string
+    private function replacePlaceholders(string $text, string $name, string $date, string $consultantName = '', string $meetingUrl = '', string $chatworkId = '', string $importantDocumentUrl = '', string $email = '', string $phone = '', string $notes = ''): string
     {
         return str_replace(
-            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}', '{email}', '{phone}'],
-            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $email, $phone],
+            ['{name}', '{date}', '{consultant}', '{meeting_url}', '{chatwork_id}', '{important_document_url}', '{email}', '{phone}', '{notes}'],
+            [$name, $date, $consultantName, $meetingUrl, $chatworkId, $importantDocumentUrl, $email, $phone, $notes],
             $text
         );
     }

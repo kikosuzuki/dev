@@ -139,8 +139,8 @@
                                         <div class="text-xs text-gray-500 break-all">{{ $booking->user->email }}</div>
                                     @endif
                                     @if($booking->notes)
-                                        <div class="text-xs text-gray-500 mt-1">
-                                            <span class="font-medium text-gray-600">備考:</span> {{ Str::limit($booking->notes, 50) }}
+                                        <div class="text-xs text-gray-500 mt-1 whitespace-pre-wrap break-words">
+                                            <span class="font-medium text-gray-600">備考:</span> {{ $booking->notes }}
                                         </div>
                                     @endif
                                 </td>
