@@ -141,7 +141,7 @@
                                 @endif
                                 @if($booking->notes)
                                     <div class="text-xs text-gray-500 mt-1">
-                                        <span class="font-medium text-gray-600">ご相談内容:</span>
+                                        <span class="font-medium text-gray-600">備考:</span>
                                         <span class="whitespace-pre-wrap break-words">{{ $booking->notes }}</span>
                                     </div>
                                 @endif
