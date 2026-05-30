@@ -71,7 +71,7 @@ class NotificationService
         // System Room ID notification
         $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultant->name}\n■ 日時: {$date} {$time}"
             . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
-            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
+            . ($booking->notes ? "\n■ 備考: {$booking->notes}" : '');
         $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
@@ -138,7 +138,7 @@ class NotificationService
         // System Room ID notification
         $defaultCwMsg = "新しい予約が入りました。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
             . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
-            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
+            . ($booking->notes ? "\n■ 備考: {$booking->notes}" : '');
         $this->sendSystemChatwork($booking, 'chatwork_booking_confirm_message', $defaultCwMsg);
     }
 
@@ -298,7 +298,7 @@ class NotificationService
         if ($chatworkSettingKey) {
             $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$guestName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
                 . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
-                . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
+                . ($booking->notes ? "\n■ 備考: {$booking->notes}" : '');
             $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
         }
     }
@@ -377,7 +377,7 @@ class NotificationService
         if ($chatworkSettingKey) {
             $defaultCwMsg = "{$typeLabel}、予約があります。\n■ 予約者: {$user->name}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
                 . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
-                . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
+                . ($booking->notes ? "\n■ 備考: {$booking->notes}" : '');
             $this->sendSystemChatwork($booking, $chatworkSettingKey, $defaultCwMsg);
         }
     }
@@ -545,7 +545,7 @@ class NotificationService
 
         $defaultMessage = "本日の予約があります。\n■ 予約者: {$bookerName}\n■ コンサルタント: {$consultantName}\n■ 日時: {$dateTime}"
             . ($meetingUrl ? "\n■ ミーティングURL: {$meetingUrl}" : '')
-            . ($booking->notes ? "\n■ ご相談内容: {$booking->notes}" : '');
+            . ($booking->notes ? "\n■ 備考: {$booking->notes}" : '');
 
         $this->sendSystemChatwork($booking, 'chatwork_morning_notification_message', $defaultMessage);
     }
