@@ -139,6 +139,11 @@
                                 @else
                                     <div class="text-xs text-gray-500 break-all">{{ $booking->user->email ?? '' }}</div>
                                 @endif
+                                @if($booking->notes)
+                                    <div class="text-xs text-gray-500 mt-1 whitespace-pre-wrap break-words">
+                                        <span class="font-medium text-gray-600">ご相談内容:</span> {{ $booking->notes }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">{{ $booking->consultant->name }}</td>
                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-900">{{ $booking->booking_date->format('Y/m/d (D)') }}</td>
