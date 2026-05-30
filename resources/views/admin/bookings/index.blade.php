@@ -140,8 +140,9 @@
                                     <div class="text-xs text-gray-500 break-all">{{ $booking->user->email ?? '' }}</div>
                                 @endif
                                 @if($booking->notes)
-                                    <div class="text-xs text-gray-500 mt-1 whitespace-pre-wrap break-words">
-                                        <span class="font-medium text-gray-600">ご相談内容:</span> {{ $booking->notes }}
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <span class="font-medium text-gray-600">ご相談内容:</span>
+                                        <span class="whitespace-pre-wrap break-words">{{ $booking->notes }}</span>
                                     </div>
                                 @endif
                             </td>
