@@ -170,9 +170,8 @@
                                 @endif
                             </td>
                             {{-- メモ --}}
-                            <td class="px-2 py-3 align-top" x-data="{ showNotesModal: false }">
+                            <td class="px-2 py-3 whitespace-nowrap" x-data="{ showNotesModal: false }">
                                 @if($booking->admin_notes)
-                                    <div class="text-xs text-gray-700 mb-2 whitespace-pre-wrap break-words max-w-xs">{!! preg_replace('/(https?:\/\/[^\s<]+)/', '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">$1</a>', e($booking->admin_notes)) !!}</div>
                                     <button type="button" @click="showNotesModal = true"
                                         class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
                                         <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
